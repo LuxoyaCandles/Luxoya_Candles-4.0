@@ -245,26 +245,35 @@ Luxoya-3.0/
 
 ---
 
-## 🛡️ System Stability & Hardening Audit (April 2026)
+## 🌎 Luxoya 4.1 — International Hardening (Latest Release)
 
-Following a comprehensive production-grade audit, the platform has been hardened for high-traffic and resilient operations.
+In the latest April 2026 update, the platform has transitioned from a domestic (Pan-India) focus to a **Global Storefront** with a focus on immersive video commerce and international reliability.
 
-### 1. Database Resilience (Fault Tolerance)
-- **Transactional Safety**: Over 30 critical commit points (Orders, Cart, Inventory) have been wrapped in `try-except` wrappers.
-- **Auto-Rollback**: Connection "blinks" or timeouts now trigger automatic session rollbacks and return helpful error messages instead of a system crash.
-- **Migration Path**: Included `patch_db.py` to handle `view_count` and other schema updates for existing production databases.
+### 1. Internationalization & Branding
+- **Global Footprint**: Rebranded all "Proudly Indian" messaging to **"International Shipping"** and **"Worldwide Reach"** across the footer, trust badges, and home sections.
+- **Unit Standardization**: All product specifications are now globally standardized:
+    - **Weight**: Displayed in **`grms`** (grams).
+    * **Burn Time**: Displayed in **`hrs`** (hours).
+- **Global Trust Badges**: Updated trust section to emphasize **"Express Worldwide Delivery"** and **"Shipping to 20+ Countries"**.
 
-### 2. Role-Based Permission Expansion
-- **Sales Console**: Expanded access for users with the `sales` role. They now have read/write access to **Inventory, Finance, and Manufacturing** tools to manage day-to-day operations.
-- **UI Dynamics**: The admin sidebar dynamically rebrands to "Sales Console" and hides strategic settings when accessed by non-admin staff.
+### 2. "Shop by Video" — Immersive Reels
+- **Native Experience**: Implemented a social-media-style "Reels" interface for video-driven discovery.
+- **Autoplay Logic**: Videos **autoplay on scroll** (muted by default) to maximize customer engagement without intrusive audio.
+- **Audio Toggle**: Dedicated unmuting logic that allows customers to "unmute" one reel while keeping others silent for a seamless browsing experience.
+- **Dedicated Reels Page**: A fully vertical, swipe-capable Reels dashboard (`/reels`) designed for high-end mobile devices.
 
-### 3. Integrated Logistics Hardening
-- **Shiprocket Sync**: Hardened the API linkage to ensure that failed database updates after a successful Shiprocket order creation are logged and flagged, preventing record mismatches.
-- **Bulk Operations**: Added bulk status management (Confirmed/Processing) to handle seasonal demand spikes.
+### 3. Legal & Content Framework
+- **Comprehensive Policies**: Implemented a full suite of professional legal documents:
+    - `Shipping Policy`: Detailed domestic and international terms.
+    - `Returns & Refunds`: 7-day luxury quality assurance terms.
+    - `Privacy Policy`: Transparent data handling.
+    - `Terms of Service`: Global governance.
+- **Luxoya Stories (Blog)**: A dynamic journal for fragrance masters to share "The Psychology of Scent" and "Candle Styling Tips".
 
-### 4. Premium Error Recovery
-- **Branded 500 Page**: Replaced the generic error page with a Luxoya-branded "System Out of Sync" portal.
-- **Graceful Exit**: Includes a "Go Back" path and support links to maintain brand trust during temporary infrastructure hiccups.
+### 4. Interactive & UI Hardening
+- **Hero Slider 2.0**: Hardened the homepage hero section with **manual touch gesture detection**, bypassing OS-level gesture conflicts for 100% reliable swiping on iOS and Android.
+- **Footer Realignment**: Optimized the desktop footer layout (3-2-2-2-3 distribution) for better visual balance on ultra-wide screens.
+- **JS Performance**: Removed stray script residues and consolidated initialization logic for faster TTI (Time to Interactive).
 
 ---
 
