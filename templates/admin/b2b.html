@@ -1,0 +1,105 @@
+{% extends "admin/base.html" %}
+{% block title %}B2B Requests{% endblock %}
+{% block page_title %}B2B / Corporate Requests{% endblock %}
+
+{% block admin_content %}
+<div class="admin-card">
+    <div class="d-flex gap-2 mb-3">
+        <select id="filterB2B" class="form-select form-select-sm w-auto">
+            <option value="">All</option>
+            <option value="pending">Pending</option>
+            <option value="reviewed">Reviewed</option>
+            <option value="quoted">Quoted</option>
+            <option value="accepted">Accepted</option>
+            <option value="rejected">Rejected</option>
+        </select>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Company</th><th>Contact</th><th>Quantity</th><th>Budget</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="b2bTable"><tr><td colspan="7" class="text-center py-4">Loading...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- B2B Detail Modal -->
+<div class="modal fade" id="b2bModal" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">B2B Request Detail</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body" id="b2bDetailBody"></div>
+    <div class="modal-footer">
+        <select id="b2bStatus" class="form-select form-select-sm w-auto">
+            <option value="pending">Pending</option><option value="reviewed">Reviewed</option><option value="quoted">Quoted</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option>
+        </select>
+        <input type="number" id="b2bQuote" class="form-control form-control-sm" placeholder="Quote ₹" style="width:120px">
+        <input type="hidden" id="b2bId">
+        <button class="btn btn-gold btn-sm" onclick="updateB2B()">Update</button>
+    </div>
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadB2B() {
+    const status = document.getElementById('filterB2B').value;
+    const url = '/admin/api/b2b' + (status ? `?status=${status}` : '');
+    const res = await fetch(url, {credentials: 'same-origin'});
+    const data = await res.json();
+    const list = data.requests || [];
+    const tbody = document.getElementById('b2bTable');
+    if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No requests</td></tr>'; return; }
+    const sc = {pending:'warning',reviewed:'info',quoted:'primary',accepted:'success',rejected:'danger'};
+    tbody.innerHTML = list.map(b => `
+        <tr>
+            <td><strong>${b.company_name}</strong></td>
+            <td>${b.contact_person}<br><small class="text-muted">${b.email}</small></td>
+            <td>${b.quantity}</td>
+            <td>${b.budget_range || '-'}</td>
+            <td><span class="badge bg-${sc[b.status]||'secondary'}">${b.status}</span></td>
+            <td class="text-muted small">${new Date(b.created_at).toLocaleDateString('en-IN')}</td>
+            <td><button class="btn btn-sm btn-outline-dark" onclick="viewB2B(${JSON.stringify(b).replace(/"/g,'&quot;')})"><i class="bi bi-eye"></i></button></td>
+        </tr>
+    `).join('');
+}
+
+function viewB2B(b) {
+    document.getElementById('b2bId').value = b.id;
+    document.getElementById('b2bStatus').value = b.status;
+    document.getElementById('b2bQuote').value = b.quotation_amount || '';
+    document.getElementById('b2bDetailBody').innerHTML = `
+        <div class="row g-3">
+            <div class="col-md-6"><strong>Company:</strong> ${b.company_name}</div>
+            <div class="col-md-6"><strong>Contact:</strong> ${b.contact_person}</div>
+            <div class="col-md-6"><strong>Email:</strong> ${b.email}</div>
+            <div class="col-md-6"><strong>Phone:</strong> ${b.phone}</div>
+            <div class="col-md-6"><strong>Quantity:</strong> ${b.quantity}</div>
+            <div class="col-md-6"><strong>Budget:</strong> ${b.budget_range || 'Not specified'}</div>
+            <div class="col-md-6"><strong>Product Type:</strong> ${b.product_type || '-'}</div>
+            <div class="col-md-6"><strong>Custom Scent:</strong> ${b.custom_scent || '-'}</div>
+            <div class="col-12"><strong>Requirements:</strong><p class="mt-1">${b.requirements || 'No details'}</p></div>
+            ${b.admin_notes ? `<div class="col-12"><strong>Admin Notes:</strong><p>${b.admin_notes}</p></div>` : ''}
+        </div>
+    `;
+    new bootstrap.Modal(document.getElementById('b2bModal')).show();
+}
+
+async function updateB2B() {
+    const id = document.getElementById('b2bId').value;
+    const body = {
+        status: document.getElementById('b2bStatus').value,
+        quotation_amount: parseFloat(document.getElementById('b2bQuote').value) || null
+    };
+    const res = await fetch(`/admin/api/b2b/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, credentials: 'same-origin', body: JSON.stringify(body) });
+    if (res.ok) {
+        bootstrap.Modal.getInstance(document.getElementById('b2bModal')).hide();
+        loadB2B();
+    }
+}
+
+document.getElementById('filterB2B').addEventListener('change', loadB2B);
+loadB2B();
+</script>
+{% endblock %}

@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+{% block title %}Verify OTP{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-5 col-lg-4">
+                <div class="auth-card" data-aos="fade-up">
+                    <div class="text-center mb-4">
+                        <a href="{{ url_for('index') }}" class="auth-brand"><i class="bi bi-lamp-fill text-gold"></i> LUXOYA</a>
+                        <h3 class="auth-title mt-3" id="otpTitle">Verify Your Email</h3>
+                        <p class="text-muted" id="otpSubtitle">Enter the 6-digit code sent to your email</p>
+                        <p class="text-gold fw-500" id="otpEmail"></p>
+                    </div>
+                    
+                    <form id="otpForm">
+                        <div class="mb-4">
+                            <label class="form-label">Enter OTP Code</label>
+                            <div class="otp-input-group d-flex gap-2 justify-content-center">
+                                <input type="text" class="form-control otp-digit text-center" maxlength="1" data-index="0" autofocus>
+                                <input type="text" class="form-control otp-digit text-center" maxlength="1" data-index="1">
+                                <input type="text" class="form-control otp-digit text-center" maxlength="1" data-index="2">
+                                <input type="text" class="form-control otp-digit text-center" maxlength="1" data-index="3">
+                                <input type="text" class="form-control otp-digit text-center" maxlength="1" data-index="4">
+                                <input type="text" class="form-control otp-digit text-center" maxlength="1" data-index="5">
+                            </div>
+                            <input type="hidden" id="otpCode" name="otp_code">
+                        </div>
+                        
+                        <!-- Google user: password creation fields (shown conditionally) -->
+                        <div id="passwordFields" style="display:none;">
+                            <hr class="my-3">
+                            <h6 class="mb-3 text-center">Create Your Password</h6>
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input type="password" class="form-control" id="newPassword" placeholder="Min 8 characters" minlength="8">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('newPassword')">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmNewPassword" class="form-label">Confirm Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                    <input type="password" class="form-control" id="confirmNewPassword" placeholder="Re-enter password">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="otpPhone" class="form-label">Phone Number (optional)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-phone"></i></span>
+                                    <input type="tel" class="form-control" id="otpPhone" placeholder="+91 XXXXX XXXXX">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="otpError" class="alert alert-danger d-none" role="alert"></div>
+                        <div id="otpSuccess" class="alert alert-success d-none" role="alert"></div>
+                        
+                        <button type="submit" class="btn btn-luxoya-gold w-100 btn-lg" id="verifyBtn">
+                            <span class="btn-text">Verify & Continue</span>
+                            <span class="btn-loading d-none">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Verifying...
+                            </span>
+                        </button>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <p class="mb-1">
+                            <span class="text-muted" id="timerText">Resend OTP in <strong id="timer">60</strong>s</span>
+                        </p>
+                        <button class="btn btn-link text-gold p-0" id="resendBtn" style="display:none;" onclick="resendOTP()">
+                            Resend OTP
+                        </button>
+                    </div>
+                    
+                    <p class="text-center mt-3 mb-0">
+                        <a href="{{ url_for('auth.login') }}" class="text-muted small">
+                            <i class="bi bi-arrow-left me-1"></i>Back to login
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+<script>
+// OTP digit input auto-advance
+document.querySelectorAll('.otp-digit').forEach((input, idx, inputs) => {
+    input.addEventListener('input', (e) => {
+        const val = e.target.value;
+        if (val && idx < inputs.length - 1) {
+            inputs[idx + 1].focus();
+        }
+        updateOtpCode();
+    });
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+            inputs[idx - 1].focus();
+        }
+    });
+    // Allow paste across all fields
+    input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasted = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        pasted.split('').forEach((ch, i) => {
+            if (inputs[i]) inputs[i].value = ch;
+        });
+        if (inputs[pasted.length - 1]) inputs[pasted.length - 1].focus();
+        updateOtpCode();
+    });
+});
+
+function updateOtpCode() {
+    const digits = Array.from(document.querySelectorAll('.otp-digit')).map(i => i.value).join('');
+    document.getElementById('otpCode').value = digits;
+}
+
+// Timer countdown
+let countdown = 60;
+const timerEl = document.getElementById('timer');
+const timerText = document.getElementById('timerText');
+const resendBtn = document.getElementById('resendBtn');
+const interval = setInterval(() => {
+    countdown--;
+    timerEl.textContent = countdown;
+    if (countdown <= 0) {
+        clearInterval(interval);
+        timerText.style.display = 'none';
+        resendBtn.style.display = 'inline';
+    }
+}, 1000);
+
+// Parse query params
+const params = new URLSearchParams(window.location.search);
+const otpId = params.get('otp_id');
+const email = params.get('email');
+const otpType = params.get('type'); // registration, login_mfa, google_signup
+const fullName = params.get('name') || '';
+const phone = params.get('phone') || '';
+const pwd = params.get('pwd') || '';
+const googleId = params.get('google_id') || '';
+
+// Display email
+document.getElementById('otpEmail').textContent = email || '';
+
+// Show password fields for google signup
+if (otpType === 'google_signup') {
+    document.getElementById('passwordFields').style.display = 'block';
+    document.getElementById('otpTitle').textContent = 'Complete Registration';
+    document.getElementById('otpSubtitle').textContent = 'Verify your email and create a password';
+} else if (otpType === 'login_mfa') {
+    document.getElementById('otpTitle').textContent = 'Two-Factor Authentication';
+    document.getElementById('otpSubtitle').textContent = 'Enter the verification code sent to your email';
+}
+
+// Form submit
+document.getElementById('otpForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('verifyBtn');
+    const errEl = document.getElementById('otpError');
+    const successEl = document.getElementById('otpSuccess');
+    errEl.classList.add('d-none');
+    successEl.classList.add('d-none');
+    if (typeof setLoading === 'function') setLoading(btn, true);
+
+    const otpCode = document.getElementById('otpCode').value;
+    if (otpCode.length !== 6) {
+        errEl.textContent = 'Please enter the complete 6-digit code';
+        errEl.classList.remove('d-none');
+        if (typeof setLoading === 'function') setLoading(btn, false);
+        return;
+    }
+
+    try {
+        let url, body;
+
+        if (otpType === 'registration') {
+            url = '/api/auth/verify-registration';
+            body = {
+                otp_id: otpId,
+                otp_code: otpCode,
+                email: email,
+                full_name: fullName,
+                phone: phone,
+                password: atob(pwd)
+            };
+        } else if (otpType === 'login_mfa') {
+            url = '/api/auth/verify-mfa';
+            body = {
+                otp_id: otpId,
+                otp_code: otpCode,
+                user_id: parseInt(params.get('user_id') || '0')
+            };
+        } else if (otpType === 'google_signup') {
+            const newPwd = document.getElementById('newPassword').value;
+            const confirmPwd = document.getElementById('confirmNewPassword').value;
+            if (!newPwd || newPwd.length < 8) {
+                errEl.textContent = 'Password must be at least 8 characters';
+                errEl.classList.remove('d-none');
+                if (typeof setLoading === 'function') setLoading(btn, false);
+                return;
+            }
+            if (newPwd !== confirmPwd) {
+                errEl.textContent = 'Passwords do not match';
+                errEl.classList.remove('d-none');
+                if (typeof setLoading === 'function') setLoading(btn, false);
+                return;
+            }
+            url = '/api/auth/google/complete';
+            body = {
+                otp_id: otpId,
+                otp_code: otpCode,
+                email: email,
+                password: newPwd,
+                full_name: fullName,
+                google_id: googleId,
+                phone: document.getElementById('otpPhone').value || ''
+            };
+        } else {
+            errEl.textContent = 'Invalid verification type';
+            errEl.classList.remove('d-none');
+            if (typeof setLoading === 'function') setLoading(btn, false);
+            return;
+        }
+
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            successEl.textContent = data.message || 'Verification successful!';
+            successEl.classList.remove('d-none');
+            setTimeout(() => {
+                window.location.href = data.redirect || '/';
+            }, 800);
+        } else {
+            errEl.textContent = data.error || 'Verification failed';
+            errEl.classList.remove('d-none');
+        }
+    } catch {
+        errEl.textContent = 'Network error. Please try again.';
+        errEl.classList.remove('d-none');
+    } finally {
+        if (typeof setLoading === 'function') setLoading(btn, false);
+    }
+});
+
+// Resend OTP
+async function resendOTP() {
+    resendBtn.disabled = true;
+    resendBtn.textContent = 'Sending...';
+    try {
+        const res = await fetch('/api/auth/resend-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ otp_id: otpId, email: email })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            // Reset timer
+            countdown = 60;
+            timerText.style.display = 'inline';
+            resendBtn.style.display = 'none';
+            const newInterval = setInterval(() => {
+                countdown--;
+                timerEl.textContent = countdown;
+                if (countdown <= 0) {
+                    clearInterval(newInterval);
+                    timerText.style.display = 'none';
+                    resendBtn.style.display = 'inline';
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = 'Resend OTP';
+                }
+            }, 1000);
+        } else {
+            alert(data.error || 'Failed to resend OTP');
+            resendBtn.disabled = false;
+            resendBtn.textContent = 'Resend OTP';
+        }
+    } catch {
+        alert('Network error');
+        resendBtn.disabled = false;
+        resendBtn.textContent = 'Resend OTP';
+    }
+}
+
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    if (field) {
+        field.type = field.type === 'password' ? 'text' : 'password';
+    }
+}
+</script>
+{% endblock %}

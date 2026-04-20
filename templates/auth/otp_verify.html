@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Verify Account{% endblock %}
+
+{% block content %}
+<section class="auth-section min-vh-100 d-flex align-items-center py-5" style="background: radial-gradient(circle at top right, rgba(197, 160, 68, 0.05), transparent), radial-gradient(circle at bottom left, rgba(153, 175, 156, 0.05), transparent);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="auth-card p-4 p-lg-5 rounded-4 shadow-lg border-0 bg-white bg-opacity-75" style="backdrop-filter: blur(10px);">
+                    <div class="text-center mb-4">
+                        <div class="d-inline-block p-3 rounded-circle bg-gold bg-opacity-10 mb-3">
+                            <i class="bi bi-shield-lock-fill text-gold fs-2"></i>
+                        </div>
+                        <h2 class="h4 fw-bold mb-2">Two-Step Verification</h2>
+                        <p class="text-muted small">We've sent a 6-digit verification code to <br><strong>{{ email }}</strong></p>
+                    </div>
+
+                    <form id="otpForm" onsubmit="verifyOtp(event)">
+                        <input type="hidden" id="email" value="{{ email }}">
+                        <div class="d-flex justify-content-between gap-2 mb-3" id="otpContainer">
+                            <input type="tel" maxlength="1" class="form-control otp-digit text-center fw-bold fs-4" required pattern="[0-9]*" inputmode="numeric" autofocus>
+                            <input type="tel" maxlength="1" class="form-control otp-digit text-center fw-bold fs-4" required pattern="[0-9]*" inputmode="numeric">
+                            <input type="tel" maxlength="1" class="form-control otp-digit text-center fw-bold fs-4" required pattern="[0-9]*" inputmode="numeric">
+                            <input type="tel" maxlength="1" class="form-control otp-digit text-center fw-bold fs-4" required pattern="[0-9]*" inputmode="numeric">
+                            <input type="tel" maxlength="1" class="form-control otp-digit text-center fw-bold fs-4" required pattern="[0-9]*" inputmode="numeric">
+                            <input type="tel" maxlength="1" class="form-control otp-digit text-center fw-bold fs-4" required pattern="[0-9]*" inputmode="numeric">
+                        </div>
+
+                        <div class="text-center mb-4">
+                            <span id="timerText" class="badge rounded-pill bg-light text-muted fw-normal px-3 py-2" style="border: 1px solid #eee;">
+                                Expires in <span id="countdown" class="fw-bold text-gold">05:00</span>
+                            </span>
+                        </div>
+
+                        <div id="otpError" class="alert alert-danger d-none small py-2 rounded-3 mb-4"></div>
+
+                        <button type="submit" id="verifyBtn" class="btn btn-gold w-100 py-3 rounded-3 fw-bold mb-4">
+                            Verify & Proceed
+                        </button>
+
+                        <div class="text-center">
+                            <p class="small text-muted mb-0">Didn't receive the code?</p>
+                            <button type="button" id="resendBtn" onclick="resendOtp()" class="btn btn-link text-gold text-decoration-none small fw-bold p-0">Resend Code</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('auth.login') }}" class="text-muted small text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i> Back to Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.otp-digit {
+    width: 100%;
+    max-width: 45px;
+    height: 55px;
+    border: 2px solid #eee;
+    background: #fcfcfc;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+.otp-digit:focus {
+    border-color: #c5a044;
+    box-shadow: 0 0 0 3px rgba(197, 160, 68, 0.1);
+    background: #fff;
+    transform: translateY(-2px);
+}
+.otp-digit:disabled {
+    background-color: #f8f9fa;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+</style>
+
+<script>
+let timeLeft = 300; // 5 minutes in seconds
+let timerInterval;
+
+function startTimer() {
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        document.getElementById('countdown').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            handleExpiration();
+        }
+    }, 1000);
+}
+
+function handleExpiration() {
+    const inputs = document.querySelectorAll('.otp-digit');
+    const btn = document.getElementById('verifyBtn');
+    const timer = document.getElementById('timerText');
+    const resend = document.getElementById('resendBtn');
+
+    inputs.forEach(i => i.disabled = true);
+    btn.disabled = true;
+    btn.textContent = 'Code Expired';
+    timer.classList.replace('bg-light', 'bg-danger-subtle');
+    timer.classList.replace('text-muted', 'text-danger');
+    timer.innerHTML = '<i class="bi bi-clock-history me-1"></i> Session Expired';
+    resend.classList.add('fs-5'); // Highlight resend
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    startTimer();
+    const inputs = document.querySelectorAll('.otp-digit');
+    const container = document.getElementById('otpContainer');
+
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            if (e.inputType === 'deleteContentBackward') return;
+            const val = e.target.value;
+            if (val.length === 1 && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !input.value && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+
+        input.addEventListener('focus', () => input.select());
+    });
+
+    container.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasteData = e.clipboardData.getData('text').slice(0, 6).split('');
+        pasteData.forEach((char, i) => {
+            if (inputs[i]) inputs[i].value = char;
+        });
+        const focusIdx = Math.min(pasteData.length, inputs.length - 1);
+        inputs[focusIdx].focus();
+    });
+});
+
+async function verifyOtp(e) {
+    e.preventDefault();
+    if (timeLeft <= 0) return;
+
+    const btn = document.getElementById('verifyBtn');
+    const err = document.getElementById('otpError');
+    const digits = Array.from(document.querySelectorAll('.otp-digit')).map(i => i.value).join('');
+    const email = document.getElementById('email').value;
+
+    if (digits.length < 6) {
+        err.textContent = 'Please enter all 6 digits';
+        err.classList.remove('d-none');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+    err.classList.add('d-none');
+
+    try {
+        const res = await fetch('/api/auth/verify-otp', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ email, otp: digits })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            window.location.href = data.redirect || '/admin';
+        } else {
+            err.textContent = data.error || 'Invalid verification code';
+            err.classList.remove('d-none');
+            btn.disabled = false;
+            btn.innerHTML = 'Verify & Proceed';
+        }
+    } catch (e) {
+        err.textContent = 'Connection error. Please try again.';
+        err.classList.remove('d-none');
+        btn.disabled = false;
+        btn.innerHTML = 'Verify & Proceed';
+    }
+}
+
+async function resendOtp() {
+    const email = document.getElementById('email').value;
+    const resendBtn = document.getElementById('resendBtn');
+    resendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Requesting...';
+    resendBtn.disabled = true;
+    
+    // We can essentially just reload the page which triggers a new OTP flow if session is valid
+    // OR call the login API again. Re-login is safer.
+    location.reload(); 
+}
+</script>
+{% endblock %}

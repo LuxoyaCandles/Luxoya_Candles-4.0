@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-navbar">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('orders.orders_page') }}">My Orders</a></li>
+                <li class="breadcrumb-item active">{{ order.order_number }}</li>
+            </ol>
+        </nav>
+        
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <!-- Order Status Tracker -->
+                <div class="order-tracker-card mb-4" data-aos="fade-up">
+                    <h5>Order Status</h5>
+                    {% set statuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'] %}
+                    {% set current_idx = statuses.index(order.status) if order.status in statuses else 0 %}
+                    
+                    <div class="order-tracker mt-4">
+                        {% for s in statuses %}
+                        <div class="tracker-step {% if loop.index0 <= current_idx %}active{% endif %} {% if loop.index0 == current_idx %}current{% endif %}">
+                            <div class="tracker-dot">
+                                {% if loop.index0 < current_idx %}<i class="bi bi-check"></i>
+                                {% elif loop.index0 == current_idx %}<i class="bi bi-circle-fill"></i>
+                                {% else %}<i class="bi bi-circle"></i>{% endif %}
+                            </div>
+                            <span class="tracker-label">{{ s|capitalize }}</span>
+                        </div>
+                        {% if not loop.last %}
+                        <div class="tracker-line {% if loop.index0 < current_idx %}active{% endif %}"></div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    {% if order.status == 'cancelled' %}
+                    <div class="alert alert-danger mt-3 mb-0">
+                        <i class="bi bi-x-circle me-2"></i>This order has been cancelled.
+                        {% if order.cancellation_reason %}
+                        <hr class="my-2">
+                        <p class="mb-1"><strong>Reason:</strong> {{ order.cancellation_reason }}</p>
+                        <small class="text-muted">Cancelled by {{ order.cancelled_by|capitalize if order.cancelled_by else 'N/A' }}
+                        {% if order.cancelled_at %} on {{ order.cancelled_at.strftime('%b %d, %Y at %I:%M %p') }}{% endif %}</small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if order.status in ['pending', 'confirmed'] %}
+                    <div class="mt-3 d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('orders.order_tracking_page', order_id=order.order_number) }}" class="btn btn-outline-gold btn-sm">
+                            <i class="bi bi-geo-alt me-1"></i>Track Order
+                        </a>
+                        <button class="btn btn-outline-danger btn-sm" onclick="document.getElementById('cancelSection').classList.toggle('d-none')">
+                            <i class="bi bi-x-circle me-1"></i>Cancel Order
+                        </button>
+                    </div>
+                    <div id="cancelSection" class="d-none mt-3">
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <h6 class="text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Cancel This Order</h6>
+                                <p class="text-muted small mb-2">This cannot be undone. Please provide a reason for cancellation.</p>
+                                <textarea id="cancelReason" class="form-control mb-2" rows="3" placeholder="Why are you cancelling this order? (minimum 10 characters)" minlength="10" required></textarea>
+                                <div id="cancelError" class="alert alert-danger d-none small mb-2"></div>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-danger btn-sm" onclick="cancelOrder()">
+                                        <i class="bi bi-x-circle me-1"></i>Confirm Cancellation
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('cancelSection').classList.add('d-none')">
+                                        Never Mind
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if order.status not in ['pending', 'confirmed'] %}
+                <div class="mt-3 mb-4">
+                    <a href="{{ url_for('orders.order_tracking_page', order_id=order.order_number) }}" class="btn btn-outline-gold btn-sm">
+                        <i class="bi bi-geo-alt me-1"></i>Track Order
+                    </a>
+                </div>
+                {% endif %}
+                
+                <!-- Order Items -->
+                <div class="order-items-card" data-aos="fade-up">
+                    <h5>Order Items</h5>
+                    {% for item in order.items %}
+                    <div class="order-detail-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-2 col-3">
+                                <div class="order-item-img">
+                                    {% if item.product and item.product.image_url %}
+                                    <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}">
+                                    {% else %}<span class="placeholder-icon"><i class="bi bi-lamp text-gold"></i></span>{% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-5 col-9">
+                                <h6>
+                                    {% if item.customization %}
+                                    <span class="text-gold me-1">✨</span>Custom Candle
+                                    {% else %}
+                                    {{ item.product.name if item.product else 'Custom Candle' }}
+                                    {% endif %}
+                                </h6>
+                                {% if item.customization %}
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-palette me-1"></i>{{ item.customization.jar_type|replace('_', ' ')|title }} · {{ item.customization.colour|replace('_', ' ')|title }} · {{ item.customization.fragrance|replace('_', ' ')|title }}
+                                </small>
+                                {% if item.customization.wick_type %}
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-fire me-1"></i>{{ item.customization.wick_type|replace('_', ' ')|title }} Wick
+                                </small>
+                                {% endif %}
+                                {% if item.customization.label_text %}
+                                <small class="text-muted d-block">
+                                    <i class="bi bi-tag me-1"></i>"{{ item.customization.label_text }}"
+                                </small>
+                                {% endif %}
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2 col-4">
+                                <span class="text-muted">Qty: {{ item.quantity }}</span>
+                            </div>
+                            <div class="col-md-3 col-8 text-end">
+                                <strong>₹{{ "%.0f"|format(item.price * item.quantity) }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Review Prompt for Delivered Orders -->
+                {% if order.status == 'delivered' %}
+                <div class="order-items-card mt-4" data-aos="fade-up">
+                    <h5><i class="bi bi-star me-2 text-gold"></i>Rate Your Purchase</h5>
+                    <p class="text-muted small mb-3">Your order has been delivered! We'd love to hear your feedback.</p>
+                    {% for item in order.items %}
+                    {% if item.product %}
+                    <div class="d-flex align-items-center justify-content-between py-2 {% if not loop.last %}border-bottom{% endif %}">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="order-item-img" style="width:45px;height:45px;">
+                                {% if item.product.image_url %}
+                                <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}" style="width:45px;height:45px;object-fit:cover;border-radius:8px;">
+                                {% else %}<i class="bi bi-lamp text-gold"></i>{% endif %}
+                            </div>
+                            <span class="fw-semibold small">{{ item.product.name }}</span>
+                        </div>
+                        <a href="/product/{{ item.product.slug or item.product.id }}#tabReviews" class="btn btn-sm btn-luxoya-gold">
+                            <i class="bi bi-star me-1"></i>Write Review
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Return Request Section for Delivered Orders -->
+                {% if order.status == 'delivered' %}
+                <div class="order-items-card mt-4" id="returnSection" data-aos="fade-up">
+                    <h5><i class="bi bi-arrow-return-left me-2 text-gold"></i>Request Return</h5>
+                    
+                    {% if order.return_request %}
+                    <!-- Show existing return status -->
+                    <div class="alert alert-{{ 'success' if order.return_request.status == 'completed' else 'info' if order.return_request.status == 'approved' else 'danger' if order.return_request.status == 'rejected' else 'warning' }} mb-0">
+                        <strong>Return Status:</strong> {{ order.return_request.status|capitalize }}
+                        {% if order.return_request.refund_amount %}
+                        <br><small>Refund Amount: ₹{{ "%.0f"|format(order.return_request.refund_amount) }}</small>
+                        {% endif %}
+                        {% if order.return_request.admin_notes %}
+                        <br><small>Admin Notes: {{ order.return_request.admin_notes }}</small>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <!-- Return Policy Notice -->
+                    <div class="alert alert-warning small mb-3">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        <strong>Return Policy:</strong>
+                        <ul class="mb-0 mt-1">
+                            <li>Returns accepted within <strong>7 days</strong> of delivery only</li>
+                            <li>Product seal must <strong>NOT be opened</strong> — opened products cannot be returned</li>
+                            <li>Delivery charges are <strong>non-refundable</strong> even for approved returns</li>
+                            <li>Customized candles are <strong>non-returnable</strong></li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Return Form -->
+                    <div id="returnFormSection">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Reason for Return <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="returnReason" rows="3" 
+                                      placeholder="Please describe why you want to return this order (min 10 characters)" minlength="10" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sealIntact">
+                                <label class="form-check-label" for="sealIntact">
+                                    <strong>I confirm the product seal is NOT opened</strong> and the product is in its original packaging
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3 small text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Refund amount: <strong>₹{{ "%.0f"|format(order.total_amount - order.shipping_cost) }}</strong> 
+                            (₹{{ "%.0f"|format(order.total_amount) }} - ₹{{ "%.0f"|format(order.shipping_cost) }} delivery charges)
+                        </div>
+                        <div id="returnError" class="alert alert-danger d-none small mb-2"></div>
+                        <button class="btn btn-outline-danger" onclick="submitReturn()">
+                            <i class="bi bi-arrow-return-left me-1"></i>Submit Return Request
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+                <!-- Summary -->
+                <div class="order-summary-card mb-4" data-aos="fade-left">
+                    <h5>Order Summary</h5>
+                    <div class="summary-row"><span>Order Number</span><strong>{{ order.order_number }}</strong></div>
+                    <div class="summary-row"><span>Date</span><span>{{ order.created_at.strftime('%b %d, %Y') }}</span></div>
+                    <hr>
+                    <div class="summary-row"><span>Subtotal</span><span>₹{{ "%.0f"|format(order.subtotal) }}</span></div>
+                    {% if order.discount_amount > 0 %}
+                    <div class="summary-row"><span class="text-success">Discount</span><span class="text-success">-₹{{ "%.0f"|format(order.discount_amount) }}</span></div>
+                    {% endif %}
+                    <div class="summary-row"><span>Shipping</span><span>{{ 'FREE' if order.shipping_cost == 0 else '₹' ~ "%.0f"|format(order.shipping_cost) }}</span></div>
+                    <hr>
+                    <div class="summary-row total"><strong>Total</strong><strong>₹{{ "%.0f"|format(order.total_amount) }}</strong></div>
+                    <div class="summary-row mt-2">
+                        <span>Payment</span>
+                        <span class="badge bg-{{ 'success' if order.payment_status == 'paid' else 'warning' }}">
+                            {{ order.payment_status|capitalize }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Shipping Address -->
+                <div class="order-address-card" data-aos="fade-left">
+                    <h5><i class="bi bi-geo-alt me-2 text-gold"></i>Shipping Address</h5>
+                    <p class="mb-0">
+                        <strong>{{ order.shipping_name }}</strong><br>
+                        {{ order.shipping_address }}<br>
+                        {{ order.shipping_city }}, {{ order.shipping_state }} - {{ order.shipping_pincode }}<br>
+                        <i class="bi bi-telephone"></i> {{ order.shipping_phone }}
+                    </p>
+                </div>
+                
+                {% if order.payment_status != 'failed' %}
+                <!-- Transaction Info -->
+                <div class="order-address-card mt-4" data-aos="fade-left">
+                    <h5><i class="bi bi-credit-card me-2 text-gold"></i>Payment Info</h5>
+                    <div class="summary-row"><span>Payment ID</span><code style="font-size:0.75rem">{{ order.payment.razorpay_payment_id or 'N/A' }}</code></div>
+                    {% if order.payment.payment_method %}
+                    <div class="summary-row"><span>Method</span><span class="badge bg-dark">{{ order.payment.payment_method }}</span></div>
+                    {% endif %}
+                    <div class="summary-row"><span>Status</span><span class="badge bg-success">{{ order.payment.status|capitalize }}</span></div>
+                    {% if order.payment.created_at %}
+                    <div class="summary-row"><span>Date</span><span>{{ order.payment.created_at.strftime('%b %d, %Y') }}</span></div>
+                    {% endif %}
+                    <hr>
+                    <a href="/api/orders/{{ order.order_number }}/invoice?download=1" class="btn btn-luxoya-gold btn-sm w-100" target="_blank">
+                        <i class="bi bi-download me-1"></i>Download Invoice
+                    </a>
+                </div>
+                {% endif %}
+
+                <!-- Recent Tracking Updates -->
+                {% if order.tracking_updates.count() > 0 %}
+                <div class="order-address-card mt-4" data-aos="fade-left">
+                    <h5><i class="bi bi-clock-history me-2 text-gold"></i>Recent Updates</h5>
+                    <div class="tracking-timeline compact">
+                        {% for t in order.tracking_updates|sort(attribute='created_at', reverse=true) %}
+                        {% if loop.index <= 3 %}
+                        <div class="tracking-timeline-item">
+                            <div class="tracking-timeline-dot {% if loop.first %}active{% endif %}"></div>
+                            <div class="tracking-timeline-content">
+                                <small class="text-muted">{{ t.created_at.strftime('%b %d — %I:%M %p') }}</small>
+                                <p class="mb-0 small">{{ t.description }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <a href="{{ url_for('orders.order_tracking_page', order_id=order.order_number) }}" class="btn btn-outline-gold btn-sm w-100 mt-3">
+                        View Full Tracking <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function cancelOrder() {
+    const reason = document.getElementById('cancelReason').value.trim();
+    if (!reason || reason.length < 10) {
+        const err = document.getElementById('cancelError');
+        err.textContent = 'Please provide a detailed reason (at least 10 characters).';
+        err.classList.remove('d-none');
+        return;
+    }
+    
+    const res = await fetch('/api/orders/{{ order.order_number }}/cancel', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'same-origin',
+        body: JSON.stringify({ cancellation_reason: reason })
+    });
+    
+    const data = await res.json();
+    if (res.ok) {
+        window.location.reload();
+    } else {
+        const err = document.getElementById('cancelError');
+        err.textContent = data.error || 'Failed to cancel order';
+        err.classList.remove('d-none');
+    }
+}
+
+async function submitReturn() {
+    const reason = document.getElementById('returnReason').value.trim();
+    const sealIntact = document.getElementById('sealIntact').checked;
+    const errEl = document.getElementById('returnError');
+    
+    if (!reason || reason.length < 10) {
+        errEl.textContent = 'Please provide a detailed reason (at least 10 characters).';
+        errEl.classList.remove('d-none');
+        return;
+    }
+    if (!sealIntact) {
+        errEl.textContent = 'You must confirm the product seal is not opened to proceed with the return.';
+        errEl.classList.remove('d-none');
+        return;
+    }
+    
+    errEl.classList.add('d-none');
+    
+    const res = await fetch('/api/orders/{{ order.order_number }}/return', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'same-origin',
+        body: JSON.stringify({ reason, seal_intact: sealIntact })
+    });
+    
+    const data = await res.json();
+    if (res.ok) {
+        showToast(data.message || 'Return request submitted!');
+        setTimeout(() => window.location.reload(), 1500);
+    } else {
+        errEl.textContent = data.error || 'Failed to submit return request';
+        errEl.classList.remove('d-none');
+    }
+}
+</script>
+{% endblock %}

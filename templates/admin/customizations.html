@@ -1,0 +1,354 @@
+{% extends "admin/base.html" %}
+{% block title %}Customization Options{% endblock %}
+{% block page_title %}Customization Options{% endblock %}
+
+{% block admin_content %}
+<div class="admin-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h5 class="mb-1">Manage Custom Candle Options</h5>
+            <p class="text-muted small mb-0">Define jar types, colours, fragrances, wicks, shapes, ingredients & more for customer customization.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" id="filterCategory" onchange="loadOptions()" style="width:180px;">
+                <option value="">All Categories</option>
+            </select>
+            <button class="btn btn-gold btn-sm" onclick="openAddModal()">
+                <i class="bi bi-plus-circle me-1"></i> Add Option
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4" id="categoryStats"></div>
+
+    <!-- Options Table -->
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="optionsTable">
+            <thead>
+                <tr>
+                    <th style="width:30px;">#</th>
+                    <th>Category</th>
+                    <th>Name</th>
+                    <th>Value</th>
+                    <th>Icon / Colour</th>
+                    <th>Price Addon</th>
+                    <th>Status</th>
+                    <th style="width:100px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="optionsBody">
+                <tr><td colspan="8" class="text-center text-muted py-4">Loading options...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- ADD / EDIT MODAL -->
+<!-- ═══════════════════════════════════════ -->
+<div class="modal fade" id="optionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add Option</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editId">
+                <div class="mb-3">
+                    <label class="form-label">Category <span class="text-danger">*</span></label>
+                    <select class="form-select" id="optCategory" onchange="onCategoryChange()">
+                        {% for cat in categories %}
+                        <option value="{{ cat }}">{{ cat | replace('_', ' ') | title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Display Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="optName" placeholder="e.g. Classic Glass" oninput="autoValue()">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Value (slug) <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="optValue" placeholder="e.g. classic_glass">
+                    <small class="text-muted">Auto-generated from name. Must be unique per category.</small>
+                </div>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label">Icon <small class="text-muted">(Bootstrap Icons class)</small></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi" id="iconPreview"></i></span>
+                            <input type="text" class="form-control" id="optIcon" placeholder="bi-cup-hot" oninput="previewIcon()">
+                        </div>
+                    </div>
+                    <div class="col-6" id="colorField">
+                        <label class="form-label">Colour Hex</label>
+                        <div class="input-group">
+                            <input type="color" class="form-control form-control-color" id="optColorPicker" value="#FFFFF0" onchange="document.getElementById('optColorHex').value=this.value">
+                            <input type="text" class="form-control" id="optColorHex" placeholder="#FFFFF0" oninput="document.getElementById('optColorPicker').value=this.value">
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3 mt-1">
+                    <div class="col-6">
+                        <label class="form-label">Price Addon (₹)</label>
+                        <input type="number" class="form-control" id="optPrice" value="0" min="0" step="10">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Display Order</label>
+                        <input type="number" class="form-control" id="optOrder" value="0" min="0">
+                    </div>
+                </div>
+                <div class="mb-3 mt-3">
+                    <label class="form-label">Description <small class="text-muted">(optional)</small></label>
+                    <input type="text" class="form-control" id="optDesc" placeholder="Short description">
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="optActive" checked>
+                    <label class="form-check-label" for="optActive">Active</label>
+                </div>
+                <div class="alert alert-danger d-none mt-3" id="modalError"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-gold" id="saveBtn" onclick="saveOption()">
+                    <i class="bi bi-check-circle me-1"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const CATEGORIES = {{ categories | tojson }};
+const CATEGORY_LABELS = {};
+CATEGORIES.forEach(c => CATEGORY_LABELS[c] = c.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
+
+const CATEGORY_ICONS = {
+    jar_type: 'bi-cup-hot', colour: 'bi-palette', fragrance: 'bi-flower2',
+    wick_type: 'bi-fire', shape: 'bi-bounding-box', ingredient: 'bi-droplet-half',
+    wax_type: 'bi-box'
+};
+
+let allOptions = [];
+let modal;
+
+document.addEventListener('DOMContentLoaded', () => {
+    modal = new bootstrap.Modal(document.getElementById('optionModal'));
+    // Populate filter dropdown
+    const sel = document.getElementById('filterCategory');
+    CATEGORIES.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c; opt.textContent = CATEGORY_LABELS[c];
+        sel.appendChild(opt);
+    });
+    loadOptions();
+});
+
+async function loadOptions() {
+    const cat = document.getElementById('filterCategory').value;
+    let url = '/admin/api/customization-options';
+    if (cat) url += `?category=${cat}`;
+
+    try {
+        const res = await fetch(url, { credentials: 'same-origin' });
+        const data = await res.json();
+        allOptions = data.options || [];
+        renderStats(data.grouped || {});
+        renderTable(allOptions);
+    } catch {
+        document.getElementById('optionsBody').innerHTML =
+            '<tr><td colspan="8" class="text-center text-danger">Failed to load options</td></tr>';
+    }
+}
+
+function renderStats(grouped) {
+    const el = document.getElementById('categoryStats');
+    el.innerHTML = CATEGORIES.map(c => {
+        const count = (grouped[c] || []).length;
+        const activeCount = (grouped[c] || []).filter(o => o.is_active).length;
+        return `
+        <div class="col-lg-3 col-md-4 col-6">
+            <div class="stat-card p-3" style="cursor:pointer;" onclick="document.getElementById('filterCategory').value='${c}';loadOptions();">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted small mb-1">${CATEGORY_LABELS[c]}</p>
+                        <h5 class="mb-0">${count}</h5>
+                        <small class="text-muted">${activeCount} active</small>
+                    </div>
+                    <div class="stat-icon" style="background:rgba(201,169,110,.1);color:var(--gold);">
+                        <i class="bi ${CATEGORY_ICONS[c] || 'bi-gear'}"></i>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderTable(options) {
+    const tbody = document.getElementById('optionsBody');
+    if (!options.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No options found. Click "Add Option" to create one.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = options.map((o, i) => `
+        <tr>
+            <td class="text-muted">${i + 1}</td>
+            <td><span class="badge" style="background:rgba(201,169,110,.15);color:#c9a96e;">${CATEGORY_LABELS[o.category] || o.category}</span></td>
+            <td><strong>${esc(o.name)}</strong>${o.description ? `<br><small class="text-muted">${esc(o.description)}</small>` : ''}</td>
+            <td><code>${esc(o.value)}</code></td>
+            <td>
+                ${o.color_hex ? `<span class="d-inline-block rounded-circle border" style="width:22px;height:22px;background:${o.color_hex};vertical-align:middle;"></span>` : ''}
+                ${o.icon ? `<i class="bi ${o.icon} ms-1"></i>` : ''}
+                ${!o.color_hex && !o.icon ? '<span class="text-muted">—</span>' : ''}
+            </td>
+            <td>${o.price_addon > 0 ? `<span class="text-success">+₹${o.price_addon}</span>` : '₹0'}</td>
+            <td>
+                <span class="badge ${o.is_active ? 'bg-success' : 'bg-secondary'}">${o.is_active ? 'Active' : 'Inactive'}</span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-outline-dark me-1" onclick="openEditModal('${o.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteOption('${o.id}', '${esc(o.name)}')" title="Delete"><i class="bi bi-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+
+// ── Modal helpers ─────────────────────────
+function resetModal() {
+    document.getElementById('editId').value = '';
+    document.getElementById('optCategory').value = CATEGORIES[0];
+    document.getElementById('optCategory').disabled = false;
+    document.getElementById('optName').value = '';
+    document.getElementById('optValue').value = '';
+    document.getElementById('optIcon').value = '';
+    document.getElementById('optColorHex').value = '';
+    document.getElementById('optColorPicker').value = '#FFFFF0';
+    document.getElementById('optPrice').value = '0';
+    document.getElementById('optOrder').value = '0';
+    document.getElementById('optDesc').value = '';
+    document.getElementById('optActive').checked = true;
+    document.getElementById('modalError').classList.add('d-none');
+    onCategoryChange();
+}
+
+function openAddModal() {
+    resetModal();
+    document.getElementById('modalTitle').textContent = 'Add Option';
+    modal.show();
+}
+
+function openEditModal(id) {
+    const opt = allOptions.find(o => o.id === id);
+    if (!opt) return;
+    resetModal();
+    document.getElementById('modalTitle').textContent = 'Edit Option';
+    document.getElementById('editId').value = opt.id;
+    document.getElementById('optCategory').value = opt.category;
+    document.getElementById('optCategory').disabled = true;
+    document.getElementById('optName').value = opt.name;
+    document.getElementById('optValue').value = opt.value;
+    document.getElementById('optIcon').value = opt.icon || '';
+    document.getElementById('optColorHex').value = opt.color_hex || '';
+    document.getElementById('optColorPicker').value = opt.color_hex || '#FFFFF0';
+    document.getElementById('optPrice').value = opt.price_addon || 0;
+    document.getElementById('optOrder').value = opt.display_order || 0;
+    document.getElementById('optDesc').value = opt.description || '';
+    document.getElementById('optActive').checked = opt.is_active;
+    onCategoryChange();
+    modal.show();
+}
+
+function onCategoryChange() {
+    const cat = document.getElementById('optCategory').value;
+    document.getElementById('colorField').style.display = (cat === 'colour') ? '' : 'none';
+}
+
+function autoValue() {
+    const nameEl = document.getElementById('optName');
+    const valEl = document.getElementById('optValue');
+    if (!document.getElementById('editId').value) {
+        valEl.value = nameEl.value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    }
+}
+
+function previewIcon() {
+    const icon = document.getElementById('optIcon').value.trim();
+    const preview = document.getElementById('iconPreview');
+    preview.className = 'bi ' + icon;
+}
+
+async function saveOption() {
+    const errEl = document.getElementById('modalError');
+    errEl.classList.add('d-none');
+
+    const editId = document.getElementById('editId').value;
+    const payload = {
+        category: document.getElementById('optCategory').value,
+        name: document.getElementById('optName').value.trim(),
+        value: document.getElementById('optValue').value.trim(),
+        icon: document.getElementById('optIcon').value.trim(),
+        color_hex: document.getElementById('optColorHex').value.trim(),
+        price_addon: parseFloat(document.getElementById('optPrice').value) || 0,
+        display_order: parseInt(document.getElementById('optOrder').value) || 0,
+        description: document.getElementById('optDesc').value.trim(),
+        is_active: document.getElementById('optActive').checked,
+    };
+
+    if (!payload.name || !payload.value) {
+        errEl.textContent = 'Name and value are required';
+        errEl.classList.remove('d-none');
+        return;
+    }
+
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+
+    try {
+        const url = editId
+            ? `/admin/api/customization-options/${editId}`
+            : '/admin/api/customization-options';
+        const method = editId ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+            method, credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+            modal.hide();
+            loadOptions();
+        } else {
+            errEl.textContent = data.error || 'Failed to save';
+            errEl.classList.remove('d-none');
+        }
+    } catch {
+        errEl.textContent = 'Network error';
+        errEl.classList.remove('d-none');
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+async function deleteOption(id, name) {
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    try {
+        const res = await fetch(`/admin/api/customization-options/${id}`, {
+            method: 'DELETE', credentials: 'same-origin',
+        });
+        if (res.ok) loadOptions();
+        else {
+            const d = await res.json();
+            alert(d.error || 'Failed to delete');
+        }
+    } catch {
+        alert('Network error');
+    }
+}
+</script>
+{% endblock %}

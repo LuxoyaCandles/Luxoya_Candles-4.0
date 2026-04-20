@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% block title %}Customize Your Candle{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-navbar">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <h1 class="section-title">Create Your <span class="text-gold">Dream Candle</span></h1>
+            <p class="text-muted">Design a unique candle that reflects your style and personality</p>
+        </div>
+
+        <!-- Loading spinner -->
+        <div class="text-center py-5" id="customizeLoading">
+            <div class="spinner-border text-gold" role="status"><span class="visually-hidden">Loading...</span></div>
+            <p class="text-muted mt-2">Loading customization options...</p>
+        </div>
+
+        <div class="row g-5 d-none" id="customizeContent">
+            <!-- Customization Options -->
+            <div class="col-lg-7" data-aos="fade-right">
+                <div class="customize-form" id="stepsContainer">
+                    <!-- Steps dynamically inserted here -->
+                </div>
+
+                <!-- Personal Touch (always present) -->
+                <div class="customize-step mb-4">
+                    <h5 class="step-label"><span class="step-number" id="labelStepNum">5</span> Personal Touch</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Custom Label Text <small class="text-muted">(optional, max 50 chars)</small></label>
+                        <input type="text" class="form-control" id="labelText" maxlength="50"
+                               placeholder="e.g., Happy Birthday, Sarah!" oninput="updatePreview()">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Additional Notes <small class="text-muted">(optional)</small></label>
+                        <textarea class="form-control" id="additionalNotes" rows="2"
+                                  placeholder="Any special requests or instructions..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Preview + Summary -->
+            <div class="col-lg-5" data-aos="fade-left">
+                <div class="customize-preview-card sticky-top" style="top: 100px;">
+                    <h5 class="text-center mb-3">Your Custom Candle</h5>
+
+                    <!-- Visual Preview -->
+                    <div class="candle-preview" id="candlePreview">
+                        <div class="preview-candle">
+                            <div class="preview-flame" id="previewFlame"><i class="bi bi-fire text-warning"></i></div>
+                            <div class="preview-wick" id="previewWick"></div>
+                            <div class="preview-wax" id="previewWax"></div>
+                            <div class="preview-jar" id="previewJar"></div>
+                            <div class="preview-label" id="previewLabel"></div>
+                        </div>
+                    </div>
+
+                    <!-- Summary (dynamic addon rows) -->
+                    <div class="customize-summary mt-4" id="summaryContainer">
+                        <div class="summary-row">
+                            <span>Base Price</span>
+                            <span>₹499</span>
+                        </div>
+                        <div id="addonRows"></div>
+                        <hr>
+                        <div class="summary-row total">
+                            <strong>Total</strong>
+                            <strong id="customTotal">₹499</strong>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-luxoya-gold w-100 mt-3" onclick="addCustomToCart()" id="addCustomBtn">
+                        <i class="bi bi-bag-plus me-2"></i>Add Custom Candle to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const basePrice = 499;
+
+// Category display config
+const STEP_CONFIG = {
+    jar_type:   { label: 'Choose Your Jar',     group: 'jar_type' },
+    colour:     { label: 'Pick Your Colour',     group: 'colour' },
+    fragrance:  { label: 'Select Fragrance',     group: 'fragrance' },
+    wick_type:  { label: 'Wick Type',            group: 'wick_type' },
+    shape:      { label: 'Candle Shape',         group: 'shape' },
+    ingredient: { label: 'Choose Ingredients',   group: 'ingredient' },
+    wax_type:   { label: 'Wax Type',             group: 'wax_type' },
+};
+
+// Fallback hardcoded options (used if API returns nothing)
+const FALLBACK = {
+    jar_type: [
+        { value:'classic_glass', name:'Classic Glass', icon:'bi-cup-hot', price_addon:0 },
+        { value:'matte_ceramic', name:'Matte Ceramic', icon:'bi-cup', price_addon:150 },
+        { value:'gold_tin',      name:'Gold Tin',      icon:'bi-box', price_addon:100 },
+        { value:'marble_vessel', name:'Marble Vessel', icon:'bi-gem', price_addon:250 },
+    ],
+    colour: [
+        { value:'ivory_white',   name:'Ivory White',   color_hex:'#FFFFF0' },
+        { value:'blush_pink',    name:'Blush Pink',    color_hex:'#FFB6C1' },
+        { value:'sage_green',    name:'Sage Green',    color_hex:'#9DC183' },
+        { value:'midnight_black',name:'Midnight Black', color_hex:'#191919' },
+    ],
+    fragrance: [
+        { value:'vanilla_oud',    name:'Vanilla & Oud',    icon:'bi-flower2' },
+        { value:'rose_sandalwood',name:'Rose & Sandalwood', icon:'bi-flower3' },
+        { value:'fresh_linen',    name:'Fresh Linen',       icon:'bi-droplet' },
+        { value:'amber_noir',     name:'Amber Noir',        icon:'bi-stars' },
+    ],
+    wick_type: [
+        { value:'single', name:'Single Wick', icon:'bi-fire', price_addon:0 },
+        { value:'double', name:'Double Wick', icon:'bi-fire',  price_addon:50 },
+        { value:'triple', name:'Triple Wick', icon:'bi-fire',  price_addon:100 },
+    ],
+};
+
+let optionsData = {};   // category → [options]
+let selections = {};    // category → selected value
+let priceLookup = {};   // value → price_addon
+let colourLookup = {};  // value → hex
+
+document.addEventListener('DOMContentLoaded', loadCustomizationOptions);
+
+async function loadCustomizationOptions() {
+    try {
+        const res = await fetch('/admin/api/public/customization-options');
+        const data = await res.json();
+        optionsData = data.options || {};
+    } catch {
+        optionsData = {};
+    }
+
+    // Merge fallback for missing categories
+    Object.keys(FALLBACK).forEach(cat => {
+        if (!optionsData[cat] || !optionsData[cat].length) {
+            optionsData[cat] = FALLBACK[cat];
+        }
+    });
+
+    // Build lookups
+    Object.values(optionsData).flat().forEach(o => {
+        if (o.price_addon) priceLookup[o.value] = o.price_addon;
+        if (o.color_hex) colourLookup[o.value] = o.color_hex;
+    });
+
+    renderSteps();
+    document.getElementById('customizeLoading').classList.add('d-none');
+    document.getElementById('customizeContent').classList.remove('d-none');
+    updatePreview();
+    updatePrice();
+}
+
+function renderSteps() {
+    const container = document.getElementById('stepsContainer');
+    container.innerHTML = '';
+    let step = 1;
+
+    // Render steps in defined order, then any extras
+    const orderedCats = ['jar_type','colour','fragrance','wick_type','shape','ingredient','wax_type'];
+    const allCats = [...new Set([...orderedCats, ...Object.keys(optionsData)])];
+
+    allCats.forEach(cat => {
+        const opts = optionsData[cat];
+        if (!opts || !opts.length) return;
+
+        const cfg = STEP_CONFIG[cat] || { label: cat.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase()), group: cat };
+
+        // Set default selection to first option
+        selections[cat] = opts[0].value;
+
+        let cardsHtml = opts.map((o, i) => {
+            const isColour = (cat === 'colour');
+            const iconHtml = isColour && o.color_hex
+                ? `<div class="colour-swatch" style="background:${o.color_hex};"></div>`
+                : `<div class="option-icon"><i class="bi ${o.icon || 'bi-circle'}"></i></div>`;
+            const priceHtml = o.price_addon ? `<small class="text-muted">+₹${o.price_addon}</small>` : '';
+            return `
+                <div class="col-6 col-md-3">
+                    <div class="option-card ${i===0?'active':''}" data-group="${cat}" data-value="${o.value}"
+                         onclick="selectOption(this, '${cat}')">
+                        ${iconHtml}
+                        <span>${o.name}</span>
+                        ${priceHtml}
+                    </div>
+                </div>`;
+        }).join('');
+
+        container.innerHTML += `
+            <div class="customize-step mb-4">
+                <h5 class="step-label"><span class="step-number">${step}</span> ${cfg.label}</h5>
+                <div class="row g-3">${cardsHtml}</div>
+            </div>`;
+        step++;
+    });
+
+    // Update label step number
+    document.getElementById('labelStepNum').textContent = step;
+}
+
+function selectOption(el, group) {
+    document.querySelectorAll(`[data-group="${group}"]`).forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    selections[group] = el.dataset.value;
+    updatePreview();
+    updatePrice();
+}
+
+function updatePreview() {
+    const wax = document.getElementById('previewWax');
+    const selectedColour = selections['colour'];
+    if (wax) wax.style.background = colourLookup[selectedColour] || '#FFFFF0';
+
+    const label = document.getElementById('previewLabel');
+    if (label) label.textContent = document.getElementById('labelText')?.value || '';
+}
+
+function updatePrice() {
+    let totalAddon = 0;
+    let addonHtml = '';
+
+    Object.entries(selections).forEach(([cat, val]) => {
+        const addon = priceLookup[val] || 0;
+        if (addon > 0) {
+            totalAddon += addon;
+            const catLabel = (STEP_CONFIG[cat]?.label || cat).replace(/Choose |Select |Pick /i, '');
+            addonHtml += `<div class="summary-row"><span>${catLabel}</span><span class="text-success">+₹${addon}</span></div>`;
+        }
+    });
+
+    document.getElementById('addonRows').innerHTML = addonHtml;
+    document.getElementById('customTotal').textContent = `₹${basePrice + totalAddon}`;
+}
+
+async function addCustomToCart() {
+    const btn = document.getElementById('addCustomBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adding...';
+
+    // Calculate total addon
+    let totalAddon = 0;
+    Object.values(selections).forEach(val => { totalAddon += (priceLookup[val] || 0); });
+
+    try {
+        const res = await fetch('/api/cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                product_id: null,
+                quantity: 1,
+                customization: {
+                    jar_type: selections['jar_type'] || '',
+                    colour: selections['colour'] || '',
+                    fragrance: selections['fragrance'] || '',
+                    wick_type: selections['wick_type'] || '',
+                    label_text: document.getElementById('labelText')?.value || '',
+                    additional_notes: document.getElementById('additionalNotes')?.value || '',
+                    price_addon: totalAddon
+                }
+            })
+        });
+
+        if (res.status === 401) {
+            showToast('Please login to add items to cart');
+            setTimeout(() => { window.location.href = '/login'; }, 1200);
+            return;
+        }
+
+        const data = await res.json();
+        if (res.ok) {
+            showToast('Custom candle added to cart!');
+            updateCartBadge();
+        } else {
+            showToast(data.error || 'Failed to add to cart');
+        }
+    } catch {
+        showToast('Network error. Please try again.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-bag-plus me-2"></i>Add Custom Candle to Cart';
+    }
+}
+</script>
+{% endblock %}

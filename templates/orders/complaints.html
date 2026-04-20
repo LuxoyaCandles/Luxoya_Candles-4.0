@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}My Complaints{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-navbar">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="section-title mb-0">My <span class="text-gold">Complaints</span></h1>
+            <button class="btn btn-luxoya-gold" data-bs-toggle="modal" data-bs-target="#newComplaintModal">
+                <i class="bi bi-plus-circle me-2"></i>Raise Complaint
+            </button>
+        </div>
+
+        <div id="complaintsLoading" class="text-center py-5">
+            <div class="spinner-border text-gold" role="status"></div>
+        </div>
+
+        <div id="complaintsEmpty" class="text-center py-5" style="display:none">
+            <i class="bi bi-chat-square-text" style="font-size: 4rem; color: var(--gold);"></i>
+            <h3 class="mt-3">No Complaints</h3>
+            <p class="text-muted">You haven't raised any complaints yet.</p>
+        </div>
+
+        <div id="complaintsList"></div>
+    </div>
+</section>
+
+<!-- New Complaint Modal -->
+<div class="modal fade" id="newComplaintModal" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+    <div class="modal-header" style="border-bottom-color: var(--lx-surface-border);">
+        <h5 class="modal-title"><i class="bi bi-chat-square-text me-2 text-gold"></i>Raise a Complaint</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+        <form id="complaintForm">
+            <div class="mb-3">
+                <label class="form-label">Related Order (optional)</label>
+                <select class="form-select" id="complaintOrder">
+                    <option value="">-- No specific order --</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Subject <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="complaintSubject" placeholder="Brief summary of your issue" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Description <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="complaintDesc" rows="5" placeholder="Describe your issue in detail (min 20 characters)..." required minlength="20"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Priority</label>
+                <select class="form-select" id="complaintPriority">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+            <div id="complaintError" class="alert alert-danger d-none"></div>
+            <div id="complaintSuccess" class="alert alert-success d-none"></div>
+        </form>
+    </div>
+    <div class="modal-footer border-secondary">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-luxoya-gold" onclick="submitComplaint()">
+            <i class="bi bi-send me-2"></i>Submit Complaint
+        </button>
+    </div>
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadComplaints() {
+    try {
+        const res = await fetch('/api/complaints', {credentials: 'same-origin'});
+        const data = await res.json();
+        document.getElementById('complaintsLoading').style.display = 'none';
+
+        if (!data.complaints || !data.complaints.length) {
+            document.getElementById('complaintsEmpty').style.display = 'block';
+            return;
+        }
+
+        const sc = {open:'danger', in_progress:'warning', resolved:'success', closed:'secondary'};
+        const pc = {low:'info', medium:'warning', high:'danger'};
+
+        document.getElementById('complaintsList').innerHTML = data.complaints.map(c => `
+        <div class="order-card mb-3" data-aos="fade-up">
+            <div class="order-card-header">
+                <div>
+                    <h6 class="mb-0">${c.subject}</h6>
+                    <small class="text-muted">${new Date(c.created_at).toLocaleDateString('en-IN', {year:'numeric', month:'long', day:'numeric'})}</small>
+                    ${c.order_number ? `<span class="badge bg-dark ms-2">${c.order_number}</span>` : ''}
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-${sc[c.status]||'secondary'}">${c.status.replace('_',' ')}</span>
+                    <div class="mt-1"><span class="badge bg-${pc[c.priority]||'secondary'} bg-opacity-75">${c.priority} priority</span></div>
+                </div>
+            </div>
+            <div class="order-card-body">
+                <p class="mb-1" style="white-space:pre-wrap">${c.description}</p>
+                ${c.admin_response ? `
+                <div class="mt-3 p-3 rounded" style="background:rgba(201,169,110,0.1); border-left:3px solid var(--gold)">
+                    <small class="text-gold fw-bold"><i class="bi bi-reply me-1"></i>Admin Response:</small>
+                    <p class="mb-0 mt-1" style="white-space:pre-wrap">${c.admin_response}</p>
+                </div>` : ''}
+            </div>
+            <div class="order-card-footer">
+                <small class="text-muted">
+                    ${c.resolved_at ? 'Resolved on ' + new Date(c.resolved_at).toLocaleDateString('en-IN') : 'Awaiting response'}
+                </small>
+            </div>
+        </div>`).join('');
+
+    } catch (err) {
+        document.getElementById('complaintsLoading').style.display = 'none';
+        document.getElementById('complaintsEmpty').style.display = 'block';
+    }
+}
+
+async function loadUserOrders() {
+    try {
+        const res = await fetch('/api/orders', {credentials: 'same-origin'});
+        const data = await res.json();
+        const sel = document.getElementById('complaintOrder');
+        if (data.orders) {
+            data.orders.forEach(o => {
+                const opt = document.createElement('option');
+                opt.value = o.id;
+                opt.textContent = `${o.order_number} - ₹${o.total_amount}`;
+                sel.appendChild(opt);
+            });
+        }
+    } catch(e) {}
+}
+
+async function submitComplaint() {
+    const errEl = document.getElementById('complaintError');
+    const successEl = document.getElementById('complaintSuccess');
+    errEl.classList.add('d-none');
+    successEl.classList.add('d-none');
+
+    const body = {
+        subject: document.getElementById('complaintSubject').value.trim(),
+        description: document.getElementById('complaintDesc').value.trim(),
+        priority: document.getElementById('complaintPriority').value,
+        order_id: document.getElementById('complaintOrder').value || null
+    };
+
+    if (!body.subject || !body.description) {
+        errEl.textContent = 'Subject and description are required';
+        errEl.classList.remove('d-none');
+        return;
+    }
+
+    const res = await fetch('/api/complaints', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'same-origin',
+        body: JSON.stringify(body)
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+        successEl.textContent = data.message || 'Complaint submitted!';
+        successEl.classList.remove('d-none');
+        setTimeout(() => {
+            bootstrap.Modal.getInstance(document.getElementById('newComplaintModal')).hide();
+            loadComplaints();
+        }, 1000);
+    } else {
+        errEl.textContent = data.error || 'Failed to submit complaint';
+        errEl.classList.remove('d-none');
+    }
+}
+
+loadComplaints();
+loadUserOrders();
+</script>
+{% endblock %}

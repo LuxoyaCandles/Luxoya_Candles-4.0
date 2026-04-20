@@ -1,0 +1,202 @@
+{% extends "admin/base.html" %}
+{% block title %}Returns{% endblock %}
+{% block page_title %}Return Requests{% endblock %}
+
+{% block admin_content %}
+<div class="admin-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex gap-2">
+            <select id="filterStatus" class="form-select form-select-sm w-auto" onchange="loadReturns()">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="completed">Completed</option>
+            </select>
+        </div>
+        <span class="text-muted small" id="returnCount"></span>
+    </div>
+
+    <!-- Return Policy Notice -->
+    <div class="alert alert-warning mb-3">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>Return Policy:</strong> Returns accepted only if the product seal is <strong>not opened</strong>. 
+        Delivery charges are <strong>non-refundable</strong> even for approved returns. Customized candles are non-returnable.
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Reason</th>
+                    <th>Seal Intact</th>
+                    <th>Refund Amount</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="returnsTable">
+                <tr><td colspan="8" class="text-center py-4">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Return Detail Modal -->
+<div class="modal fade" id="returnModal" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title">Return Request Details</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body" id="returnDetailBody">Loading...</div>
+    <div class="modal-footer" id="returnActions"></div>
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let allReturns = [];
+let currentReturn = null;
+
+async function loadReturns() {
+    const status = document.getElementById('filterStatus').value;
+    const url = '/admin/api/returns' + (status ? `?status=${status}` : '');
+    const res = await fetch(url, {credentials: 'same-origin'});
+    const data = await res.json();
+    allReturns = data.returns || [];
+    renderReturns();
+}
+
+function renderReturns() {
+    document.getElementById('returnCount').textContent = `${allReturns.length} return requests`;
+    const tbody = document.getElementById('returnsTable');
+
+    if (!allReturns.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">No return requests found</td></tr>';
+        return;
+    }
+
+    const sc = {pending:'warning', approved:'info', rejected:'danger', completed:'success'};
+
+    tbody.innerHTML = allReturns.map(r => `
+        <tr>
+            <td><strong>${r.order_number || '—'}</strong></td>
+            <td>${r.user ? r.user.full_name : '—'}</td>
+            <td class="text-truncate" style="max-width:200px">${r.reason}</td>
+            <td>${r.seal_intact ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-danger">No</span>'}</td>
+            <td>₹${r.refund_amount ? r.refund_amount.toFixed(0) : '—'}</td>
+            <td><span class="badge bg-${sc[r.status] || 'secondary'}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span></td>
+            <td class="text-muted small">${new Date(r.created_at).toLocaleDateString('en-IN')}</td>
+            <td><button class="btn btn-sm btn-outline-dark" onclick="viewReturn('${r.id}')"><i class="bi bi-eye"></i></button></td>
+        </tr>
+    `).join('');
+}
+
+function viewReturn(id) {
+    currentReturn = allReturns.find(r => r.id === id);
+    if (!currentReturn) return;
+
+    const r = currentReturn;
+    const sc = {pending:'warning', approved:'info', rejected:'danger', completed:'success'};
+
+    document.getElementById('returnDetailBody').innerHTML = `
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6><i class="bi bi-receipt me-2"></i>Order Info</h6>
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr><td class="text-muted">Order #</td><td><strong>${r.order_number || '—'}</strong></td></tr>
+                            <tr><td class="text-muted">Customer</td><td>${r.user ? r.user.full_name : '—'}</td></tr>
+                            <tr><td class="text-muted">Email</td><td>${r.user ? r.user.email : '—'}</td></tr>
+                            <tr><td class="text-muted">Phone</td><td>${r.user ? (r.user.phone || '—') : '—'}</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6><i class="bi bi-arrow-return-left me-2"></i>Return Info</h6>
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr><td class="text-muted">Status</td><td><span class="badge bg-${sc[r.status]}">${r.status}</span></td></tr>
+                            <tr><td class="text-muted">Seal Intact</td><td>${r.seal_intact ? '✅ Yes' : '❌ No'}</td></tr>
+                            <tr><td class="text-muted">Refund Amount</td><td><strong>₹${r.refund_amount ? r.refund_amount.toFixed(0) : '—'}</strong></td></tr>
+                            <tr><td class="text-muted">Requested</td><td>${new Date(r.created_at).toLocaleString('en-IN')}</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h6><i class="bi bi-chat-text me-2"></i>Return Reason</h6>
+                        <p class="mb-0 p-2 bg-light rounded" style="color:#333">${r.reason}</p>
+                    </div>
+                </div>
+            </div>
+            ${r.admin_notes ? `
+            <div class="col-12">
+                <div class="card border-info">
+                    <div class="card-body">
+                        <h6><i class="bi bi-sticky me-2"></i>Admin Notes</h6>
+                        <p class="mb-0">${r.admin_notes}</p>
+                    </div>
+                </div>
+            </div>` : ''}
+            ${r.status === 'pending' ? `
+            <div class="col-12">
+                <div class="card border-warning">
+                    <div class="card-body">
+                        <h6><i class="bi bi-pencil me-2"></i>Admin Response</h6>
+                        <textarea class="form-control mb-2" id="adminNotes" rows="2" placeholder="Add notes (optional)"></textarea>
+                    </div>
+                </div>
+            </div>` : ''}
+        </div>
+    `;
+
+    let actions = '';
+    if (r.status === 'pending') {
+        actions = `
+            <button class="btn btn-success" onclick="updateReturn('approved')"><i class="bi bi-check-circle me-1"></i>Approve Return</button>
+            <button class="btn btn-danger" onclick="updateReturn('rejected')"><i class="bi bi-x-circle me-1"></i>Reject Return</button>
+        `;
+    } else if (r.status === 'approved') {
+        actions = `<button class="btn btn-primary" onclick="updateReturn('completed')"><i class="bi bi-check2-all me-1"></i>Mark Completed & Process Refund</button>`;
+    }
+    document.getElementById('returnActions').innerHTML = actions;
+
+    new bootstrap.Modal(document.getElementById('returnModal')).show();
+}
+
+async function updateReturn(status) {
+    const adminNotes = document.getElementById('adminNotes')?.value?.trim() || '';
+
+    const res = await fetch(`/admin/api/returns/${currentReturn.id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        credentials: 'same-origin',
+        body: JSON.stringify({ status, admin_notes: adminNotes, refund_amount: currentReturn.refund_amount })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+        bootstrap.Modal.getInstance(document.getElementById('returnModal')).hide();
+        showToast(data.message || 'Return updated', 'success');
+        loadReturns();
+    } else {
+        showToast(data.error || 'Failed to update return', 'error');
+    }
+}
+
+loadReturns();
+</script>
+{% endblock %}

@@ -1,0 +1,820 @@
+{% extends "admin/base.html" %}
+{% block title %}Products{% endblock %}
+{% block page_title %}Products{% endblock %}
+
+{% block admin_content %}
+<div class="card-premium p-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div class="d-flex align-items-center gap-3 flex-grow-1">
+            <div class="position-relative" style="width: 280px;">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                <input type="search" id="searchProducts" class="form-control ps-5 border-0 bg-dark bg-opacity-10 rounded-pill" placeholder="Search product library...">
+            </div>
+            <select id="filterCategory" class="form-select border-0 bg-dark bg-opacity-10 rounded-pill w-auto px-4" style="min-width: 180px;">
+                <option value="">All Collections</option>
+                {% for cat in categories %}<option value="{{ cat.id }}">{{ cat.name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-dark d-flex align-items-center gap-2 border border-secondary border-opacity-10 px-4 rounded-pill" id="bulkEditToggle" onclick="toggleBulkEdit()">
+                <i class="bi bi-pencil-square"></i> Bulk Edit
+            </button>
+            <button class="btn btn-premium d-flex align-items-center gap-2 px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#productModal" onclick="resetProductForm()">
+                <i class="bi bi-plus-lg"></i> Create Product
+            </button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.04); color: var(--lx-text) !important;">
+            <thead>
+                <tr class="text-muted small border-bottom border-secondary border-opacity-10" style="font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase;">
+                    <th class="py-3 px-4">ITEM</th>
+                    <th class="py-3">COLLECTION</th>
+                    <th class="py-3">PRICE</th>
+                    <th class="py-3 text-nowrap">STOCK STATUS</th>
+                    <th class="py-3">VISIBILITY</th>
+                    <th class="py-3 text-end px-4">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody id="productTable" class="small" style="color: var(--lx-text) !important;">
+                <tr><td colspan="6" class="text-center py-5"><div class="spinner-border spinner-border-sm text-gold me-2"></div> Fetching inventory data...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal fade" id="productModal" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="productModalTitle">Add Product</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <form id="productForm" enctype="multipart/form-data">
+            <input type="hidden" id="prodId">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label">Product Name <span class="text-danger">*</span></label>
+                    <input type="text" id="prodName" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label mb-0">Category <span class="text-danger">*</span></label>
+                        <a href="/admin/categories" class="small text-gold text-decoration-none" target="_blank">
+                            <i class="bi bi-plus-circle me-1"></i>New
+                        </a>
+                    </div>
+                    <select id="prodCategory" class="form-select" required>
+                        <option value="">Select Category</option>
+                        {% for cat in categories %}<option value="{{ cat.id }}">{{ cat.name }}</option>{% endfor %}
+                    </select>
+                </div>
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label mb-0">Description</label>
+                        <button type="button" class="btn btn-link btn-sm p-0 text-gold text-decoration-none" onclick="generateAiDescription()">
+                            <i class="bi bi-stars"></i> Magic Write (AI)
+                        </button>
+                    </div>
+                    <textarea id="prodDesc" class="form-control" rows="3"></textarea>
+                <div class="col-md-3">
+                    <label class="form-label">Price (₹) <span class="text-danger">*</span></label>
+                    <input type="number" id="prodPrice" class="form-control" required min="0" step="0.01">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Sale Price (₹)</label>
+                    <input type="number" id="prodSalePrice" class="form-control" min="0" step="0.01">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Stock <span class="text-danger">*</span></label>
+                    <input type="number" id="prodStock" class="form-control" required min="0">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Weight (g)</label>
+                    <input type="number" id="prodWeight" class="form-control" min="0">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Burn Time (hrs)</label>
+                    <input type="number" id="prodBurn" class="form-control" min="0">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Fragrance</label>
+                    <input type="text" id="prodFragrance" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Wax Type</label>
+                    <input type="text" id="prodWax" class="form-control" placeholder="e.g. Soy, Beeswax">
+                </div>
+                <!-- Add Video URL Field -->
+                <div class="col-12">
+                    <label class="form-label">Product Video URL <small class="text-muted">(Optional, MP4/WEBM link)</small></label>
+                    <input type="text" id="prodVideo" class="form-control" placeholder="https://example.com/video.mp4">
+                </div>
+                <!-- Product Images Upload (Multiple) -->
+                <div class="col-12">
+                    <label class="form-label">Product Images <small class="text-muted">(first image = main image)</small></label>
+                    <div id="mainImageDropZone" class="upload-drop-zone" onclick="document.getElementById('prodImage').click()">
+                        <input type="file" id="prodImage" multiple accept="image/png,image/jpeg,image/jpg,image/gif,image/webp" style="display:none" onchange="handleProductImages(this.files)">
+                        <div id="mainImagePlaceholder">
+                            <i class="bi bi-cloud-arrow-up" style="font-size:2rem;color:#c9a96e"></i>
+                            <p class="mb-0 mt-2 text-muted">Click or drag images here</p>
+                            <small class="text-muted">Select multiple files &middot; PNG, JPG, JPEG, GIF, WEBP (max 16 MB each)</small>
+                        </div>
+                    </div>
+                    <div id="productImagesPreview" class="row g-2 mt-2" style="display:none"></div>
+                    <div id="productImagesActions" class="mt-2" style="display:none">
+                        <span class="text-muted small"><i class="bi bi-info-circle me-1"></i><span id="prodImageCount">0</span> image(s) selected &middot; First image will be the main product image</span>
+                        <button type="button" class="btn btn-outline-secondary btn-sm ms-2" onclick="clearProductImages()">
+                            <i class="bi bi-x-lg me-1"></i>Clear All
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="prodFeatured"><label class="form-check-label" for="prodFeatured">Featured Product</label></div></div>
+                <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="prodActive" checked><label class="form-check-label" for="prodActive">Active</label></div></div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-gold" onclick="saveProduct()"><i class="bi bi-check-lg me-1"></i>Save Product</button>
+    </div>
+</div>
+</div>
+</div>
+
+<!-- Image Manager Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-images me-2"></i>Manage Product Images (Carousel)</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" id="imgProductId">
+        <!-- Upload Zone -->
+        <div class="mb-4">
+            <label class="form-label fw-semibold">Upload New Images</label>
+            <div id="carouselDropZone" class="upload-drop-zone upload-drop-zone-lg"
+                 onclick="document.getElementById('carouselFiles').click()">
+                <input type="file" id="carouselFiles" multiple accept="image/png,image/jpeg,image/jpg,image/gif,image/webp" style="display:none" onchange="handleCarouselFiles(this.files)">
+                <i class="bi bi-cloud-arrow-up" style="font-size:2.5rem;color:#c9a96e"></i>
+                <p class="mb-0 mt-2"><strong>Click or drag &amp; drop images here</strong></p>
+                <small class="text-muted">Select multiple files at once &middot; PNG, JPG, JPEG, GIF, WEBP (max 16 MB each)</small>
+            </div>
+            <!-- Preview of selected files before upload -->
+            <div id="carouselPreviewGrid" class="row g-2 mt-2" style="display:none"></div>
+            <div id="carouselUploadActions" class="mt-3" style="display:none">
+                <button class="btn btn-gold btn-sm" onclick="uploadCarouselImages()">
+                    <i class="bi bi-cloud-upload me-1"></i> Upload <span id="uploadCount">0</span> Image(s)
+                </button>
+                <button class="btn btn-outline-secondary btn-sm ms-2" onclick="clearCarouselPreview()">
+                    <i class="bi bi-x-lg me-1"></i> Clear
+                </button>
+            </div>
+        </div>
+        <hr>
+        <h6>Current Images <small class="text-muted">(drag to reorder)</small></h6>
+        <div id="imageList" class="row g-2"></div>
+    </div>
+</div>
+</div>
+</div>
+
+<!-- Authorization Modal -->
+<div class="modal fade" id="authModal" tabindex="-1" data-bs-backdrop="static">
+<div class="modal-dialog modal-sm modal-dialog-centered">
+<div class="modal-content">
+    <div class="modal-header border-0 pb-0">
+        <h6 class="modal-title"><i class="bi bi-shield-lock me-2 text-warning"></i>Authorization Required</h6>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+        <p class="text-muted small mb-3" id="authModalMessage">Enter your admin password to activate this product.</p>
+        <div id="authError" class="alert alert-danger py-2 small" style="display:none"></div>
+        <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-key"></i></span>
+            <input type="password" id="authPassword" class="form-control" placeholder="Admin password" autocomplete="current-password">
+        </div>
+    </div>
+    <div class="modal-footer border-0 pt-0">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-gold btn-sm" id="authConfirmBtn" onclick="confirmAuth()">
+            <i class="bi bi-check-lg me-1"></i>Authorize
+        </button>
+    </div>
+</div>
+</div>
+</div>
+
+<style>
+.upload-drop-zone {
+    border: 2px dashed #c9a96e;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all .3s ease;
+    background: #faf8f5;
+}
+.upload-drop-zone:hover,
+.upload-drop-zone.drag-over {
+    background: rgba(201,169,110,.1);
+    border-color: #b08c4e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(201,169,110,.15);
+}
+.upload-drop-zone-lg { padding: 2.5rem; }
+.upload-preview-area img {
+    max-height: 150px;
+    max-width: 100%;
+    border-radius: 8px;
+    object-fit: cover;
+}
+.carousel-preview-thumb {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #e0e0e0;
+}
+.carousel-preview-thumb img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+}
+.carousel-preview-thumb .remove-preview {
+    position: absolute;
+    top: 4px; right: 4px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(220,53,69,.9);
+    color: #fff;
+    border: none;
+    font-size: .7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let products = [];
+let pendingCarouselFiles = [];
+let pendingProductImages = [];  // Multiple images for product form
+
+/* ── Drag & Drop setup ──────────────────────────── */
+function setupDropZone(el, handler) {
+    if (!el) return;
+    ['dragenter','dragover','dragleave','drop'].forEach(evt => {
+        el.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); });
+    });
+    el.addEventListener('dragenter', () => el.classList.add('drag-over'));
+    el.addEventListener('dragover',  () => el.classList.add('drag-over'));
+    el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+    el.addEventListener('drop', e => {
+        el.classList.remove('drag-over');
+        handler(e.dataTransfer.files);
+    });
+}
+document.addEventListener('DOMContentLoaded', () => {
+    setupDropZone(document.getElementById('mainImageDropZone'), files => {
+        handleProductImages(files);
+    });
+    setupDropZone(document.getElementById('carouselDropZone'), handleCarouselFiles);
+});
+
+/* ── Product Images (Multiple) ──────────────────── */
+function handleProductImages(files) {
+    const fileList = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (!fileList.length) return;
+    pendingProductImages = pendingProductImages.concat(fileList);
+    renderProductImagesPreview();
+}
+
+function renderProductImagesPreview() {
+    const grid = document.getElementById('productImagesPreview');
+    const actions = document.getElementById('productImagesActions');
+    const placeholder = document.getElementById('mainImagePlaceholder');
+    if (!pendingProductImages.length) {
+        grid.style.display = 'none';
+        actions.style.display = 'none';
+        if (placeholder) placeholder.style.display = '';
+        return;
+    }
+    grid.style.display = 'flex';
+    actions.style.display = 'block';
+    if (placeholder) placeholder.style.display = 'none';
+    document.getElementById('prodImageCount').textContent = pendingProductImages.length;
+    grid.innerHTML = '';
+    pendingProductImages.forEach((file, i) => {
+        const col = document.createElement('div');
+        col.className = 'col-md-3 col-4';
+        const reader = new FileReader();
+        reader.onload = e => {
+            col.innerHTML = `
+                <div class="carousel-preview-thumb">
+                    <img src="${e.target.result}" alt="${file.name}">
+                    ${i === 0 ? '<span class="badge bg-warning text-dark position-absolute" style="top:4px;left:4px;font-size:.6rem">MAIN</span>' : ''}
+                    <button class="remove-preview" onclick="removeProductImage(${i})" title="Remove">
+                        <i class="bi bi-x"></i>
+                    </button>
+                    <small class="d-block text-center text-muted py-1" style="font-size:.65rem">${file.name}</small>
+                </div>`;
+        };
+        reader.readAsDataURL(file);
+        grid.appendChild(col);
+    });
+}
+
+function removeProductImage(index) {
+    pendingProductImages.splice(index, 1);
+    renderProductImagesPreview();
+}
+
+function clearProductImages() {
+    pendingProductImages = [];
+    document.getElementById('prodImage').value = '';
+    renderProductImagesPreview();
+}
+
+/* ── Carousel File Handling ─────────────────────── */
+function handleCarouselFiles(files) {
+    const fileList = Array.from(files).filter(f => f.type.startsWith('image/'));
+    if (!fileList.length) return;
+    pendingCarouselFiles = pendingCarouselFiles.concat(fileList);
+    renderCarouselPreview();
+}
+
+function renderCarouselPreview() {
+    const grid = document.getElementById('carouselPreviewGrid');
+    const actions = document.getElementById('carouselUploadActions');
+    if (!pendingCarouselFiles.length) {
+        grid.style.display = 'none';
+        actions.style.display = 'none';
+        return;
+    }
+    grid.style.display = 'flex';
+    actions.style.display = 'block';
+    document.getElementById('uploadCount').textContent = pendingCarouselFiles.length;
+    grid.innerHTML = '';
+    pendingCarouselFiles.forEach((file, i) => {
+        const col = document.createElement('div');
+        col.className = 'col-md-3 col-4';
+        const reader = new FileReader();
+        reader.onload = e => {
+            col.innerHTML = `
+                <div class="carousel-preview-thumb">
+                    <img src="${e.target.result}" alt="${file.name}">
+                    <button class="remove-preview" onclick="removeCarouselPreview(${i})" title="Remove">
+                        <i class="bi bi-x"></i>
+                    </button>
+                    <small class="d-block text-center text-muted py-1" style="font-size:.65rem">${file.name}</small>
+                </div>`;
+        };
+        reader.readAsDataURL(file);
+        grid.appendChild(col);
+    });
+}
+
+function removeCarouselPreview(index) {
+    pendingCarouselFiles.splice(index, 1);
+    renderCarouselPreview();
+}
+
+function clearCarouselPreview() {
+    pendingCarouselFiles = [];
+    document.getElementById('carouselFiles').value = '';
+    renderCarouselPreview();
+}
+
+async function uploadCarouselImages() {
+    const pid = document.getElementById('imgProductId').value;
+    if (!pendingCarouselFiles.length) return;
+    const fd = new FormData();
+    pendingCarouselFiles.forEach(f => fd.append('images', f));
+    const btn = document.querySelector('#carouselUploadActions .btn-gold');
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Uploading...';
+    try {
+        const res = await fetch(`/admin/api/products/${pid}/images/bulk`, { method:'POST', body: fd, credentials:'same-origin' });
+        const data = await res.json();
+        if (res.ok) {
+            clearCarouselPreview();
+            loadImages(pid);
+            loadProducts();
+        } else { alert(data.error || 'Upload failed'); }
+    } catch(e) { alert('Upload failed: ' + e.message); }
+    finally { btn.disabled = false; btn.innerHTML = origText; }
+}
+
+/* ── Products CRUD ──────────────────────────────── */
+async function loadProducts() {
+    const res = await fetch('/admin/api/products', {credentials:'same-origin'});
+    const data = await res.json();
+    products = data.products || data;
+    renderProducts();
+}
+
+async function loadCategories() {
+    try {
+        const res = await fetch('/admin/api/categories', {credentials:'same-origin'});
+        if (!res.ok) throw new Error('Failed to load categories');
+        const data = await res.json();
+        const cats = data.categories || data || [];
+        if (cats.length) {
+            const opts = cats.map(c => `<option value="${c.id}">${c.name}${c.is_active ? '' : ' (inactive)'}</option>`).join('');
+            document.getElementById('filterCategory').innerHTML = '<option value="">All</option>' + opts;
+            document.getElementById('prodCategory').innerHTML = '<option value="">Select Category</option>' + opts;
+        }
+    } catch(e) { console.warn('loadCategories fallback to server-rendered:', e.message); }
+}
+
+function renderProducts() {
+    const q = document.getElementById('searchProducts').value.toLowerCase();
+    const cat = document.getElementById('filterCategory').value;
+    let filtered = products;
+    if (q) filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
+    if (cat) filtered = filtered.filter(p => p.category_id == cat);
+    const tbody = document.getElementById('productTable');
+    if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted">No products matching your search</td></tr>'; return; }
+    tbody.innerHTML = filtered.map(p => `
+        <tr class="border-bottom border-secondary border-opacity-10" data-id="${p.id}">
+            <td class="px-4 py-3">
+                <div class="d-flex align-items-center gap-3">
+                    ${p.image_url 
+                        ? `<img src="${p.image_url}" width="50" height="50" class="rounded-3 object-fit-cover shadow-sm" alt="">` 
+                        : `<div class="rounded-3 bg-dark bg-opacity-25 d-flex align-items-center justify-content-center text-gold" style="width:50px; height:50px;"><i class="bi bi-box"></i></div>`
+                    }
+                    <div>
+                        <div class="fw-bold text-nowrap" style="color: var(--lx-text) !important;">${p.name}</div>
+                        <div class="text-muted smaller" style="font-size:0.7rem">${p.slug || ''}</div>
+                    </div>
+                </div>
+            </td>
+            <td class="text-muted" style="color: var(--lx-text-muted) !important;">${p.category ? (p.category.name || p.category) : '-'}</td>
+            <td>
+                <div class="fw-bold price-val" style="color: var(--lx-text) !important;">₹${p.price}</div>
+                ${p.sale_price ? `<div class="text-muted smaller text-decoration-line-through" style="font-size:0.7rem">₹${p.sale_price}</div>` : ''}
+            </td>
+            <td>
+                <div class="${p.stock < 10 ? 'text-danger fw-bold' : ''} stock-val" style="${p.stock >= 10 ? 'color: var(--lx-text) !important;' : ''}">${p.stock} units</div>
+                <div class="smaller text-muted" style="font-size:0.7rem">${p.stock < 5 ? 'Restock Soon' : 'In Stock'}</div>
+            </td>
+            <td>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" ${p.is_active ? 'checked' : ''} 
+                           onclick="toggleProductStatus('${p.id}', ${!p.is_active})">
+                    <span class="smaller ${p.is_active ? 'text-success' : 'text-muted'}">${p.is_active ? 'Public' : 'Hidden'}</span>
+                </div>
+            </td>
+            <td class="text-end px-4">
+                <div class="d-flex justify-content-end gap-1">
+                    <button class="btn btn-sm btn-dark rounded-3 border-secondary border-opacity-10" onclick="editProduct('${p.id}')" title="Edit"><i class="bi bi-pencil-square text-gold"></i></button>
+                    <button class="btn btn-sm btn-dark rounded-3 border-secondary border-opacity-10" onclick="manageImages('${p.id}')" title="Gallery"><i class="bi bi-images text-gold"></i></button>
+                    <button class="btn btn-sm btn-outline-danger border-0 rounded-3" onclick="deleteProduct('${p.id}')" title="Delete"><i class="bi bi-trash3"></i></button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function resetProductForm() {
+    document.getElementById('productModalTitle').textContent = 'Add Product';
+    document.getElementById('productForm').reset();
+    document.getElementById('prodId').value = '';
+    document.getElementById('prodActive').checked = true;
+    document.getElementById('prodVideo').value = '';
+    clearProductImages();
+    const placeholder = document.getElementById('mainImagePlaceholder');
+    if (placeholder) placeholder.style.display = '';
+}
+
+async function editProduct(id) {
+    const p = products.find(x => x.id == id);
+    if (!p) return;
+    document.getElementById('productModalTitle').textContent = 'Edit Product';
+    document.getElementById('prodId').value = p.id;
+    document.getElementById('prodName').value = p.name;
+    document.getElementById('prodCategory').value = p.category_id || (p.category ? p.category.id : '');
+    document.getElementById('prodDesc').value = p.description || '';
+    document.getElementById('prodPrice').value = p.price;
+    document.getElementById('prodSalePrice').value = p.sale_price || '';
+    document.getElementById('prodStock').value = p.stock;
+    document.getElementById('prodWeight').value = p.weight || '';
+    document.getElementById('prodBurn').value = p.burn_time || '';
+    document.getElementById('prodFragrance').value = p.fragrance || '';
+    document.getElementById('prodWax').value = p.wax_type || '';
+    document.getElementById('prodFeatured').checked = p.is_featured;
+    document.getElementById('prodActive').checked = p.is_active;
+    document.getElementById('prodVideo').value = p.video_url || '';
+    // Show current images
+    clearProductImages();
+    const placeholder = document.getElementById('mainImagePlaceholder');
+    if (p.image_url || (p.all_images && p.all_images.length)) {
+        if (placeholder) placeholder.innerHTML = `<img src="${p.image_url}" alt="Current" style="max-height:100px;border-radius:8px">
+            <p class="mb-0 mt-2 small text-muted">Current images attached &middot; Upload new to add more or use Image Manager to manage</p>`;
+    }
+    document.getElementById('prodImage').value = '';
+    new bootstrap.Modal(document.getElementById('productModal')).show();
+}
+
+/* ── Authorization helper ───────────────────────── */
+let authCallback = null;  // callback after successful authorization
+
+function requestAuth(message, callback) {
+    authCallback = callback;
+    document.getElementById('authModalMessage').textContent = message || 'Enter your admin password to continue.';
+    document.getElementById('authPassword').value = '';
+    document.getElementById('authError').style.display = 'none';
+    const btn = document.getElementById('authConfirmBtn');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Authorize';
+    new bootstrap.Modal(document.getElementById('authModal')).show();
+    setTimeout(() => document.getElementById('authPassword').focus(), 300);
+}
+
+async function confirmAuth() {
+    const password = document.getElementById('authPassword').value.trim();
+    if (!password) {
+        document.getElementById('authError').textContent = 'Please enter your password.';
+        document.getElementById('authError').style.display = 'block';
+        return;
+    }
+    const btn = document.getElementById('authConfirmBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Verifying...';
+    try {
+        const res = await fetch('/admin/api/verify-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ password })
+        });
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('authModal')).hide();
+            if (authCallback) authCallback(password);
+            authCallback = null;
+        } else {
+            const d = await res.json();
+            document.getElementById('authError').textContent = d.error || 'Invalid password.';
+            document.getElementById('authError').style.display = 'block';
+            document.getElementById('authPassword').value = '';
+            document.getElementById('authPassword').focus();
+        }
+    } catch(e) {
+        document.getElementById('authError').textContent = 'Verification failed. Try again.';
+        document.getElementById('authError').style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Authorize';
+    }
+}
+
+// Enter key to confirm auth
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('authPassword')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') confirmAuth();
+    });
+});
+
+/* ── Toggle product status (from table badge) ──── */
+async function toggleProductStatus(productId, newActive) {
+    const product = products.find(p => p.id == productId);
+    if (!product) return;
+
+    if (newActive && !product.is_active) {
+        // Activating: require password
+        requestAuth(`Authorize activation of "${product.name}"`, async (password) => {
+            try {
+                const res = await fetch(`/admin/api/products/${productId}/toggle-status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ is_active: true, password })
+                });
+                if (res.ok) { loadProducts(); }
+                else { const d = await res.json(); alert(d.error || 'Failed to activate'); }
+            } catch(e) { alert('Error: ' + e.message); }
+        });
+    } else {
+        // Deactivating: just confirm
+        if (!confirm(`Deactivate "${product.name}"?`)) return;
+        try {
+            const res = await fetch(`/admin/api/products/${productId}/toggle-status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ is_active: false })
+            });
+            if (res.ok) { loadProducts(); }
+            else { const d = await res.json(); alert(d.error || 'Failed to deactivate'); }
+        } catch(e) { alert('Error: ' + e.message); }
+    }
+}
+
+/* ── Save Product ───────────────────────────────── */
+async function saveProduct() {
+    const id = document.getElementById('prodId').value;
+    const isActiveChecked = document.getElementById('prodActive').checked;
+
+    // Check if activating an existing inactive product
+    if (id) {
+        const existing = products.find(p => p.id == id);
+        if (existing && !existing.is_active && isActiveChecked) {
+            // Needs authorization first
+            requestAuth(`Authorize activation of "${existing.name}"`, (password) => {
+                doSaveProduct(id, password);
+            });
+            return;
+        }
+    }
+    doSaveProduct(id, null);
+}
+
+async function doSaveProduct(id, adminPassword) {
+    // Use FormData to support multiple file uploads
+    const fd = new FormData();
+    fd.append('name', document.getElementById('prodName').value);
+    fd.append('category_id', document.getElementById('prodCategory').value);
+    fd.append('description', document.getElementById('prodDesc').value);
+    fd.append('price', document.getElementById('prodPrice').value);
+    fd.append('sale_price', document.getElementById('prodSalePrice').value || '');
+    fd.append('stock', document.getElementById('prodStock').value);
+    fd.append('weight', document.getElementById('prodWeight').value || '');
+    fd.append('burn_time', document.getElementById('prodBurn').value || '');
+    fd.append('fragrance', document.getElementById('prodFragrance').value);
+    fd.append('wax_type', document.getElementById('prodWax').value);
+    fd.append('is_featured', document.getElementById('prodFeatured').checked);
+    fd.append('is_active', document.getElementById('prodActive').checked);
+    fd.append('video_url', document.getElementById('prodVideo').value);
+    if (adminPassword) fd.append('admin_password', adminPassword);
+    // Append all selected images
+    pendingProductImages.forEach((file, i) => {
+        fd.append('images', file);
+    });
+    const url = id ? `/admin/api/products/${id}` : '/admin/api/products';
+    const method = id ? 'PUT' : 'POST';
+    try {
+        const res = await fetch(url, { method, body: fd, credentials: 'same-origin' });
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+            loadProducts();
+        } else {
+            const d = await res.json();
+            if (d.auth_required) {
+                // Backend says auth required – prompt
+                const existing = products.find(p => p.id == id);
+                requestAuth(`Authorize activation of "${existing?.name || 'product'}"`, (password) => {
+                    doSaveProduct(id, password);
+                });
+            } else {
+                alert(d.error || 'Error saving product');
+            }
+        }
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function deleteProduct(id) {
+    const p = products.find(x => x.id == id);
+    const name = p ? p.name : 'this product';
+    if (!confirm(`Delete "${name}"?\n\nAny active orders with this product will be cancelled and the customers will be refunded automatically.`)) return;
+    try {
+        const res = await fetch(`/admin/api/products/${id}`, { method: 'DELETE', credentials: 'same-origin' });
+        const data = await res.json();
+        if (!res.ok) {
+            alert(data.error || 'Failed to delete product');
+            return;
+        }
+        alert(data.message);
+        loadProducts();
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+/* ── Image Manager ──────────────────────────────── */
+async function manageImages(pid) {
+    document.getElementById('imgProductId').value = pid;
+    pendingCarouselFiles = [];
+    clearCarouselPreview();
+    await loadImages(pid);
+    new bootstrap.Modal(document.getElementById('imageModal')).show();
+}
+
+async function loadImages(pid) {
+    const res = await fetch(`/admin/api/products/${pid}/images`, {credentials:'same-origin'});
+    const data = await res.json();
+    const imgs = data.images || data;
+    const list = document.getElementById('imageList');
+    if (!imgs.length) { list.innerHTML = '<p class="text-muted col-12">No images yet. Upload images above to create a product carousel.</p>'; return; }
+    list.innerHTML = imgs.map(img => `
+        <div class="col-md-4 col-6">
+            <div class="position-relative border rounded p-1">
+                <img src="${img.image_url}" class="w-100" style="height:120px;object-fit:cover;border-radius:6px" alt="${img.alt_text || ''}" onerror="this.parentElement.innerHTML='<div style=\\'height:120px;display:flex;align-items:center;justify-content:center;color:#999\\'>Image not found</div>'">
+                <button class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="deleteImage('${img.id}')">
+                    <i class="bi bi-x"></i>
+                </button>
+                <small class="d-block text-center text-muted mt-1">${img.alt_text || 'No caption'}</small>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function deleteImage(imgId) {
+    if (!confirm('Delete this image?')) return;
+    const pid = document.getElementById('imgProductId').value;
+    await fetch(`/admin/api/products/${pid}/images/${imgId}`, { method: 'DELETE', credentials: 'same-origin' });
+    loadImages(pid);
+    loadProducts();
+}
+
+async function generateAiDescription() {
+    const name = document.getElementById('prodName').value;
+    const fragrance = document.getElementById('prodFragrance').value;
+    const wax = document.getElementById('prodWax').value;
+    const descArea = document.getElementById('prodDesc');
+
+    if(!name) { alert('Please enter a product name first.'); return; }
+
+    const btn = event.currentTarget;
+    const origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Generating...';
+
+    try {
+        const res = await fetch('/admin/api/ai/suggest-description', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ name, fragrance, wax }),
+            credentials: 'same-origin'
+        });
+        const data = await res.json();
+        if(data.description) {
+            descArea.value = data.description;
+        } else { alert(data.error || 'AI could not generate description.'); }
+    } catch(e) { alert('AI Error: ' + e.message); }
+    finally { btn.disabled = false; btn.innerHTML = origHtml; }
+}
+
+/* ── Init ───────────────────────────────────────── */
+document.getElementById('searchProducts').addEventListener('input', renderProducts);
+document.getElementById('filterCategory').addEventListener('change', renderProducts);
+loadCategories();
+    let isBulkEditing = false;
+    function toggleBulkEdit() {
+        isBulkEditing = !isBulkEditing;
+        const btn = document.getElementById('bulkEditToggle');
+        if(isBulkEditing) {
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Save Bulk Changes';
+            btn.classList.replace('btn-dark', 'btn-success');
+            enterBulkEditMode();
+        } else {
+            saveBulkChanges();
+            btn.innerHTML = '<i class="bi bi-pencil-square"></i> Bulk Edit';
+            btn.classList.replace('btn-success', 'btn-dark');
+        }
+    }
+
+    function enterBulkEditMode() {
+        document.querySelectorAll('.price-val').forEach(el => {
+            const val = el.innerText.replace('₹', '').trim();
+            el.innerHTML = `<input type="number" class="form-control form-control-sm bulk-price" value="${val}" style="width:80px; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1)">`;
+        });
+        document.querySelectorAll('.stock-val').forEach(el => {
+            const val = el.innerText.trim();
+            el.innerHTML = `<input type="number" class="form-control form-control-sm bulk-stock" value="${val}" style="width:70px; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1)">`;
+        });
+    }
+
+    async function saveBulkChanges() {
+        const rows = document.querySelectorAll('#productTable tr');
+        const updates = [];
+        rows.forEach(row => {
+            const id = row.getAttribute('data-id');
+            const priceInput = row.querySelector('.bulk-price');
+            const stockInput = row.querySelector('.bulk-stock');
+            if(priceInput && stockInput) {
+                updates.push({
+                    id: id,
+                    price: priceInput.value,
+                    stock: stockInput.value
+                });
+            }
+        });
+
+        // Loop and update or create a bulk endpoint
+        // For efficiency, let's assume we can loop here for now
+        for(let u of updates) {
+            await fetch(`/admin/api/products/${u.id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ price: u.price, stock: u.stock })
+            });
+        }
+        loadProducts();
+    }
+
+    loadProducts();
+</script>
+{% endblock %}

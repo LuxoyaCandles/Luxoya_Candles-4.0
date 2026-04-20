@@ -1,0 +1,143 @@
+{% extends "admin/base.html" %}
+{% block title %}Reviews{% endblock %}
+{% block page_title %}Reviews{% endblock %}
+
+{% block admin_content %}
+<div class="admin-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex gap-2">
+            <select id="filterStatus" class="form-select form-select-sm w-auto">
+                <option value="">All Reviews</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+            </select>
+        </div>
+        <span class="text-muted small" id="reviewCount"></span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Customer</th>
+                    <th>Rating</th>
+                    <th>Review</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="reviewTable">
+                <tr><td colspan="7" class="text-center py-4">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <nav id="reviewPagination" class="mt-3"></nav>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPage = 1;
+
+async function loadReviews(page = 1) {
+    currentPage = page;
+    const status = document.getElementById('filterStatus').value;
+    const params = new URLSearchParams({ page, ...(status && { status }) });
+    
+    try {
+        const res = await fetch(`/admin/api/reviews?${params}`);
+        const data = await res.json();
+        
+        document.getElementById('reviewCount').textContent = `${data.total} review${data.total !== 1 ? 's' : ''}`;
+        
+        const tbody = document.getElementById('reviewTable');
+        if (!data.reviews.length) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No reviews found</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = data.reviews.map(r => `
+            <tr>
+                <td>
+                    <div class="fw-500">${r.product_name || 'Unknown'}</div>
+                </td>
+                <td>${r.user_name || 'Anonymous'}</td>
+                <td>
+                    <span class="text-warning">${'&#9733;'.repeat(r.rating)}${'&#9734;'.repeat(5 - r.rating)}</span>
+                </td>
+                <td style="max-width:300px">
+                    ${r.title ? `<div class="fw-500 small">${r.title}</div>` : ''}
+                    <div class="text-muted small text-truncate">${r.comment || ''}</div>
+                </td>
+                <td>
+                    <span class="badge ${r.is_approved ? 'bg-success' : 'bg-warning text-dark'}">
+                        ${r.is_approved ? 'Approved' : 'Pending'}
+                    </span>
+                </td>
+                <td class="small text-muted">${new Date(r.created_at).toLocaleDateString()}</td>
+                <td>
+                    <div class="d-flex gap-1">
+                        ${!r.is_approved ? `
+                            <button class="btn btn-sm btn-outline-success" onclick="toggleApproval('${r.id}', true)" title="Approve">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        ` : `
+                            <button class="btn btn-sm btn-outline-warning" onclick="toggleApproval('${r.id}', false)" title="Unapprove">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        `}
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteReview('${r.id}')" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+        
+        // Pagination
+        const pagEl = document.getElementById('reviewPagination');
+        if (data.pages > 1) {
+            let html = '<ul class="pagination pagination-sm justify-content-center">';
+            for (let i = 1; i <= data.pages; i++) {
+                html += `<li class="page-item ${i === page ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="loadReviews(${i});return false">${i}</a></li>`;
+            }
+            html += '</ul>';
+            pagEl.innerHTML = html;
+        } else {
+            pagEl.innerHTML = '';
+        }
+    } catch {
+        document.getElementById('reviewTable').innerHTML = 
+            '<tr><td colspan="7" class="text-center text-danger py-4">Failed to load reviews</td></tr>';
+    }
+}
+
+async function toggleApproval(id, approve) {
+    try {
+        await fetch(`/admin/api/reviews/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_approved: approve })
+        });
+        loadReviews(currentPage);
+    } catch {
+        alert('Failed to update review');
+    }
+}
+
+async function deleteReview(id) {
+    if (!confirm('Delete this review? This cannot be undone.')) return;
+    try {
+        await fetch(`/admin/api/reviews/${id}`, { method: 'DELETE' });
+        loadReviews(currentPage);
+    } catch {
+        alert('Failed to delete review');
+    }
+}
+
+document.getElementById('filterStatus').addEventListener('change', () => loadReviews(1));
+loadReviews();
+</script>
+{% endblock %}

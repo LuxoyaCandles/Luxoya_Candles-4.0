@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxoya Reels | Watch luxury moments</title>
+    
+    <!-- Lock Dark Theme -->
+    <style>
+        :root {
+            --lx-black: #0B0A0A;
+            --lx-gold: #D4AF37;
+            --lx-text: #FFFFFF;
+            --lx-font-primary: 'DM Sans', sans-serif;
+            --lx-font-display: 'Playfair Display', serif;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--lx-black);
+            overflow: hidden; /* Prevent body scroll */
+            font-family: var(--lx-font-primary);
+            color: var(--lx-text);
+        }
+        
+        /* Top Navigation */
+        .reels-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+        }
+        
+        .reels-nav-logo img {
+            height: 45px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .reels-nav-close {
+            color: white;
+            font-size: 2rem;
+            text-decoration: none;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            transition: color 0.2s;
+        }
+        .reels-nav-close:hover {
+            color: var(--lx-gold);
+        }
+
+        /* Container for scrolling */
+        .reels-container {
+            height: 100vh;
+            width: 100%;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none; /* Firefox */
+            scroll-behavior: smooth;
+        }
+        .reels-container::-webkit-scrollbar {
+            display: none; /* Safari and Chrome */
+        }
+
+        /* Single Reel */
+        .reel-wrapper {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            scroll-snap-align: start;
+            position: relative;
+            background: var(--lx-black);
+        }
+
+        /* Video element constraints to mimic mobile screen on desktop */
+        .reel-content {
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            position: relative;
+            background-color: #1a1a1a;
+            box-shadow: 0 0 30px rgba(0,0,0,0.9);
+        }
+
+        @media (max-width: 768px) {
+            .reel-content {
+                max-width: 100%;
+            }
+        }
+
+        .reel-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            /* Placeholder styling if src is image */
+            opacity: 0.85;
+        }
+
+        /* Bottom overlay content */
+        .reel-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 80px 20px 20px 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            color: white;
+            z-index: 2;
+        }
+
+        .reel-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-family: var(--lx-font-display);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .reel-desc {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            line-height: 1.4;
+            max-width: 85%;
+        }
+
+        /* Buttons */
+        .btn-reel-shop {
+            background-color: var(--lx-gold);
+            color: #0B0A0A;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+        .btn-reel-shop:hover {
+            background-color: #FDF5E6;
+            transform: scale(1.05);
+        }
+
+        /* Right sidebar actions */
+        .reel-sidebar {
+            position: absolute;
+            right: 15px;
+            bottom: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            z-index: 3;
+        }
+
+        .reel-action-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            cursor: pointer;
+            padding: 0;
+        }
+        .reel-action-btn:hover {
+            transform: scale(1.1);
+        }
+        .reel-action-btn.liked {
+            color: #ff3b30;
+        }
+        .reel-action-btn i {
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+        }
+        .reel-action-btn span {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+    </style>
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Locked Dark Theme Logo Top Left -->
+    <div class="reels-nav">
+        <a href="{{ url_for('index') }}" class="reels-nav-logo">
+            <img src="{{ url_for('static', filename='images/logo-dark-theme.png') }}" alt="Luxoya Candles">
+        </a>
+        <a href="{{ url_for('index') }}" class="reels-nav-close" title="Close Reels">
+            <i class="bi bi-x"></i>
+        </a>
+    </div>
+
+    <!-- Reels Swipe Container -->
+    <div class="reels-container">
+        {% set videos = [
+            {'title': 'Scent Pouring', 'desc': 'Watch the magic of pure soy wax blending.', 'img': 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=800'},
+            {'title': 'Packing Ritual', 'desc': 'Every order packed with extreme precision.', 'img': 'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=800'},
+            {'title': 'Ambience Lite', 'desc': 'Setting the mood for a perfect evening.', 'img': 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=800'},
+            {'title': 'Fragrance Stories', 'desc': 'A journey from blossom to luxury jar.', 'img': 'https://images.unsplash.com/photo-1572726729207-a78d6feb18d7?w=800'}
+        ] %}
+
+        {% for vid in videos %}
+        <div class="reel-wrapper">
+            <div class="reel-content">
+                <!-- Using placeholder images since we dont have .mp4 reels yet -->
+                <img class="reel-video" src="{{ vid.img }}" alt="{{ vid.title }}">
+                
+                <!-- Bottom Description & Shop Button -->
+                <div class="reel-overlay">
+                    <div class="reel-title">{{ vid.title }}</div>
+                    <div class="reel-desc">{{ vid.desc }}</div>
+                    <a href="{{ url_for('products.collections') }}" class="btn-reel-shop">
+                        <i class="bi bi-cart2"></i> Shop Collection
+                    </a>
+                </div>
+
+                <!-- Right Sidebar Actions -->
+                <div class="reel-sidebar">
+                    <button class="reel-action-btn" onclick="this.classList.toggle('liked')">
+                        <i class="bi bi-heart-fill"></i>
+                        <span>12K</span>
+                    </button>
+                    <button class="reel-action-btn">
+                        <i class="bi bi-chat-dots-fill"></i>
+                        <span>405</span>
+                    </button>
+                    <button class="reel-action-btn">
+                        <i class="bi bi-share-fill"></i>
+                        <span>Share</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        // Simple script to handle play/pause logic if real videos were added
+        // Currently it just scrolls.
+        document.addEventListener('DOMContentLoaded', () => {
+            const reels = document.querySelectorAll('.reel-wrapper');
+            let currentReel = 0;
+            
+            // To simulate video playing/pausing based on intersection
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // Reel is active. Here we would do: video.play()
+                    } else {
+                        // Reel is not active. Here we would do: video.pause()
+                    }
+                });
+            }, { threshold: 0.6 });
+
+            reels.forEach(reel => observer.observe(reel));
+        });
+    </script>
+</body>
+</html>

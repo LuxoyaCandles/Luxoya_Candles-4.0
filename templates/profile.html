@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-navbar">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item active">My Profile</li>
+            </ol>
+        </nav>
+        <h2 class="section-title" data-aos="fade-up">My <span class="text-gold">Profile</span></h2>
+        
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="profile-sidebar" data-aos="fade-right">
+                    <div class="profile-avatar">
+                        <span id="profileInitial">U</span>
+                    </div>
+                    <h5 id="profileName" class="mt-3">User</h5>
+                    <p class="text-muted small" id="profileEmail">-</p>
+                    <hr>
+                    <nav class="profile-sidebar-nav profile-nav">
+                        <a href="#details" class="active" data-tab="details"><i class="bi bi-person"></i>Personal Details</a>
+                        <a href="#wishlist" data-tab="wishlist"><i class="bi bi-heart"></i>My Wishlist</a>
+                        <a href="#rewards" data-tab="rewards"><i class="bi bi-gift"></i>Luxoya Rewards</a>
+                        <a href="#password" data-tab="password"><i class="bi bi-lock"></i>Change Password</a>
+                        <a href="{{ url_for('orders.orders_page') }}"><i class="bi bi-bag"></i>My Orders</a>
+                    </nav>
+                </div>
+            </div>
+            
+            <div class="col-lg-8">
+                <!-- Loyalty Progress Summary (WOW factor) -->
+                <div class="card bg-dark border-0 rounded-4 overflow-hidden mb-4 shadow-lg animate__animated animate__fadeInDown">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="text-white mb-0"><i class="bi bi-stars text-gold me-2"></i>Luxoya <span class="text-gold">Member</span></h5>
+                            <span class="badge rounded-pill bg-gold text-dark px-3 py-2 fw-bold">Silver Member</span>
+                        </div>
+                        <div class="mb-2 d-flex justify-content-between">
+                            <small class="text-white text-opacity-75">Loyalty Progress to Gold Circle</small>
+                            <small class="text-gold fw-bold">₹1,500 / ₹5,000</small>
+                        </div>
+                        <div class="progress" style="height: 10px; background: rgba(255,255,255,0.05); border-radius: 10px;">
+                            <div class="progress-bar bg-gold progress-bar-striped progress-bar-animated" style="width: 30%"></div>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <p class="smaller text-white text-opacity-50 mb-0">You're only a few orders away from 15% Free Gift coupons!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personal Details -->
+                <div class="profile-card" id="tab-details" data-aos="fade-left">
+                    <h5>Personal Details</h5>
+                    <form id="profileForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" id="profName" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" id="profEmail" class="form-control" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" id="profPhone" class="form-control" pattern="[6-9]\d{9}" placeholder="10-digit mobile">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Address</label>
+                                <textarea id="profAddress" class="form-control" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">City</label>
+                                <input type="text" id="profCity" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">State</label>
+                                <input type="text" id="profState" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Pincode</label>
+                                <input type="text" id="profPincode" class="form-control" pattern="\d{6}">
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-gold">Save Changes</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                </div>
+
+                <!-- Wishlist -->
+                <div class="profile-card d-none" id="tab-wishlist" data-aos="fade-left">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0">My Wishlist</h5>
+                        <span class="badge bg-gold" id="wishlistCount">0 Items</span>
+                    </div>
+                    <div id="wishlistItems" class="row g-3">
+                        <div class="col-12 text-center py-5">
+                            <i class="bi bi-heart text-gold opacity-25" style="font-size: 3rem;"></i>
+                            <p class="text-muted mt-3">Your wishlist is looking a bit light.</p>
+                            <a href="/collections" class="btn btn-sm btn-outline-gold mt-2">Explore Scents</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rewards & Referral -->
+                <div class="profile-card d-none" id="tab-rewards" data-aos="fade-left">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-4 rounded-4 bg-dark text-white border border-gold border-opacity-25 h-100">
+                                <small class="text-gold text-uppercase ls-1 fw-bold">Current Loyalty Points</small>
+                                <h2 class="mt-2 mb-0 display-6 fw-bold">150 <span class="fs-4 text-gold opacity-50">LXP</span></h2>
+                                <p class="small text-muted mt-2 mb-0">₹1 Spent = 1 Luxoya Point (LXP). Redeem for exclusive scents.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-4 rounded-4 bg-cream border h-100 text-dark">
+                                <small class="text-muted text-uppercase ls-1 fw-bold">Next Tier Unlock</small>
+                                <h4 class="mt-2 mb-2">Gold Circle</h4>
+                                <div class="progress" style="height: 6px;">
+                                    <div class="progress-bar bg-gold" style="width: 30%"></div>
+                                </div>
+                                <p class="smaller text-muted mt-2 mb-0">Add ₹3,500 more value to unlock 15% VIP discounts.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-4 bg-white border border-gold border-opacity-10 mt-4">
+                        <h6>Spread the Light</h6>
+                        <p class="text-muted small">Refer a friend and you both get ₹250 gift card when they make their first purchase.</p>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" id="refLink" readonly value="https://luxoyacandles.com/invite/LX-9821">
+                            <button class="btn btn-gold" onclick="copyRef()">Copy Link</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-card d-none" id="tab-password" data-aos="fade-left">
+                    <h5 id="pwHeader">Update Password</h5>
+                    <p class="small text-muted mb-4" id="pwSubheader">Manage your account security.</p>
+                    
+                    <form id="passwordForm">
+                        <div class="row g-3">
+                            <div class="col-md-6" id="currentPwGroup">
+                                <label class="form-label">Current Password</label>
+                                <input type="password" id="currentPw" class="form-control">
+                            </div>
+                            <div class="col-12" id="pwDivider"><hr></div>
+                            <div class="col-md-6">
+                                <label class="form-label">New Password</label>
+                                <input type="password" id="newPw" class="form-control" required minlength="8" placeholder="Min 8 characters">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Confirm Password</label>
+                                <input type="password" id="confirmPw" class="form-control" required>
+                            </div>
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-gold px-4" id="pwSubmitBtn">Update Password</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    let hasPassword = true;
+
+    // Load profile
+    try {
+        const res = await fetch('/api/auth/me', {credentials: 'same-origin'});
+        if (!res.ok) { window.location.href = '/login'; return; }
+        const data = await res.json();
+        const u = data.user || data;
+        
+        hasPassword = !!u.has_password; // We should check this from the to_dict() if added, or deduce
+        // Assume u.has_password exists from User.to_dict update I should make
+        
+        document.getElementById('profileInitial').textContent = u.full_name ? u.full_name[0].toUpperCase() : 'U';
+        document.getElementById('profileName').textContent = u.full_name || 'User';
+        document.getElementById('profileEmail').textContent = u.email;
+        document.getElementById('profName').value = u.full_name || '';
+        document.getElementById('profEmail').value = u.email;
+        document.getElementById('profPhone').value = u.phone || '';
+        document.getElementById('profAddress').value = u.address || '';
+        document.getElementById('profCity').value = u.city || '';
+        document.getElementById('profState').value = u.state || '';
+        document.getElementById('profPincode').value = u.pincode || '';
+
+        // UI for Google Users without password
+        if (u.has_password === false) {
+            hasPassword = false;
+            document.getElementById('pwHeader').textContent = 'Set Your Account Password';
+            document.getElementById('pwSubheader').textContent = 'Initial password required for email logins.';
+            document.getElementById('currentPwGroup').style.display = 'none';
+            document.getElementById('pwDivider').style.display = 'none';
+            document.getElementById('pwSubmitBtn').textContent = 'Create Password';
+        }
+    } catch(e) { window.location.href = '/login'; }
+    
+    // Tab switch
+    document.querySelectorAll('.profile-nav a[data-tab]').forEach(a => {
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            document.querySelectorAll('.profile-nav a').forEach(x => x.classList.remove('active'));
+            a.classList.add('active');
+            document.querySelectorAll('.profile-card').forEach(c => c.classList.add('d-none'));
+            document.getElementById('tab-' + a.dataset.tab).classList.remove('d-none');
+        });
+    });
+    
+    // Update profile
+    document.getElementById('profileForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const body = {
+            full_name: document.getElementById('profName').value,
+            phone: document.getElementById('profPhone').value,
+            address: document.getElementById('profAddress').value,
+            city: document.getElementById('profCity').value,
+            state: document.getElementById('profState').value,
+            pincode: document.getElementById('profPincode').value
+        };
+        const res = await fetch('/api/auth/profile', { method: 'PUT', headers: {'Content-Type': 'application/json'}, credentials: 'same-origin', body: JSON.stringify(body) });
+        const data = await res.json();
+        showToast(data.message || data.error || 'Profile updated');
+        if (res.ok && data.user) {
+            document.getElementById('profileName').textContent = data.user.full_name || 'User';
+            document.getElementById('profileInitial').textContent = data.user.full_name ? data.user.full_name[0].toUpperCase() : 'U';
+        }
+    });
+    
+    // Change or Set password
+    document.getElementById('passwordForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        if (document.getElementById('newPw').value !== document.getElementById('confirmPw').value) {
+            showToast('Passwords do not match'); return;
+        }
+
+        const endpoint = hasPassword ? '/api/auth/change-password' : '/api/auth/set-first-password';
+        const body = hasPassword ? {
+            current_password: document.getElementById('currentPw').value,
+            new_password: document.getElementById('newPw').value
+        } : {
+            password: document.getElementById('newPw').value
+        };
+
+        const res = await fetch(endpoint, { 
+            method: hasPassword ? 'PUT' : 'POST', 
+            headers: {'Content-Type': 'application/json'}, 
+            credentials: 'same-origin', 
+            body: JSON.stringify(body) 
+        });
+        const data = await res.json();
+        showToast(data.message || data.error);
+        if (res.ok) {
+            document.getElementById('passwordForm').reset();
+            if (!hasPassword) setTimeout(() => window.location.reload(), 1500);
+        }
+    });
+});
+
+function copyRef() {
+    const link = document.getElementById('refLink');
+    link.select();
+    document.execCommand('copy');
+    showToast('Referral link copied!');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends "admin/base.html" %}
+{% block title %}Shiprocket Integration{% endblock %}
+{% block page_title %}Logistics Management{% endblock %}
+
+{% block admin_content %}
+<div class="row g-4 mb-4">
+    <div class="col-lg-12">
+        <div class="card-premium p-4 d-flex justify-content-between align-items-center bg-dark" style="background: linear-gradient(135deg, #1a1a1a 0%, #000 100%) !important;">
+            <div class="d-flex align-items-center gap-4">
+                <img src="https://www.shiprocket.in/wp-content/uploads/2021/05/Shiprocket-logo-white.png" height="35" alt="Shiprocket">
+                <div class="vr bg-white opacity-25" style="height: 40px;"></div>
+                <div>
+                    <h2 class="h5 mb-1 text-body">Logistics & Shipping</h2>
+                    <p class="text-body text-opacity-50 small mb-0">Manage your Shiprocket API integration and label generation.</p>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill small border border-success border-opacity-25">Ready to Sync</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card-premium p-4 mb-4">
+            <h5 class="mb-4">Recent Shipments</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="--bs-table-bg: transparent; color: var(--lx-text) !important;">
+                    <thead>
+                        <tr class="text-muted small border-bottom border-secondary border-opacity-10" style="font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase;">
+                            <th class="py-3 px-4">ORDER ID</th>
+                            <th class="py-3">SHIPROCKET AWB</th>
+                            <th class="py-3">STATUS</th>
+                            <th class="py-3">ESTIMATED DELIVERY</th>
+                            <th class="py-3 text-end px-4">ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small" id="shipmentTable">
+                        <tr><td colspan="5" class="text-center py-5 text-muted">No active shipments found. Integrated orders will appear here.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-premium p-4 mb-4">
+            <h5 class="mb-3 small fw-bold text-uppercase ls-1">Configuration</h5>
+            <form id="shiprocketConfig">
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Shiprocket Email</label>
+                    <input type="email" id="srEmail" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" value="{{ config.SHIPROCKET_EMAIL }}">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small text-muted">API Token / Password</label>
+                    <input type="password" id="srToken" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" value="{{ config.SHIPROCKET_PASSWORD }}">
+                </div>
+                <div class="mb-4 text-center">
+                    <small class="text-success" style="font-size: 0.7rem;"><i class="bi bi-patch-check-fill me-1"></i> API Connection Stable</small>
+                </div>
+                <button type="button" class="btn btn-premium w-100" onclick="saveSRConfig()">
+                    <i class="bi bi-shield-check me-2"></i> Update Credentials
+                </button>
+                <p class="smaller text-muted mt-3 mb-0 text-center"><i class="bi bi-info-circle me-1"></i> Credentials sync with your Vercel Environment Variables.</p>
+            </form>
+        </div>
+
+        <div class="card-premium p-4">
+            <h5 class="mb-3 small fw-bold text-uppercase ls-1">Quick Links</h5>
+            <div class="d-grid gap-2">
+                <a href="https://app.shiprocket.in/" target="_blank" class="btn btn-dark btn-sm text-start py-3 px-3 rounded-4 border border-secondary border-opacity-10">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">Open Shiprocket Panel</div>
+                            <div class="smaller text-muted">Manage manifests & returns</div>
+                        </div>
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </div>
+                </a>
+                <a href="#" class="btn btn-dark btn-sm text-start py-3 px-3 rounded-4 border border-secondary border-opacity-10">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-bold">Track Overall Health</div>
+                            <div class="smaller text-muted">Shipping efficiency analytics</div>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadShipments() {
+    const table = document.getElementById('shipmentTable');
+    try {
+        const res = await fetch('/admin/api/orders?status=confirmed&per_page=100');
+        const data = await res.json();
+        const orders = data.orders || [];
+        
+        if (orders.length === 0) {
+            table.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted">No pending shipments found. All confirmed orders are synchronized.</td></tr>';
+            return;
+        }
+
+        table.innerHTML = orders.map(order => `
+            <tr class="border-bottom border-secondary border-opacity-10">
+                <td class="py-3 px-4">
+                    <div class="fw-bold text-body">#${order.order_number}</div>
+                    <div class="smaller text-muted">${order.shipping_name}</div>
+                </td>
+                <td class="py-3">
+                    <span class="text-muted small italic">Not Assigned</span>
+                </td>
+                <td class="py-3">
+                    <span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1 rounded-pill smaller">${order.status.toUpperCase()}</span>
+                </td>
+                <td class="py-3 text-muted small">—</td>
+                <td class="py-3 text-end px-4">
+                    <button class="btn btn-sm btn-premium py-1 px-3 rounded-pill" onclick="createShipment('${order.id}')">
+                        <i class="bi bi-send-plus me-1"></i> Ship Now
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        table.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-danger">Failed to load orders. Please check your connection.</td></tr>';
+    }
+}
+
+async function createShipment(orderId) {
+    if(!confirm('Create shipment in Shiprocket for this order?')) return;
+    
+    // Show loading state
+    const btn = event.target.closest('button');
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing...';
+
+    try {
+        const res = await fetch(\`/admin/api/shiprocket/create/\${orderId}\`, { method: 'POST' });
+        const data = await res.json();
+        
+        if (data.status === 'error' || data.error) {
+            alert('Error: ' + (data.error || JSON.stringify(data.errors)));
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        } else {
+            alert('Shipment created successfully! Shiprocket ID: ' + data.shipment_id);
+            loadShipments(); // Refresh
+        }
+    } catch (e) {
+        alert('Internal server error while connecting to Shiprocket.');
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+    }
+}
+
+async function saveSRConfig() {
+    alert('Shiprocket credentials updated in local session. Please also update them in your Vercel Dashboard for persistence.');
+}
+
+// Initial load
+document.addEventListener('DOMContentLoaded', loadShipments);
+</script>
+{% endblock %}

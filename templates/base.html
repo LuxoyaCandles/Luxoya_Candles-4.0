@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Luxoya Candles{% endblock %} | Pure Soy Luxury</title>
+    <meta name="description" content="{% block meta_description %}Luxoya Candles - Handcrafted luxury soy candles for refined living in Hyderabad. Explore our Pure Soy Luxury Collections.{% endblock %}">
+    <meta name="keywords" content="luxury candles, soy candles, scented candles, Hyderabad, Luxoya, luxury gifting, natural wax candles, premium candles, home decor">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="Luxoya Candles | Pure Soy Luxury">
+    <meta property="og:description" content="Handcrafted luxury soy candles for refined living. Pure Soy Luxury Since 2024.">
+    <meta property="og:image" content="{{ url_for('static', filename='images/logo-dark-theme.png', _external=True) }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Luxoya Candles">
+
+    <!-- Canonical Tag -->
+    <link rel="canonical" href="{{ request.url }}">
+    
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+
+    <!-- Force Premium Dark Theme -->
+    <script>
+        (function () {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
+            localStorage.setItem('lx-theme', 'dark');
+        })();
+    </script>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logo-dark-theme.png') }}">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;1,400&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ range(10000,99999) | random }}">
+
+    <!-- Google OAuth Client ID -->
+    <meta name="google-client-id" content="{{ config.get('GOOGLE_CLIENT_ID', '') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="">
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- NAVBAR -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- HEADER (Two-Tier) -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <header class="header-luxoya fixed-top">
+        <!-- Top Tier: Branding, Search, Icons -->
+        <div class="header-top py-2">
+            <div class="container d-flex align-items-center justify-content-between">
+                <!-- Logo (Left) -->
+                <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                    <img src="{{ url_for('static', filename='images/logo-dark-theme.png') }}" alt="Luxoya Candles" class="brand-logo" height="65" style="margin-top:-5px; margin-bottom:-5px;">
+                </a>
+
+                <!-- Search (Center - Desktop) -->
+                <div class="search-bar-wrapper d-none d-lg-block flex-grow-1 mx-5">
+                    <form class="search-form-pill" action="{{ url_for('products.collections') }}" method="GET">
+                        <i class="bi bi-search search-icon-main"></i>
+                        <input type="text" name="q" placeholder="Search for luxury candles..."
+                            class="search-input-pill">
+                        <button type="button" class="btn-voice px-3" title="Voice Search"><i
+                                class="bi bi-mic"></i></button>
+                    </form>
+                </div>
+
+                <!-- Icons (Right) -->
+                <div class="header-actions d-flex align-items-center">
+                    <!-- Search Toggle (Mobile Only) -->
+                    <button class="action-btn d-lg-none me-2" data-bs-toggle="modal" data-bs-target="#searchModal">
+                        <i class="bi bi-search"></i>
+                    </button>
+
+
+                    <!-- Account -->
+                    <div class="dropdown me-2">
+                        <button class="action-btn" data-bs-toggle="dropdown">
+                            <i class="bi bi-person"></i>
+                            <span class="d-none d-lg-inline small ms-1" style="font-size: 0.7rem;" id="navUserGreeting"></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-luxoya">
+                            <!-- Logged-in items (hidden by default, shown by JS) -->
+                            <li id="navLoggedIn" style="display:none;">
+                                <h6 class="dropdown-header">My Account</h6>
+                            </li>
+                            <li id="navAdminLink" style="display:none;"><a class="dropdown-item" href="/admin"><i class="bi bi-speedometer2 me-2"></i>Admin Panel</a></li>
+                            <li id="navProfileLink" style="display:none;"><a class="dropdown-item" href="/profile"><i class="bi bi-person-circle me-2"></i>My Profile</a></li>
+                            <li id="navOrdersLink" style="display:none;"><a class="dropdown-item" href="/orders"><i class="bi bi-box-seam me-2"></i>My Orders</a></li>
+                            <li id="navLogoutDivider" style="display:none;"><hr class="dropdown-divider"></li>
+                            <li id="navLogoutLink" style="display:none;"><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                            <!-- Logged-out items (shown by default, hidden by JS) -->
+                            <li id="navLoginLink"><a class="dropdown-item" href="{{ url_for('auth.login') }}"><i class="bi bi-box-arrow-in-right me-2"></i>Login</a></li>
+                            <li id="navRegisterLink"><a class="dropdown-item" href="{{ url_for('auth.register') }}"><i class="bi bi-person-plus me-2"></i>Register</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Cart -->
+                    <a href="{{ url_for('cart.cart_page') }}" class="action-btn position-relative">
+                        <i class="bi bi-bag"></i>
+                        <span class="cart-badge-pill" id="cartBadge" style="display:none;">0</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Tier: Navigation Links (Desktop Only) -->
+        <div class="header-bottom d-none d-lg-block">
+            <div class="container">
+                <ul class="nav-links-pill d-flex justify-content-center mb-0 list-unstyled">
+                    <li><a href="{{ url_for('index') }}" class="nav-link-item active">Home</a></li>
+                    <li class="nav-item-dropdown">
+                        <a href="{{ url_for('products.collections') }}" class="nav-link-item">Collections <i
+                                class="bi bi-chevron-down ms-1 small"></i></a>
+                        <div class="mega-menu">
+                            <div class="container py-4">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <h6 class="mega-title">Hand-Poured</h6>
+                                        <ul class="list-unstyled mega-links">
+                                            <li><a
+                                                    href="{{ url_for('products.collections', slug='luxury-jar-candles') }}">Luxury
+                                                    Jar Candles</a></li>
+                                            <li><a
+                                                    href="{{ url_for('products.collections', slug='designer-mould-candles') }}">Designer
+                                                    Mould Candles</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h6 class="mega-title">Occasions</h6>
+                                        <ul class="list-unstyled mega-links">
+                                            <li><a
+                                                    href="{{ url_for('products.collections', slug='festive-editions') }}">Festive
+                                                    Editions</a></li>
+                                            <li><a
+                                                    href="{{ url_for('products.collections', slug='wedding-event-favors') }}">Wedding
+                                                    & Event Favors</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <h6 class="mega-title">Corporate</h6>
+                                        <ul class="list-unstyled mega-links">
+                                            <li><a href="{{ url_for('b2b.corporate_page') }}">Corporate Gifting</a></li>
+                                            <li><a href="{{ url_for('products.customize') }}">Custom Orders</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        <a href="{{ url_for('products.collections', slug='gift-hampers') }}"
+                                            class="mega-featured-card">
+                                            <div class="featured-img-wrap">
+                                                <img src="{{ url_for('static', filename='img/placeholder.jpg') }}"
+                                                    alt="Gift Hampers">
+                                            </div>
+                                            <span class="mt-2 d-block fw-bold small text-uppercase">Gift Hampers</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                                        <li><a href="{{ url_for('products.collections', slug='new-arrivals') }}" class="nav-link-item">New Arrivals</a></li>
+                    <li><a href="{{ url_for('products.customize') }}" class="nav-link-item">Customize</a></li>
+                    <li><a href="{{ url_for('b2b.corporate_page') }}" class="nav-link-item">Corporate</a></li>
+                    <li><a href="{{ url_for('about') }}" class="nav-link-item">About Us</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- 📱 Mobile Bottom Navigation (Unified) -->
+    <div class="mobile-bottom-nav d-lg-none fixed-bottom" style="z-index: 1060;">
+        <a href="{{ url_for('index') }}" class="mobile-nav-item {% if request.endpoint == 'index' %}active{% endif %}">
+            <i class="bi bi-house"></i>
+            <span>Home</span>
+        </a>
+        <a href="{{ url_for('products.collections') }}" class="mobile-nav-item {% if request.endpoint == 'products.collections' %}active{% endif %}">
+            <i class="bi bi-grid-3x3-gap"></i>
+            <span>Shop</span>
+        </a>
+        <a href="{{ url_for('products.customize') }}" class="mobile-nav-item {% if request.endpoint == 'products.customize' %}active{% endif %}">
+            <i class="bi bi-magic"></i>
+            <span>Customize</span>
+        </a>
+        <a href="{{ url_for('cart.cart_page') }}" class="mobile-nav-item {% if request.endpoint == 'cart.cart_page' %}active{% endif %}">
+            <i class="bi bi-bag"></i>
+            <span class="cart-badge-pill mobile-badge" style="display:none;" id="mobileCartCount">0</span>
+            <span>Cart</span>
+        </a>
+        <a href="{{ url_for('auth.login') }}" class="mobile-nav-item" id="mobileAccountLink">
+            <i class="bi bi-person"></i>
+            <span>Account</span>
+        </a>
+    </div>
+
+    <!-- 🍪 Cookie Consent -->
+    <div class="cookie-banner-luxoya fixed-bottom" id="cookieBanner">
+        <div class="container py-3">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <p class="mb-0 text-white small mb-3 mb-md-0">
+                        Cookie settings on this website are set to "allow all cookies" to give you the very best
+                        experience.
+                        Please Accept Cookies to continue to use the site.
+                    </p>
+                </div>
+                <div class="col-md-4 d-flex justify-content-md-end gap-3 align-items-center">
+                    <a href="#" class="text-white small text-decoration-none border-bottom border-white">PRIVACY
+                        POLICY</a>
+                    <button class="btn btn-accept-pill px-4 py-2" id="acceptCookies">ACCEPT ✓</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- SEARCH MODAL -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="modal fade" id="searchModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content search-modal-content">
+                <div class="modal-body p-4">
+                    <div class="search-input-wrapper">
+                        <i class="bi bi-search search-icon"></i>
+                        <input type="text" class="form-control search-input" id="searchInput"
+                            placeholder="Search candles, fragrances, collections..." autocomplete="off">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div id="searchResults" class="search-results mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- FLASH MESSAGES -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Toast Notification -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="liveToast" class="toast align-items-center text-bg-dark border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMessage"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- MAIN CONTENT -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- FOOTER -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <footer class="footer-luxoya">
+        <div class="container">
+            <div class="row g-4 py-5">
+                <!-- Brand Column -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand">
+                        <img src="{{ url_for('static', filename='images/logo-dark-theme.png') }}" alt="Luxoya Candles"
+                            class="brand-logo mb-3" height="40">
+                        <p class="footer-tagline mb-3">Luxury in Every Glow. Since 2024.<br>Handcrafted candles for
+                            refined living.</p>
+                        <p class="small text-muted mb-4">
+                            <i class="bi bi-envelope-at me-2 text-gold"></i>Sales: {{ site_settings.get('sales_email', 'sales@luxoyacandles.com') }}<br>
+                            <i class="bi bi-headset me-2 text-gold"></i>Support: {{ site_settings.get('support_email', 'support@luxoyacandles.com') }}<br>
+                            <i class="bi bi-telephone me-2 text-gold"></i>{{ site_settings.get('org_phone', '+91 9705840457') }}
+                        </p>
+                        <div class="footer-social mt-3">
+                            <a href="https://www.instagram.com/luxoyacandles" target="_blank" class="social-link"><i
+                                    class="bi bi-instagram"></i></a>
+                            <a href="https://www.facebook.com/luxoyacandles" target="_blank" class="social-link"><i
+                                    class="bi bi-facebook"></i></a>
+                            <a href="#" class="social-link"><i class="bi bi-pinterest"></i></a>
+                            <a href="#" class="social-link"><i class="bi bi-youtube"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="col-6 col-md-4 col-lg-2">
+                    <h6 class="footer-heading">Shop</h6>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('products.collections') }}">All Candles</a></li>
+                        <li><a href="{{ url_for('products.collections', slug='luxury-jar-candles') }}">Jar Candles</a>
+                        </li>
+                        <li><a href="{{ url_for('products.collections', slug='gift-hampers') }}">Gift Hampers</a></li>
+                        <li><a href="{{ url_for('products.customize') }}">Customize</a></li>
+                    </ul>
+                </div>
+
+                <!-- Company -->
+                <div class="col-6 col-md-4 col-lg-2">
+                    <h6 class="footer-heading">Company</h6>
+                    <ul class="footer-links">
+                        <li><a href="{{ url_for('about') }}">About Us</a></li>
+                        <li><a href="{{ url_for('b2b.corporate_page') }}">Corporate</a></li>
+                        <li><a href="{{ url_for('contact') }}">Contact</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+
+                <!-- Support -->
+                <div class="col-6 col-md-4 col-lg-2 mt-4 mt-sm-0">
+                    <h6 class="footer-heading">Support</h6>
+                    <ul class="footer-links">
+                        <li><a href="#">Shipping Policy</a></li>
+                        <li><a href="#">Returns & Refunds</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="col-12 col-md-12 col-lg-2 mt-4 mt-lg-0">
+                    <h6 class="footer-heading">Follow The Flame</h6>
+                    <div class="d-flex gap-3 mb-4">
+                        <a href="https://www.instagram.com/luxoyacandles" target="_blank" class="text-white fs-5"><i
+                                class="bi bi-instagram"></i></a>
+                        <a href="https://www.facebook.com/luxoyacandles" target="_blank" class="text-white fs-5"><i
+                                class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="bi bi-pinterest"></i></a>
+                        <a href="#" class="text-white fs-5"><i class="bi bi-youtube"></i></a>
+                    </div>
+                    <form class="footer-newsletter" id="footerNewsletterForm">
+                        <input type="email" class="form-control form-control-sm border-secondary bg-transparent text-white"
+                            id="newsletterEmail" placeholder="your@email.com" required>
+                        <button type="submit" class="btn btn-luxoya-gold btn-sm mt-2 w-100">JOIN THE CIRCLE</button>
+                    </form>
+                    <div id="newsletterSuccess" class="mt-3 d-none">
+                        <div class="alert bg-gold-soft border-0 text-gold small p-3 rounded-3">
+                            <i class="bi bi-check-circle-fill me-2"></i><strong>Thanks for joining!</strong>
+                            <p class="mb-0 mt-1">You're now part of the Luxoya inner circle. Expect magic in your inbox soon.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trust Badges (Phase 5) -->
+            <div class="row g-4 py-5 border-top border-secondary mt-5 text-center">
+                <div class="col-6 col-md-3" data-aos="fade-up">
+                    <i class="bi bi-shield-check text-gold fs-2 mb-2"></i>
+                    <h6 class="text-white small fw-bold">SECURE PAYMENTS</h6>
+                    <p class="small text-muted mb-0">100% Encrypted Transactions</p>
+                </div>
+                <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="100">
+                    <i class="bi bi-hand-index-thumb text-gold fs-2 mb-2"></i>
+                    <h6 class="text-white small fw-bold">HANDCRAFTED</h6>
+                    <p class="small text-muted mb-0">Made with Pure Soul</p>
+                </div>
+                <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="200">
+                    <i class="bi bi-box-seam text-gold fs-2 mb-2"></i>
+                    <h6 class="text-white small fw-bold">PAN INDIA SHIPPING</h6>
+                    <p class="small text-muted mb-0">Carefully Delivered in 4-6 Days</p>
+                </div>
+                <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="300">
+                    <i class="bi bi-heart text-gold fs-2 mb-2"></i>
+                    <h6 class="text-white small fw-bold">PROUDLY INDIAN</h6>
+                    <p class="small text-muted mb-0">Rooted in Heritage</p>
+                </div>
+            </div>
+
+            <hr class="footer-divider border-secondary opacity-50">
+
+            <div class="footer-bottom py-3">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <p class="mb-0 small text-muted">&copy; 2026 Luxoya Candles. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <div class="payment-icons opacity-75">
+                            <span class="small text-muted">Secured by Razorpay:</span>
+                            <i class="bi bi-credit-card ms-2"></i>
+                            <i class="bi bi-phone ms-1"></i>
+                            <span class="ms-1 small">UPI</span>
+                            <span class="ms-1 small">VISA/MC</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- AI CHAT WIDGET -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+        <a href="https://wa.me/919705840457" target="_blank"
+        class="chat-toggle-btn d-flex justify-content-center align-items-center text-decoration-none"
+        style="position: fixed; bottom: 100px; right: 24px; z-index: 1040; background: #25D366; width: 52px; height: 52px; font-size: 1.4rem; border-radius: 50%; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);"
+        title="WhatsApp Direct Support">
+        <i class="bi bi-whatsapp"></i>
+    </a>
+
+
+    <div class="chat-widget" id="chatWidget" style="background: transparent !important; border: none !important;">
+        <button class="chat-toggle-btn" id="chatToggle" title="Ask Luxoya AI">
+            <i class="bi bi-robot"></i>
+        </button>
+
+        <div class="chat-window" id="chatWindow" style="display:none;">
+            <div class="chat-header">
+                <div class="d-flex align-items-center">
+                    <span class="chat-avatar"><i class="bi bi-chat-dots text-gold"></i></span>
+                    <div class="ms-2">
+                        <strong>Luxoya Assistant</strong>
+                        <small class="d-block text-muted">Online • AI Powered</small>
+                    </div>
+                </div>
+                <button class="btn-close btn-close-white btn-sm" id="chatClose"></button>
+            </div>
+            <div class="chat-body" id="chatBody">
+                <div class="chat-msg bot">
+                    <p>Welcome to Luxoya Candles! How can I help you today?</p>
+                </div>
+            </div>
+            <div class="chat-footer">
+                <form id="chatForm" class="d-flex gap-2">
+                    <input type="text" class="form-control" id="chatInput" placeholder="Type your message..."
+                        autocomplete="off">
+                    <button type="submit" class="btn btn-luxoya-gold"><i class="bi bi-send"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- WHATSAPP & TELEGRAM SUPPORT -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- NEWSLETTER POPUP (Phase 4) -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- CART CONFIRMATION MODAL -->
+    <div class="modal fade" id="cartConfirmationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 bg-cream">
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                    </div>
+                    <h4 class="fw-bold mb-2">Added to Cart!</h4>
+                    <p class="text-muted mb-4" id="cartModalMessage">The product has been successfully added to your shopping bag.</p>
+                    <div class="d-grid gap-2">
+                        <a href="/cart" class="btn btn-luxoya-gold btn-lg">PROCEED TO CHECKOUT</a>
+                        <button type="button" class="btn btn-outline-dark btn-lg" data-bs-dismiss="modal">CONTINUE SHOPPING</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOBAL TOAST NOTIFICATION -->
+    <div class="toast-container position-fixed bottom-0 start-0 p-3" style="z-index: 2000;">
+        <div id="liveToast" class="toast align-items-center text-white bg-dark border-0 rounded-3 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-info-circle me-2 text-gold"></i>
+                    <span id="toastMessage">Message goes here</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- SCRIPTS -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- Main JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <!-- Theme Toggle -->
+    <script>
+        (function () {
+            const btn = document.getElementById('themeToggle');
+            if (!btn) return;
+            btn.addEventListener('click', function () {
+                const html = document.documentElement;
+                const current = html.getAttribute('data-theme');
+                const next = current === 'light' ? 'dark' : 'light';
+                html.setAttribute('data-theme', next);
+                localStorage.setItem('lx-theme', next);
+            });
+        })();
+
+        // Newsletter Modal Trigger
+        window.addEventListener('load', function () {
+            if (!sessionStorage.getItem('lx-newsletter-shown')) {
+                setTimeout(() => {
+                    const el = document.getElementById('newsletterModal');
+                    if(el) {
+                        const modal = new bootstrap.Modal(el);
+                        modal.show();
+                        sessionStorage.setItem('lx-newsletter-shown', 'true');
+                    }
+                }, 8000);
+            }
+        });
+
+        // Footer Newsletter Handle
+        const newsForm = document.getElementById('footerNewsletterForm');
+        if(newsForm) {
+            newsForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('newsletterEmail').value;
+                const btn = newsForm.querySelector('button');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>SUBMITTING...';
+                
+                // Simulate and show success
+                setTimeout(() => {
+                    newsForm.classList.add('d-none');
+                    document.getElementById('newsletterSuccess').classList.remove('d-none');
+                }, 1000);
+            });
+        }
+
+        // Client-side user detection (calls /api/auth/me)
+        (function() {
+            fetch('/api/auth/me', { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.user) {
+                        // Show logged-in items
+                        var firstName = (data.user.full_name || 'User').split(' ')[0];
+                        var el = document.getElementById('navUserGreeting');
+                        if (el) el.textContent = 'Hi, ' + firstName;
+                        ['navLoggedIn','navProfileLink','navOrdersLink','navLogoutDivider','navLogoutLink'].forEach(id => {
+                            var e = document.getElementById(id); if(e) e.style.display = '';
+                        });
+                        // Show admin link if admin
+                        if (data.user.is_admin) {
+                            var adminEl = document.getElementById('navAdminLink');
+                            if (adminEl) adminEl.style.display = '';
+                        }
+                        // Hide login/register
+                        ['navLoginLink','navRegisterLink'].forEach(id => {
+                            var e = document.getElementById(id); if(e) e.style.display = 'none';
+                        });
+                        // Update mobile nav account link
+                        var mobileAccount = document.getElementById('mobileAccountLink');
+                        if (mobileAccount) mobileAccount.href = '/profile';
+                    }
+                })
+                .catch(function() { /* silently keep login/register visible */ });
+        })();
+    </script>
+
+    
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

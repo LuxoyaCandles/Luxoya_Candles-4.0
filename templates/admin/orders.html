@@ -1,0 +1,611 @@
+{% extends "admin/base.html" %}
+{% block title %}Orders{% endblock %}
+{% block page_title %}Orders{% endblock %}
+
+{% block admin_content %}
+<div class="admin-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex gap-2">
+            <select id="filterStatus" class="form-select form-select-sm w-auto">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+            </select>
+            <input type="search" id="searchOrders" class="form-control form-control-sm" placeholder="Search order #..." style="width:200px">
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm btn-outline-danger px-3 me-2" onclick="resetAllOrders()">
+                <i class="bi bi-trash-fill me-1"></i>Reset All Orders
+            </button>
+             <div id="bulkActions" class="d-none animate__animated animate__fadeIn">
+                <button class="btn btn-sm btn-success px-3 me-2" onclick="bulkUpdate('confirmed')">Mark Confirmed</button>
+                <button class="btn btn-sm btn-primary px-3 me-2" onclick="bulkUpdate('processing')">Mark Processing</button>
+                <button class="btn btn-sm btn-outline-secondary px-3" onclick="clearSelection()">Clear</button>
+            </div>
+            <span class="text-muted small" id="orderCount"></span>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th><input type="checkbox" id="selectAll"></th><th>Order #</th><th>Customer</th><th>Ship To</th><th>Items</th><th>Amount</th><th>Payment</th><th>Status</th><th>Date</th><th style="width:140px">Actions</th></tr></thead>
+            <tbody id="orderTable"><tr><td colspan="9" class="text-center py-4">Loading...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Order Detail Modal (with Transaction Details) -->
+<div class="modal fade" id="orderModal" tabindex="-1">
+<div class="modal-dialog modal-xl">
+<div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Order Details</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body" id="orderDetailBody">Loading...</div>
+</div>
+</div>
+</div>
+
+<!-- Invoice View Modal -->
+<div class="modal fade" id="invoiceModal" tabindex="-1">
+<div class="modal-dialog modal-xl">
+<div class="modal-content">
+    <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title"><i class="bi bi-receipt me-2"></i>Order Invoice</h5>
+        <div class="ms-auto">
+            <button class="btn btn-sm btn-light me-2" id="downloadInvoiceBtn">
+                <i class="bi bi-download me-1"></i>Download
+            </button>
+            <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+    </div>
+    <div class="modal-body p-0" style="height: 80vh;">
+        <iframe id="invoiceIframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+    </div>
+</div>
+</div>
+</div>
+
+<!-- Cancel Reason Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+<div class="modal-dialog">
+<div class="modal-content">
+    <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="bi bi-x-circle me-2"></i>Cancel Order</h5>
+        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+        <p class="mb-1">Order: <strong id="cancelOrderNumber"></strong></p>
+        <p class="text-muted small mb-3">This action cannot be undone. Stock will be restored and payment refunded.</p>
+        <div class="mb-3">
+            <label for="cancelReason" class="form-label fw-bold">Cancellation Reason <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="cancelReason" rows="3" placeholder="Provide a detailed reason for cancellation (mandatory)..." required minlength="10"></textarea>
+            <small class="text-muted">Minimum 10 characters. This reason will be shared with the customer.</small>
+        </div>
+        <div id="cancelError" class="alert alert-danger d-none"></div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Keep Order</button>
+        <button class="btn btn-danger" id="confirmCancelBtn" onclick="confirmCancel()">
+            <i class="bi bi-x-circle me-1"></i>Cancel Order
+        </button>
+    </div>
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let allOrders = [];
+let cancelOrderId = null;
+
+async function loadOrders() {
+    const status = document.getElementById('filterStatus').value;
+    const url = '/admin/api/orders' + (status ? `?status=${status}` : '');
+    const res = await fetch(url, {credentials: 'same-origin'});
+    const data = await res.json();
+    allOrders = data.orders || data;
+    renderOrders();
+}
+
+function renderOrders() {
+    const q = document.getElementById('searchOrders').value.toLowerCase();
+    let filtered = Array.isArray(allOrders) ? allOrders : [];
+    if (q) filtered = filtered.filter(o => (o.order_number || '').toLowerCase().includes(q));
+    document.getElementById('orderCount').textContent = `${filtered.length} orders`;
+    
+    const tbody = document.getElementById('orderTable');
+    if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4">No orders found</td></tr>'; return; }
+    
+    const sc = {pending:'warning',confirmed:'info',processing:'primary',shipped:'secondary',delivered:'success',cancelled:'danger'};
+    const pc = {pending:'warning',paid:'success',failed:'danger',refunded:'info'};
+    
+    tbody.innerHTML = filtered.map(o => `
+        <tr class="operation-row">
+            <td><input type="checkbox" class="order-check" value="${o.id}" onchange="updateBulkUI()"></td>
+            <td><strong class="text-gold">${o.order_number}</strong></td>
+            <td>
+                <div class="fw-bold fs-6">${o.user ? o.user.full_name : 'Guest Customer'}</div>
+                <div class="text-gold smaller fw-semibold opacity-75"><i class="bi bi-person-check-fill me-1"></i>VERIFIED CLIENT</div>
+            </td>
+            <td><small class="text-body opacity-75">${o.shipping_name ? o.shipping_name : '-'}<br><span>${o.shipping_city ? o.shipping_city : ''}</span></small></td>
+            <td><span class="badge bg-dark">${o.items ? o.items.length : '0'} Items</span></td>
+            <td class="fw-bold text-body">₹${parseFloat(o.total_amount).toLocaleString('en-IN')}</td>
+            <td><span class="badge ${getPaymentBadgeClass(o.payment_status)}">${o.payment_status ? o.payment_status.toUpperCase() : 'UNKNOWN'}</span></td>
+            <td>
+                <select class="form-select form-select-sm bg-dark text-white border-secondary" style="width:130px" onchange="handleStatusChange('${o.id}', this.value, this)">
+                    ${['pending','confirmed','processing','shipped','delivered','cancelled'].map(s => 
+                        `<option value="${s}" ${o.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`
+                    ).join('')}
+                </select>
+            </td>
+            <td class="text-body opacity-75 small">${new Date(o.created_at).toLocaleDateString('en-IN')}</td>
+            <td>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-dark" onclick="viewOrder('${o.id}')" title="View Details"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewInvoice('${o.id}')" title="View Invoice"><i class="bi bi-receipt"></i></button>
+                    <button class="btn btn-sm btn-luxoya-gold" id="ship-row-btn-${o.id}" onclick="pushToShiprocket('${o.id}')" title="Ship via Shiprocket">
+                        <i class="bi bi-rocket-takeoff"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder('${o.id}', '${o.order_number}')" title="Delete Order"><i class="bi bi-trash"></i></button>
+                </div>
+                <div id="ship-link-${o.id}" class="mt-1 small d-none">
+                    <a href="https://app.shiprocket.in/orders" target="_blank" class="text-success text-decoration-none">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Open Shiprocket
+                    </a>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function updateBulkUI() {
+    const checks = document.querySelectorAll('.order-check:checked');
+    const bulk = document.getElementById('bulkActions');
+    if (checks.length > 1) {
+        bulk.classList.remove('d-none');
+    } else {
+        bulk.classList.add('d-none');
+    }
+}
+
+function clearSelection() {
+    document.querySelectorAll('.order-check').forEach(c => c.checked = false);
+    updateBulkUI();
+}
+
+async function bulkUpdate(status) {
+    const ids = Array.from(document.querySelectorAll('.order-check:checked')).map(c => c.value);
+    if (!ids.length) return;
+    if (!confirm(`Update ${ids.length} orders to ${status}?`)) return;
+
+    for (const id of ids) {
+        await fetch(`/admin/api/orders/${id}/status`, {
+            method: 'PUT',
+            headers: {'Content-Type':'application/json'},
+            credentials: 'same-origin',
+            body: JSON.stringify({status})
+        });
+    }
+    showToast(`Bulk updated ${ids.length} orders`, 'success');
+    loadOrders();
+    clearSelection();
+}
+
+document.getElementById('selectAll')?.addEventListener('change', function() {
+    document.querySelectorAll('.order-check').forEach(c => c.checked = this.checked);
+    updateBulkUI();
+});
+
+function getPaymentBadgeClass(status) {
+    status = status.toLowerCase();
+    if (status === 'paid') return 'bg-emerald-soft';
+    if (status === 'failed') return 'bg-ruby-soft text-ruby';
+    if (status === 'refunded') return 'bg-info bg-opacity-10 text-info';
+    return 'bg-secondary bg-opacity-10 text-muted';
+}
+
+function handleStatusChange(orderId, newStatus, selectEl) {
+    if (newStatus === 'cancelled') {
+        // Show cancel reason modal
+        const order = allOrders.find(o => o.id === orderId);
+        cancelOrderId = orderId;
+        document.getElementById('cancelOrderNumber').textContent = order ? order.order_number : orderId;
+        document.getElementById('cancelReason').value = '';
+        document.getElementById('cancelError').classList.add('d-none');
+        new bootstrap.Modal(document.getElementById('cancelModal')).show();
+        // Reset the select to previous value
+        selectEl.value = order ? order.status : 'pending';
+    } else {
+        updateStatus(orderId, newStatus);
+    }
+}
+
+async function confirmCancel() {
+    const reason = document.getElementById('cancelReason').value.trim();
+    if (!reason || reason.length < 10) {
+        document.getElementById('cancelError').textContent = 'Please provide a detailed reason (min 10 characters).';
+        document.getElementById('cancelError').classList.remove('d-none');
+        return;
+    }
+    
+    const res = await fetch(`/admin/api/orders/${cancelOrderId}/status`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'same-origin',
+        body: JSON.stringify({ status: 'cancelled', cancellation_reason: reason })
+    });
+    
+    const data = await res.json();
+    if (res.ok) {
+        bootstrap.Modal.getInstance(document.getElementById('cancelModal')).hide();
+        loadOrders();
+    } else {
+        document.getElementById('cancelError').textContent = data.error || 'Failed to cancel order';
+        document.getElementById('cancelError').classList.remove('d-none');
+    }
+}
+
+async function updateStatus(id, status) {
+    try {
+        const res = await fetch(`/admin/api/orders/${id}/status`, {
+            method: 'PUT',
+            headers: {'Content-Type':'application/json'},
+            credentials: 'same-origin',
+            body: JSON.stringify({status})
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast(`Status updated to ${status}. Email & WhatsApp synced!`, 'success');
+        } else {
+            showToast(data.error || 'Failed to update status', 'error');
+        }
+    } catch(e) {
+        showToast('Error updating status', 'error');
+    }
+    loadOrders();
+}
+
+async function viewOrder(id) {
+    const modal = new bootstrap.Modal(document.getElementById('orderModal'));
+    document.getElementById('orderDetailBody').innerHTML = '<div class="text-center py-4"><span class="spinner-border"></span></div>';
+    modal.show();
+    
+    const res = await fetch(`/admin/api/orders/${id}`, {credentials: 'same-origin'});
+    const data = await res.json();
+    const o = data.order;
+    
+    if (!o) {
+        document.getElementById('orderDetailBody').innerHTML = '<p class="text-danger">Order not found</p>';
+        return;
+    }
+    
+    const txn = o.transaction || o.payment || {};
+    
+    document.getElementById('orderDetailBody').innerHTML = `
+        <div class="row g-4">
+            <!-- Order Info -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-receipt me-2"></i>Order Info</h6>
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr><td class="text-muted">Order #</td><td><strong>${o.order_number}</strong></td></tr>
+                            <tr><td class="text-muted">Date</td><td>${new Date(o.created_at).toLocaleString('en-IN')}</td></tr>
+                            <tr><td class="text-muted">Status</td><td><span class="badge bg-${({pending:'warning',confirmed:'info',processing:'primary',shipped:'secondary',delivered:'success',cancelled:'danger'})[o.status]||'secondary'}">${o.status}</span></td></tr>
+                            <tr><td class="text-muted">Payment</td><td><span class="badge bg-${o.payment_status==='paid'?'success':o.payment_status==='refunded'?'info':'warning'}">${o.payment_status}</span></td></tr>
+                            ${o.coupon_code ? `<tr><td class="text-muted">Coupon</td><td><span class="badge bg-dark">${o.coupon_code}</span></td></tr>` : ''}
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Shipping Info -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-geo-alt me-2"></i>Shipping Info</h6>
+                        <p class="mb-1"><strong>${o.shipping_name || '-'}</strong></p>
+                        <p class="mb-1">${o.shipping_address || ''}</p>
+                        <p class="mb-1">${o.shipping_city || ''}, ${o.shipping_state || ''} - ${o.shipping_pincode || ''}</p>
+                        <p class="mb-0"><i class="bi bi-telephone me-1"></i>${o.shipping_phone || '-'}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tracking / Shipping Details (Admin) -->
+            <div class="col-12">
+                <div class="card border-info">
+                    <div class="card-header bg-info bg-opacity-10 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="bi bi-truck me-2"></i>Logistics &amp; Shipping</h6>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-luxoya-gold" id="shiprocket-btn-${o.id}" onclick="pushToShiprocket('${o.id}')">
+                                <i class="bi bi-rocket-takeoff me-1"></i>Ship via Shiprocket
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" onclick="toggleShippingForm('${o.id}')">
+                                <i class="bi bi-pencil me-1"></i>Manual Edit
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="shiprocket-alert-${o.id}" class="alert alert-success d-none mb-3 small"></div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Tracking Number</small>
+                                <strong id="display-tracking-${o.id}">${o.tracking_number || '—'}</strong>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Carrier</small>
+                                <span id="display-carrier-${o.id}">${o.carrier || '—'}</span>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Estimated Delivery</small>
+                                <span id="display-estdelivery-${o.id}">${o.estimated_delivery ? new Date(o.estimated_delivery).toLocaleDateString('en-IN', {year:'numeric',month:'short',day:'numeric'}) : '—'}</span>
+                            </div>
+                        </div>
+                        <div id="shipping-form-${o.id}" style="display:none;" class="border-top pt-3">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label class="form-label small">Tracking Number</label>
+                                    <input type="text" class="form-control form-control-sm" id="input-tracking-${o.id}" value="${o.tracking_number || ''}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small">Carrier</label>
+                                    <input type="text" class="form-control form-control-sm" id="input-carrier-${o.id}" value="${o.carrier || ''}" placeholder="e.g. BlueDart, Delhivery">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small">Estimated Delivery</label>
+                                    <input type="date" class="form-control form-control-sm" id="input-estdelivery-${o.id}" value="${o.estimated_delivery ? o.estimated_delivery.split('T')[0] : ''}">
+                                </div>
+                                <div class="col-12 text-end mt-2">
+                                    <button class="btn btn-sm btn-info" onclick="saveShipping('${o.id}')">
+                                        <i class="bi bi-check-circle me-1"></i>Save Shipping
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Transaction Details (Razorpay) -->
+            <div class="col-12">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary bg-opacity-10">
+                        <h6 class="mb-0"><i class="bi bi-credit-card-2-front me-2"></i>Transaction Details (Razorpay)</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Razorpay Payment ID</small>
+                                <code class="text-break">${txn.razorpay_payment_id || 'N/A'}</code>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Razorpay Order ID</small>
+                                <code class="text-break">${txn.razorpay_order_id || o.razorpay_order_id || 'N/A'}</code>
+                            </div>
+                            <div class="col-md-4">
+                                <small class="text-muted d-block">Razorpay Signature</small>
+                                <code class="text-break" style="font-size:0.7rem">${txn.razorpay_signature ? txn.razorpay_signature.substring(0,30)+'...' : 'N/A'}</code>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Amount</small>
+                                <strong>₹${txn.amount || o.total_amount}</strong> ${txn.currency || 'INR'}
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Payment Method</small>
+                                <span class="badge bg-dark">${txn.method || 'N/A'}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Payment Status</small>
+                                <span class="badge bg-${txn.status==='captured'?'success':txn.status==='failed'?'danger':'warning'}">${txn.status || o.payment_status}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted d-block">Payment Date</small>
+                                ${txn.payment_date ? new Date(txn.payment_date).toLocaleString('en-IN') : 'N/A'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            ${o.status === 'cancelled' ? `
+            <!-- Cancellation Details -->
+            <div class="col-12">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger bg-opacity-10">
+                        <h6 class="mb-0 text-danger"><i class="bi bi-x-circle me-2"></i>Cancellation Details</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4"><small class="text-muted d-block">Cancelled By</small><strong>${o.cancelled_by === 'admin' ? 'Admin' : 'Customer'}</strong></div>
+                            <div class="col-md-4"><small class="text-muted d-block">Cancelled At</small>${o.cancelled_at ? new Date(o.cancelled_at).toLocaleString('en-IN') : 'N/A'}</div>
+                            <div class="col-md-4"><small class="text-muted d-block">Refund Status</small><span class="badge bg-info">${o.payment_status}</span></div>
+                        </div>
+                        <div class="mt-3">
+                            <small class="text-muted d-block">Reason</small>
+                            <p class="mb-0 p-2 bg-light rounded">${o.cancellation_reason || 'No reason provided'}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            ` : ''}
+            
+            <!-- Order Items -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header"><h6 class="mb-0"><i class="bi bi-box me-2"></i>Order Items</h6></div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm mb-0">
+                            <thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
+                            <tbody>
+                                ${(o.items || []).map(i => `
+                                    <tr>
+                                        <td>${i.product_name || (i.product ? i.product.name : 'Product')}${i.customization ? '<br><small class="text-muted">'+i.customization.jar_type+' | '+i.customization.colour+'</small>' : ''}</td>
+                                        <td>${i.quantity}</td>
+                                        <td>₹${parseFloat(i.price).toLocaleString('en-IN')}</td>
+                                        <td>₹${(i.price * i.quantity).toLocaleString('en-IN')}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer text-end">
+                        <p class="mb-1">Subtotal: ₹${parseFloat(o.subtotal).toLocaleString('en-IN')}</p>
+                        ${o.discount_amount > 0 ? `<p class="mb-1 text-success">Discount: -₹${parseFloat(o.discount_amount).toLocaleString('en-IN')}</p>` : ''}
+                        <p class="mb-1">Shipping: ${o.shipping_cost == 0 ? '<span class="text-success">FREE</span>' : '₹'+parseFloat(o.shipping_cost).toLocaleString('en-IN')}</p>
+                        <h5 class="mb-0">Total: ₹${parseFloat(o.total_amount).toLocaleString('en-IN')}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+document.getElementById('filterStatus').addEventListener('change', loadOrders);
+document.getElementById('searchOrders').addEventListener('input', renderOrders);
+
+function toggleShippingForm(orderId) {
+    const form = document.getElementById(`shipping-form-${orderId}`);
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function saveShipping(orderId) {
+    const tracking_number = document.getElementById(`input-tracking-${orderId}`).value.trim();
+    const carrier = document.getElementById(`input-carrier-${orderId}`).value.trim();
+    const estimated_delivery = document.getElementById(`input-estdelivery-${orderId}`).value;
+
+    try {
+        const res = await fetch(`/admin/api/orders/${orderId}/shipping`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            credentials: 'same-origin',
+            body: JSON.stringify({ tracking_number, carrier, estimated_delivery })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast(data.message || 'Shipping details updated', 'success');
+            document.getElementById(`display-tracking-${orderId}`).textContent = tracking_number || '—';
+            document.getElementById(`display-carrier-${orderId}`).textContent = carrier || '—';
+            document.getElementById(`display-estdelivery-${orderId}`).textContent = estimated_delivery
+                ? new Date(estimated_delivery).toLocaleDateString('en-IN', {year:'numeric',month:'short',day:'numeric'})
+                : '—';
+            document.getElementById(`shipping-form-${orderId}`).style.display = 'none';
+        } else {
+            showToast(data.error || 'Failed to update shipping', 'error');
+        }
+    } catch(e) {
+        showToast('Failed to update shipping details', 'error');
+    }
+}
+
+async function pushToShiprocket(id) {
+    const btnRow = document.getElementById(`ship-row-btn-${id}`);
+    const linkDiv = document.getElementById(`ship-link-${id}`);
+    const btnDetail = document.getElementById(`shiprocket-btn-${id}`);
+    
+    if (!confirm('This will create a shipment in Shiprocket. Proceed?')) return;
+    
+    const setStatus = (loading) => {
+        const html = loading ? '<span class="spinner-border spinner-border-sm"></span>' : '<i class="bi bi-rocket-takeoff"></i>';
+        if(btnRow) { btnRow.disabled = loading; btnRow.innerHTML = html; }
+        if(btnDetail) { btnDetail.disabled = loading; btnDetail.innerHTML = loading ? 'Syncing...' : 'Ship via Shiprocket'; }
+    };
+
+    setStatus(true);
+
+    try {
+        const res = await fetch(`/admin/api/shiprocket/create/${id}`, {
+            method: 'POST',
+            credentials: 'same-origin'
+        });
+        const data = await res.json();
+        
+        if (res.ok && data.order_id) {
+            showToast(`Synced to Shiprocket! Order ID: ${data.order_id}`, 'success');
+            if(btnRow) { 
+                btnRow.className = 'btn btn-sm btn-success';
+                btnRow.innerHTML = '<i class="bi bi-check-lg"></i>';
+                btnRow.disabled = true;
+            }
+            if(linkDiv) linkDiv.classList.remove('d-none');
+            loadOrders(); 
+        } else {
+            console.error('Shiprocket Sync Error:', data);
+            const detailStr = data.details ? (typeof data.details === 'object' ? JSON.stringify(data.details) : data.details) : '';
+            showToast(`${data.error || 'Shiprocket sync failed'}: ${detailStr}`, 'danger');
+            setStatus(false);
+        }
+    } catch(e) {
+        showToast('Shiprocket connection error', 'danger');
+        setStatus(false);
+    }
+}
+
+function viewInvoice(id) {
+    const modal = new bootstrap.Modal(document.getElementById('invoiceModal'));
+    const iframe = document.getElementById('invoiceIframe');
+    const downloadBtn = document.getElementById('downloadInvoiceBtn');
+    
+    iframe.src = `/admin/api/orders/${id}/invoice`;
+    downloadBtn.onclick = () => {
+        window.location.href = `/admin/api/orders/${id}/invoice?download=1`;
+    };
+    
+    modal.show();
+}
+
+async function deleteOrder(id, number) {
+    if (!confirm(`Are you sure you want to PERMANENTLY delete order ${number}? This action cannot be undone.`)) return;
+    
+    try {
+        const res = await fetch(`/admin/api/orders/${id}`, {
+            method: 'DELETE',
+            credentials: 'same-origin'
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            showToast(data.message || 'Order deleted', 'success');
+            loadOrders();
+        } else {
+            showToast(data.error || 'Failed to delete order', 'danger');
+        }
+    } catch(e) {
+        showToast('Error deleting order', 'danger');
+    }
+}
+
+async function resetAllOrders() {
+    if (!confirm('CRITICAL: This will delete ALL orders in the database. Recommended for cleanup during testing only. Proceed?')) return;
+    
+    const pw = prompt('To confirm, please enter the system SECRET_KEY or your Admin Password:');
+    if (!pw) return;
+
+    try {
+        const res = await fetch('/admin/api/db/clear', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            credentials: 'same-origin',
+            body: JSON.stringify({ table: 'orders', password: pw })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showToast(data.message || 'All orders cleared', 'success');
+            loadOrders();
+        } else {
+            showToast(data.error || 'Failed to clear orders', 'danger');
+        }
+    } catch(e) {
+        showToast('Error resetting orders', 'danger');
+    }
+}
+
+loadOrders();
+</script>
+{% endblock %}

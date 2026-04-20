@@ -1,0 +1,171 @@
+{% extends "admin/base.html" %}
+{% block title %}Complaints{% endblock %}
+{% block page_title %}Customer Complaints{% endblock %}
+
+{% block admin_content %}
+<div class="admin-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex gap-2 align-items-center">
+            <select class="form-select form-select-sm" id="filterStatus" style="width:150px" onchange="loadComplaints()">
+                <option value="">All Status</option>
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
+            </select>
+            <span class="text-muted small" id="complaintCount">Loading...</span>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Subject</th>
+                    <th>Order</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="complaintsTable">
+                <tr><td colspan="7" class="text-center py-4"><span class="spinner-border spinner-border-sm"></span> Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Complaint Detail Modal -->
+<div class="modal fade" id="complaintModal" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title">Complaint Details</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body" id="complaintDetailBody"></div>
+    <div class="modal-footer">
+        <div class="d-flex gap-2 align-items-center w-100">
+            <select class="form-select form-select-sm" id="cStatus" style="width:140px">
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
+            </select>
+            <select class="form-select form-select-sm" id="cPriority" style="width:120px">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+            </select>
+            <input type="hidden" id="cId">
+            <textarea class="form-control form-control-sm" id="cResponse" rows="1" placeholder="Admin response..." style="flex:1"></textarea>
+            <button class="btn btn-gold btn-sm" onclick="updateComplaint()">Update</button>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let allComplaints = [];
+
+async function loadComplaints() {
+    const status = document.getElementById('filterStatus').value;
+    const url = '/admin/api/complaints' + (status ? `?status=${status}` : '');
+    const res = await fetch(url, {credentials: 'same-origin'});
+    const data = await res.json();
+    allComplaints = data.complaints || [];
+    renderComplaints();
+}
+
+function renderComplaints() {
+    const tbody = document.getElementById('complaintsTable');
+    document.getElementById('complaintCount').textContent = `${allComplaints.length} complaints`;
+    
+    if (!allComplaints.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No complaints found</td></tr>';
+        return;
+    }
+    
+    const sc = {open:'danger', in_progress:'warning', resolved:'success', closed:'secondary'};
+    const pc = {low:'info', medium:'warning', high:'danger'};
+    
+    tbody.innerHTML = allComplaints.map(c => `
+        <tr>
+            <td><strong>${c.user ? c.user.full_name : '-'}</strong><br><small class="text-muted">${c.user ? c.user.email : ''}</small></td>
+            <td>${c.subject}</td>
+            <td>${c.order_number ? `<span class="badge bg-dark">${c.order_number}</span>` : '-'}</td>
+            <td><span class="badge bg-${pc[c.priority]||'secondary'}">${c.priority}</span></td>
+            <td><span class="badge bg-${sc[c.status]||'secondary'}">${c.status.replace('_',' ')}</span></td>
+            <td class="text-muted small">${new Date(c.created_at).toLocaleDateString('en-IN')}</td>
+            <td><button class="btn btn-sm btn-outline-dark" onclick='viewComplaint(${JSON.stringify(c).replace(/'/g,"&#39;")})'><i class="bi bi-eye"></i></button></td>
+        </tr>
+    `).join('');
+}
+
+function viewComplaint(c) {
+    document.getElementById('cId').value = c.id;
+    document.getElementById('cStatus').value = c.status;
+    document.getElementById('cPriority').value = c.priority;
+    document.getElementById('cResponse').value = c.admin_response || '';
+    
+    const sc = {open:'danger', in_progress:'warning', resolved:'success', closed:'secondary'};
+    document.getElementById('complaintDetailBody').innerHTML = `
+        <div class="row g-3">
+            <div class="col-md-6">
+                <strong>Customer:</strong> ${c.user ? c.user.full_name : '-'}<br>
+                <small class="text-muted">${c.user ? c.user.email : ''} ${c.user && c.user.phone ? '&bull; ' + c.user.phone : ''}</small>
+            </div>
+            <div class="col-md-3">
+                <strong>Order:</strong> ${c.order_number || 'N/A'}
+            </div>
+            <div class="col-md-3">
+                <strong>Status:</strong> <span class="badge bg-${sc[c.status]||'secondary'}">${c.status.replace('_',' ')}</span>
+            </div>
+            <div class="col-12">
+                <strong>Subject:</strong>
+                <h5 class="mt-1">${c.subject}</h5>
+            </div>
+            <div class="col-12">
+                <strong>Description:</strong>
+                <div class="bg-light rounded p-3 mt-1" style="white-space:pre-wrap">${c.description}</div>
+            </div>
+            ${c.admin_response ? `
+            <div class="col-12">
+                <strong>Admin Response:</strong>
+                <div class="bg-success bg-opacity-10 rounded p-3 mt-1" style="white-space:pre-wrap">${c.admin_response}</div>
+            </div>` : ''}
+            <div class="col-12 text-muted small">
+                Created: ${new Date(c.created_at).toLocaleString('en-IN')}
+                ${c.resolved_at ? ' &bull; Resolved: ' + new Date(c.resolved_at).toLocaleString('en-IN') : ''}
+            </div>
+        </div>
+    `;
+    new bootstrap.Modal(document.getElementById('complaintModal')).show();
+}
+
+async function updateComplaint() {
+    const id = document.getElementById('cId').value;
+    const body = {
+        status: document.getElementById('cStatus').value,
+        priority: document.getElementById('cPriority').value,
+        admin_response: document.getElementById('cResponse').value
+    };
+    const res = await fetch(`/admin/api/complaints/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        credentials: 'same-origin',
+        body: JSON.stringify(body)
+    });
+    if (res.ok) {
+        bootstrap.Modal.getInstance(document.getElementById('complaintModal')).hide();
+        loadComplaints();
+    }
+}
+
+loadComplaints();
+</script>
+{% endblock %}

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxoya Candles - Product Catalog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+        body {
+            background-color: #fff;
+            color: #1a1a1a;
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .catalog-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .catalog-header {
+            text-align: center;
+            border-bottom: 2px solid #c9a96e;
+            padding-bottom: 40px;
+            margin-bottom: 60px;
+        }
+
+        .brand-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            color: #1a1a1a;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .brand-tagline {
+            color: #c9a96e;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            position: relative;
+            padding-left: 20px;
+            border-left: 5px solid #c9a96e;
+        }
+
+        .product-item {
+            margin-bottom: 40px;
+            page-break-inside: avoid;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .product-img-box {
+            width: 250px;
+            min-width: 250px;
+            height: 250px;
+            background-color: #fcfbf7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .product-img-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .product-details {
+            padding: 24px;
+            flex-grow: 1;
+        }
+
+        .product-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+
+        .product-price {
+            color: #c9a96e;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+        }
+
+        .product-desc {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .product-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .meta-tag {
+            font-size: 0.75rem;
+            background: #faf8f4;
+            color: #8a6d3b;
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid #e8e1d5;
+        }
+
+        .catalog-footer {
+            margin-top: 80px;
+            text-align: center;
+            border-top: 1px solid #eee;
+            padding-top: 40px;
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            .catalog-container { padding: 0; width: 100%; max-width: none; }
+            body { padding: 20px; }
+            .section-title { break-before: page; }
+            .section-title:first-of-type { break-before: auto; }
+        }
+
+        .print-btn-fixed {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(201, 169, 110, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <button class="btn btn-dark btn-lg rounded-pill print-btn-fixed no-print px-4" onclick="window.print()">
+        <i class="bi bi-file-earmark-pdf-fill me-2"></i> Save as PDF
+    </button>
+
+    <div class="catalog-container">
+        <header class="catalog-header">
+            <h1 class="brand-logo">Luxoya Candles</h1>
+            <p class="brand-tagline">100% Original Natural Soy Candles</p>
+            <div class="mt-4 no-print">
+                <a href="/" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left me-1"></i> Back to Store</a>
+            </div>
+        </header>
+
+        {% for cat_name, products in catalog.items() %}
+        <div class="mb-5">
+            <h2 class="section-title">{{ cat_name }}</h2>
+            
+            <div class="row">
+                {% for p in products %}
+                <div class="col-12">
+                    <div class="product-item">
+                        <div class="product-img-box">
+                            {% if p.image_url %}
+                            <img src="{{ p.image_url }}" alt="{{ p.name }}">
+                            {% else %}
+                            <i class="bi bi-lamp fs-1 text-gold" style="opacity: 0.2;"></i>
+                            {% endif %}
+                        </div>
+                        <div class="product-details">
+                            <h3 class="product-name">{{ p.name }}</h3>
+                            <div class="product-price">₹{{ "{:,.2f}".format(p.price) }}</div>
+                            <p class="product-desc">{{ p.description[:200] }}...</p>
+                            <div class="product-meta">
+                                {% if p.fragrance %}<span class="meta-tag"><i class="bi bi-flower1 me-1"></i> {{ p.fragrance }}</span>{% endif %}
+                                {% if p.wax_type %}<span class="meta-tag"><i class="bi bi-droplet me-1"></i> {{ p.wax_type }}</span>{% endif %}
+                                {% if p.weight %}<span class="meta-tag"><i class="bi bi-tag me-1"></i> {{ p.weight }}</span>{% endif %}
+                                {% if p.burn_time %}<span class="meta-tag"><i class="bi bi-clock me-1"></i> {{ p.burn_time }}</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <footer class="catalog-footer">
+            <p>luxoyacandles.com &bull; support@luxoyacandles.com</p>
+            <p>&copy; {{ now.year }} Luxoya Candles - All specifications subject to change.</p>
+        </footer>
+    </div>
+
+</body>
+</html>

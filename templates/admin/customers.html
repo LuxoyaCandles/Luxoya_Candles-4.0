@@ -1,0 +1,316 @@
+{% extends "admin/base.html" %}
+{% block title %}Customers{% endblock %}
+{% block page_title %}Customers{% endblock %}
+
+{% block admin_content %}
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">Total Customers</small>
+                    <h3 id="statTotal">-</h3>
+                </div>
+                <div class="stat-icon" style="background:rgba(201,169,110,.15);color:var(--gold)">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">Active Customers</small>
+                    <h3 id="statActive">-</h3>
+                </div>
+                <div class="stat-icon" style="background:rgba(25,135,84,.15);color:#198754">
+                    <i class="bi bi-person-check-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">Recent Buyers (30d)</small>
+                    <h3 id="statRecent">-</h3>
+                </div>
+                <div class="stat-icon" style="background:rgba(13,110,253,.15);color:#0d6efd">
+                    <i class="bi bi-bag-check-fill"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-12">
+        <div class="card-premium p-4" style="background: linear-gradient(135deg, rgba(201,169,110,0.1) 0%, rgba(201,169,110,0) 100%);">
+            <h5 class="mb-3 fw-bold"><i class="bi bi-award text-gold me-2"></i>Platinum Circle <span class="small fw-normal text-muted">(Top Patrons by LTV)</span></h5>
+            <div id="platinumCircle" class="d-flex gap-4 overflow-auto pb-2">
+                <div class="text-center py-4 text-muted w-100 italic">Calculating elite tiers...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customers Table Card -->
+<div class="admin-card">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <div class="d-flex gap-2">
+            <input type="search" id="searchCustomers" class="form-control form-control-sm" placeholder="Search by name, email, phone..." style="width:260px">
+            <select id="filterStatus" class="form-select form-select-sm w-auto">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+        <small class="text-muted" id="resultCount"></small>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Contact</th>
+                    <th>Location</th>
+                    <th>Orders</th>
+                    <th>Total Spent</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="customersTable">
+                <tr><td colspan="8" class="text-center py-4">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- Pagination -->
+    <div class="d-flex justify-content-between align-items-center mt-3" id="paginationWrapper" style="display:none!important">
+        <small class="text-muted" id="pageInfo"></small>
+        <nav>
+            <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Customer Detail Modal -->
+<div class="modal fade" id="customerModal" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-person-circle me-2"></i>Customer Details</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body" id="customerDetailBody">
+        <div class="text-center py-4"><div class="spinner-border text-warning"></div></div>
+    </div>
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPage = 1;
+let searchTimeout;
+
+/* ── Load Customers ─────────────────────────── */
+async function loadCustomers(page = 1) {
+    currentPage = page;
+    const search = document.getElementById('searchCustomers').value.trim();
+    const status = document.getElementById('filterStatus').value;
+    const params = new URLSearchParams({ page, per_page: 20 });
+    if (search) params.append('search', search);
+    if (status) params.append('status', status);
+
+    try {
+        const res = await fetch(`/admin/api/customers?${params}`, { credentials: 'same-origin' });
+        const data = await res.json();
+
+        // Update stats
+        if (data.stats) {
+            document.getElementById('statTotal').textContent = data.stats.total_customers;
+            document.getElementById('statActive').textContent = data.stats.active_customers;
+            document.getElementById('statRecent').textContent = data.stats.recent_buyers;
+        }
+
+        document.getElementById('resultCount').textContent = `${data.total} customer${data.total !== 1 ? 's' : ''} found`;
+        renderCustomers(data.customers);
+        renderPlatinum(data.customers);
+        renderPagination(data.page, data.pages, data.total);
+    } catch (e) {
+        document.getElementById('customersTable').innerHTML =
+            '<tr><td colspan="8" class="text-center py-4 text-danger">Failed to load customers</td></tr>';
+    }
+}
+
+/* ── Render Table ───────────────────────────── */
+function renderCustomers(customers) {
+    const tbody = document.getElementById('customersTable');
+    if (!customers.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No customers found</td></tr>';
+        return;
+    }
+    tbody.innerHTML = customers.map(c => {
+        const initials = (c.full_name || '?').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        const avatar = c.avatar_url
+            ? `<img src="${c.avatar_url}" class="rounded-circle" width="36" height="36" style="object-fit:cover" alt="">`
+            : `<div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(201,169,110,.15);color:var(--gold);font-weight:600;font-size:.8rem">${initials}</div>`;
+        const joined = c.created_at ? new Date(c.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '-';
+        const lastOrder = c.last_order_date ? new Date(c.last_order_date).toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : '-';
+        return `<tr>
+            <td>
+                <div class="d-flex align-items-center gap-2">
+                    ${avatar}
+                    <div>
+                        <strong>${c.full_name}</strong>
+                        <br><small class="text-muted">${c.email}</small>
+                    </div>
+                </div>
+            </td>
+            <td><small>${c.phone}</small></td>
+            <td><small>${c.city}${c.state && c.state !== '-' ? ', ' + c.state : ''}</small></td>
+            <td>
+                <span class="fw-semibold">${c.order_count}</span>
+                ${c.last_order_date ? `<br><small class="text-muted">Last: ${lastOrder}</small>` : ''}
+            </td>
+            <td><strong>₹${c.total_spent.toLocaleString('en-IN')}</strong></td>
+            <td><span class="badge bg-${c.is_active ? 'success' : 'secondary'}">${c.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td><small>${joined}</small></td>
+            <td>
+                <button class="btn btn-outline-dark btn-sm" onclick="viewCustomer('${c.id}')" title="View Details">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function renderPlatinum(customers) {
+    const sorted = [...customers].sort((a,b) => b.total_spent - a.total_spent).slice(0, 5);
+    const container = document.getElementById('platinumCircle');
+    if(!sorted.length) { container.innerHTML = '<div class="text-muted small">No VIP data available.</div>'; return; }
+    
+    container.innerHTML = sorted.map((c, index) => `
+        <div class="stat-card-new text-center p-3" style="min-width: 180px; border: 1px solid rgba(201,169,110,${0.3 - index*0.05});">
+            <div class="text-gold fs-4 mb-2"><i class="bi bi-stars"></i> Tier ${index + 1}</div>
+            <div class="fw-bold text-nowrap">${c.full_name.split(' ')[0]}</div>
+            <div class="small text-muted mb-2">${c.email.substring(0, 15)}...</div>
+            <div class="fs-5 fw-bold text-gold">₹${c.total_spent.toLocaleString()}</div>
+        </div>
+    `).join('');
+}
+
+/* ── Pagination ─────────────────────────────── */
+function renderPagination(page, pages, total) {
+    const wrapper = document.getElementById('paginationWrapper');
+    if (pages <= 1) { wrapper.style.display = 'none'; return; }
+    wrapper.style.display = '';
+    wrapper.style.setProperty('display', 'flex', 'important');
+    document.getElementById('pageInfo').textContent = `Page ${page} of ${pages}`;
+    const pag = document.getElementById('pagination');
+    let html = '';
+    html += `<li class="page-item ${page <= 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadCustomers(${page-1});return false">&laquo;</a></li>`;
+    const start = Math.max(1, page - 2);
+    const end = Math.min(pages, page + 2);
+    for (let i = start; i <= end; i++) {
+        html += `<li class="page-item ${i === page ? 'active' : ''}"><a class="page-link" href="#" onclick="loadCustomers(${i});return false">${i}</a></li>`;
+    }
+    html += `<li class="page-item ${page >= pages ? 'disabled' : ''}"><a class="page-link" href="#" onclick="loadCustomers(${page+1});return false">&raquo;</a></li>`;
+    pag.innerHTML = html;
+}
+
+/* ── View Customer Detail ───────────────────── */
+async function viewCustomer(id) {
+    const body = document.getElementById('customerDetailBody');
+    body.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-warning"></div></div>';
+    new bootstrap.Modal(document.getElementById('customerModal')).show();
+
+    try {
+        const res = await fetch(`/admin/api/customers/${id}`, { credentials: 'same-origin' });
+        const data = await res.json();
+        const c = data.customer;
+        const initials = (c.full_name || '?').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        const avatar = c.avatar_url
+            ? `<img src="${c.avatar_url}" class="rounded-circle" width="64" height="64" style="object-fit:cover" alt="">`
+            : `<div class="rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width:64px;height:64px;background:rgba(201,169,110,.15);color:var(--gold);font-weight:700;font-size:1.3rem">${initials}</div>`;
+
+        const joined = c.created_at ? new Date(c.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' }) : '-';
+
+        let ordersHtml = '';
+        if (data.orders && data.orders.length) {
+            ordersHtml = `<h6 class="mt-4 mb-2"><i class="bi bi-bag me-1"></i>Order History (${data.orders.length})</h6>
+            <div class="table-responsive"><table class="table table-sm mb-0">
+                <thead><tr><th>Order #</th><th>Date</th><th>Status</th><th>Payment</th><th>Amount</th></tr></thead>
+                <tbody>${data.orders.map(o => {
+                    const d = o.created_at ? new Date(o.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) : '-';
+                    const statusBadge = {'pending':'warning','confirmed':'info','processing':'primary','shipped':'info','delivered':'success','cancelled':'danger'}[o.status] || 'secondary';
+                    const payBadge = {'paid':'success','pending':'warning','refunded':'info','failed':'danger'}[o.payment_status] || 'secondary';
+                    return `<tr>
+                        <td><a href="/admin/orders#${o.order_number}" class="text-decoration-none" style="color:var(--gold)">${o.order_number}</a></td>
+                        <td><small>${d}</small></td>
+                        <td><span class="badge bg-${statusBadge}">${o.status}</span></td>
+                        <td><span class="badge bg-${payBadge}">${o.payment_status}</span></td>
+                        <td>₹${o.total_amount.toLocaleString('en-IN')}</td>
+                    </tr>`;
+                }).join('')}</tbody>
+            </table></div>`;
+        } else {
+            ordersHtml = '<p class="text-muted mt-3 mb-0"><i class="bi bi-info-circle me-1"></i>No orders yet.</p>';
+        }
+
+        body.innerHTML = `
+        <div class="text-center mb-3">
+            ${avatar}
+            <h5 class="mt-2 mb-0 text-body">${c.full_name}</h5>
+            <small class="text-muted">${c.email}</small>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="p-3 rounded border border-secondary border-opacity-10" style="background:var(--lx-input-bg)">
+                    <small class="text-muted d-block mb-1"><i class="bi bi-telephone me-1"></i>Phone</small>
+                    <strong class="text-body">${c.phone}</strong>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 rounded border border-secondary border-opacity-10" style="background:var(--lx-input-bg)">
+                    <small class="text-muted d-block mb-1"><i class="bi bi-calendar me-1"></i>Joined</small>
+                    <strong class="text-body">${joined}</strong>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 rounded border border-secondary border-opacity-10" style="background:var(--lx-input-bg)">
+                    <small class="text-muted d-block mb-1"><i class="bi bi-geo-alt me-1"></i>Address</small>
+                    <strong class="text-body">${c.address}</strong>
+                    ${c.city !== '-' ? `<br><small class="text-body">${c.city}, ${c.state} - ${c.pincode}</small>` : ''}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 rounded border border-secondary border-opacity-10" style="background:var(--lx-input-bg)">
+                    <small class="text-muted d-block mb-1"><i class="bi bi-wallet2 me-1"></i>Total Spent</small>
+                    <strong class="fs-5" style="color:var(--gold)">₹${data.total_spent.toLocaleString('en-IN')}</strong>
+                </div>
+            </div>
+        </div>
+        ${ordersHtml}`;
+    } catch (e) {
+        body.innerHTML = '<div class="text-center py-4 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Failed to load customer details</div>';
+    }
+}
+
+/* ── Event Listeners ────────────────────────── */
+document.getElementById('searchCustomers').addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => loadCustomers(1), 300);
+});
+document.getElementById('filterStatus').addEventListener('change', () => loadCustomers(1));
+
+/* ── Init ────────────────────────────────────── */
+loadCustomers();
+</script>
+{% endblock %}

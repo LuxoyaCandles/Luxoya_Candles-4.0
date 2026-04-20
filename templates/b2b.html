@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Corporate & B2B Orders{% endblock %}
+
+{% block content %}
+<!-- B2B Hero -->
+<section class="b2b-hero section-padding pt-navbar text-center" data-aos="fade-up">
+    <div class="container">
+        <span class="badge badge-gold mb-3">Corporate Gifting</span>
+        <h1>Elevate Your <span class="text-gold">Corporate Gifts</span></h1>
+        <p class="lead text-muted mx-auto" style="max-width:600px">Custom luxury candles for Diwali, employee appreciation, weddings, and brand partnerships. Minimum order: 50 units.</p>
+    </div>
+</section>
+
+<!-- Benefits -->
+<section class="section-padding bg-cream">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-6 col-md-3" data-aos="fade-up"><div class="benefit-icon"><i class="bi bi-palette"></i></div><h6>Custom Branding</h6><p class="small text-muted">Your logo on labels, packaging</p></div>
+            <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="100"><div class="benefit-icon"><i class="bi bi-box-seam"></i></div><h6>Gift Packaging</h6><p class="small text-muted">Premium boxes with ribbons</p></div>
+            <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="200"><div class="benefit-icon"><i class="bi bi-truck"></i></div><h6>Pan-India Delivery</h6><p class="small text-muted">Ships across all states</p></div>
+            <div class="col-6 col-md-3" data-aos="fade-up" data-aos-delay="300"><div class="benefit-icon"><i class="bi bi-percent"></i></div><h6>Bulk Discounts</h6><p class="small text-muted">Up to 30% off on 500+ units</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- Request Form -->
+<section class="section-padding">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8" data-aos="fade-up">
+                <h2 class="section-title">Request a Quote</h2>
+                <form id="b2bForm" class="b2b-form-card">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Company Name *</label><input type="text" id="b2bCompany" class="form-control" required></div>
+                        <div class="col-md-6"><label class="form-label">Contact Person *</label><input type="text" id="b2bContact" class="form-control" required></div>
+                        <div class="col-md-6"><label class="form-label">Email *</label><input type="email" id="b2bEmail" class="form-control" required></div>
+                        <div class="col-md-6"><label class="form-label">Phone *</label><input type="tel" id="b2bPhone" class="form-control" required pattern="[6-9]\d{9}"></div>
+                        <div class="col-md-4"><label class="form-label">Quantity *</label><input type="number" id="b2bQty" class="form-control" required min="50" placeholder="Min 50"></div>
+                        <div class="col-md-4">
+                            <label class="form-label">Occasion</label>
+                            <select id="b2bOccasion" class="form-select">
+                                <option value="">Select</option>
+                                <option>Diwali Corporate Gifts</option>
+                                <option>Employee Appreciation</option>
+                                <option>Client Gifts</option>
+                                <option>Wedding Favours</option>
+                                <option>Brand Collaboration</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4"><label class="form-label">Budget (₹)</label><input type="number" id="b2bBudget" class="form-control" placeholder="Per unit"></div>
+                        <div class="col-12"><label class="form-label">Requirements</label><textarea id="b2bReqs" class="form-control" rows="3" placeholder="Fragrances, packaging, branding needs..."></textarea></div>
+                        <div class="col-12"><label class="form-label">Customization Details</label><textarea id="b2bCustom" class="form-control" rows="2" placeholder="Logo details, label text, special instructions..."></textarea></div>
+                        <div class="col-12"><button type="submit" class="btn btn-gold btn-lg w-100">Submit Quote Request</button></div>
+                    </div>
+                </form>
+                <div class="text-center mt-3 d-none" id="b2bSuccess">
+                    <div class="alert alert-success border-0 bg-emerald-soft p-4 rounded-4 shadow-sm">
+                        <i class="bi bi-check-circle-fill d-block fs-1 mb-3"></i>
+                        <h4 class="fw-bold">Thanks for your interest!</h4>
+                        <p class="mb-0">Your B2B request has been received. Our luxury consultants will get back to you within 24 hours to discuss your custom project.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center mt-5">
+            <div class="col-lg-8" data-aos="fade-up">
+                <div class="text-center mb-4">
+                    <h4>Direct B2B Contact</h4>
+                    <p class="text-muted">Prefer to reach out directly? Contact our sales team.</p>
+                </div>
+                <div class="row g-4 text-center">
+                    <div class="col-md-4">
+                        <div class="benefit-icon"><i class="bi bi-envelope"></i></div>
+                        <h6>Email</h6>
+                        <a href="mailto:{{ site_settings.get('org_email', 'sales@luxoyacandles.com') }}" class="text-muted">{{ site_settings.get('org_email', 'sales@luxoyacandles.com') }}</a>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="benefit-icon"><i class="bi bi-telephone"></i></div>
+                        <h6>Phone</h6>
+                        <a href="tel:{{ site_settings.get('org_phone', '+91 9705840457') }}" class="text-muted d-block">{{ site_settings.get('org_phone', '+91 9705840457') }}</a>
+                        <span class="text-muted">{{ site_settings.get('org_address', 'Villa No : 82,Mythri Lake View .S.No : 45,46 BC Colony ,Mallampet,Bollaram,Medchal ,Malkajgiri Dist-500090') }}</span>
+                    </div>
+                    <div class="mb-4">
+                        <label class="d-block fw-bold text-uppercase small text-gold mb-2">Call Us</label>
+                        <a href="tel:{{ site_settings.get('org_phone', '+91 9705840457') }}" class="text-muted d-block">{{ site_settings.get('org_phone', '+91 9705840457') }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.getElementById('b2bForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...'; }
+
+    const body = {
+        company_name: document.getElementById('b2bCompany').value.trim(),
+        contact_person: document.getElementById('b2bContact').value.trim(),
+        email: document.getElementById('b2bEmail').value.trim(),
+        phone: document.getElementById('b2bPhone').value.trim(),
+        quantity: parseInt(document.getElementById('b2bQty').value),
+        product_type: document.getElementById('b2bOccasion').value,
+        budget_range: document.getElementById('b2bBudget').value ? `₹${document.getElementById('b2bBudget').value} per unit` : '',
+        requirements: document.getElementById('b2bReqs').value.trim(),
+        custom_scent: document.getElementById('b2bCustom').value.trim()
+    };
+
+    try {
+        const res = await fetch('/api/b2b/request', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        const d = await res.json();
+        if (res.ok) {
+            document.getElementById('b2bForm').classList.add('d-none');
+            document.getElementById('b2bSuccess').classList.remove('d-none');
+        } else {
+            if (typeof showToast === 'function') showToast(d.error || 'Error submitting request', 'error');
+            else alert(d.error || 'Error submitting request');
+        }
+    } catch {
+        if (typeof showToast === 'function') showToast('Network error. Please try again.', 'error');
+        else alert('Network error. Please try again.');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Submit Quote Request'; }
+    }
+});
+</script>
+{% endblock %}

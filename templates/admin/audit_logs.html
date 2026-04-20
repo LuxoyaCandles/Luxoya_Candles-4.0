@@ -1,0 +1,113 @@
+{% extends "admin/base.html" %}
+{% block title %}Audit Logs{% endblock %}
+{% block page_title %}System Transparency{% endblock %}
+
+{% block admin_content %}
+<div class="row g-4 mb-4">
+    <div class="col-lg-12">
+        <div class="card-premium p-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="h5 mb-1 text-gold"><i class="bi bi-shield-lock me-2"></i>Audit Trail</h2>
+                <p class="text-muted small mb-0">Complete historical record of all administrative modifications.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <select class="form-select btn-dark border-secondary border-opacity-10 rounded-pill px-4 small" id="logModuleFilter" style="background: var(--lx-card-bg); color: #fff;">
+                    <option value="">All Modules</option>
+                    <option value="Product">Product</option>
+                    <option value="Category">Category</option>
+                    <option value="Order">Order</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Inventory">Inventory</option>
+                    <option value="B2B">B2B</option>
+                    <option value="Settings">Settings</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card-premium p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02); color: var(--lx-text);">
+            <thead>
+                <tr class="text-muted small border-bottom border-secondary border-opacity-10" style="font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase;">
+                    <th class="py-3 px-4">TIMESTAMP</th>
+                    <th class="py-3">USER</th>
+                    <th class="py-3">ACTION</th>
+                    <th class="py-3">MODULE</th>
+                    <th class="py-3">DESCRIPTION</th>
+                </tr>
+            </thead>
+            <tbody id="logTable" class="small">
+                <tr><td colspan="5" class="text-center py-5 text-muted">Scanning system logs...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <div class="text-muted smaller" id="logCount">Showing latest records</div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-dark btn-sm rounded-pill px-3" id="prevPage" disabled onclick="changePage(-1)">Previous</button>
+            <button class="btn btn-dark btn-sm rounded-pill px-3" id="nextPage" disabled onclick="changePage(1)">Next</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentPage = 1;
+
+    async function loadLogs(page = 1) {
+        const module = document.getElementById('logModuleFilter').value;
+        const url = `/admin/api/audit-logs?page=${page}${module ? '&module=' + module : ''}`;
+        
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            renderLogs(data.logs);
+            
+            currentPage = page;
+            document.getElementById('prevPage').disabled = (page <= 1);
+            document.getElementById('nextPage').disabled = (page >= data.pages);
+            document.getElementById('logCount').textContent = `Page ${page} of ${data.pages} (${data.total} total logs)`;
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function renderLogs(logs) {
+        const tbody = document.getElementById('logTable');
+        if (!logs || !logs.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted">No audit logs match your criteria.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = logs.map(l => `
+            <tr class="border-bottom border-secondary border-opacity-10">
+                <td class="px-4 py-3 text-muted" style="white-space: nowrap;">${new Date(l.created_at).toLocaleString()}</td>
+                <td class="fw-bold">${l.user}</td>
+                <td>
+                    <span class="badge rounded-pill px-2 py-1 ${getActionClass(l.action)}" style="font-size: 0.6rem;">${l.action}</span>
+                </td>
+                <td class="text-muted smaller text-uppercase">${l.module}</td>
+                <td class="text-muted">${l.description}</td>
+            </tr>
+        `).join('');
+    }
+
+    function getActionClass(action) {
+        if (action === 'CREATE') return 'bg-success bg-opacity-10 text-success';
+        if (action === 'DELETE') return 'bg-danger bg-opacity-10 text-danger';
+        if (action === 'UPDATE') return 'bg-info bg-opacity-10 text-info';
+        return 'bg-secondary bg-opacity-10 text-muted';
+    }
+
+    function changePage(delta) {
+        loadLogs(currentPage + delta);
+    }
+
+    document.getElementById('logModuleFilter').addEventListener('change', () => loadLogs(1));
+    loadLogs(1);
+</script>
+{% endblock %}

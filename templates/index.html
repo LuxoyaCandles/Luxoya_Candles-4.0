@@ -1,0 +1,650 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- HERO SLIDER -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="hero-slider-section">
+    <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="false">
+        <!-- Indicators (Dynamic) -->
+        <div class="carousel-indicators">
+            {% set active_count = 0 %}
+            {% for i in range(1, 11) %}
+                {% if home_images['slider_img_' ~ i] or home_images['hero_vid_' ~ i] %}
+                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ active_count }}" 
+                            class="{% if active_count == 0 %}active{% endif %}" 
+                            aria-current="{% if active_count == 0 %}true{% endif %}" 
+                            aria-label="Slide {{ active_count + 1 }}"></button>
+                    {% set active_count = active_count + 1 %}
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Carousel Inner -->
+        <div class="carousel-inner" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+            {% set slide_idx = 0 %}
+            {% for i in range(1, 11) %}
+                {% set img_url = home_images['slider_img_' ~ i] %}
+                {% set vid_url = home_images['hero_vid_' ~ i] %}
+                {% if img_url or vid_url %}
+                <div class="carousel-item {% if slide_idx == 0 %}active{% endif %}" style="transition: transform 1s ease, opacity .5s ease-out;">
+                    {% if vid_url %}
+                        <video src="{{ vid_url }}" class="d-block w-100" autoplay muted loop playsinline 
+                               style="height: 65vh; object-fit: cover;"></video>
+                    {% else %}
+                        <img src="{{ img_url }}" class="d-block w-100" alt="Luxoya Hero {{ i }}" 
+                             style="height: 65vh; object-fit: cover;">
+                    {% endif %}
+                    <div class="carousel-caption" style="background: rgba(0,0,0,0.2); backdrop-filter: blur(5px); border-radius: 20px; bottom: 10%; padding: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                        <span class="badge-gold mb-2" style="font-size: 0.8rem;">Exclusive Luxury</span>
+                        <h2 class="fw-bold text-white mb-2 fs-2">Luxoya Candles</h2>
+                        <p class="text-white-50 mb-3 small d-none d-sm-block">Hand-poured fragrances for your sacred spaces.</p>
+                        <a href="#explore" class="btn btn-luxoya-gold px-4 py-2">SHOP NOW</a>
+                    </div>
+                </div>
+                {% set slide_idx = slide_idx + 1 %}
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Controls -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev" style="z-index: 20 !important; width: 8%;">
+            <span class="carousel-control-prev-icon" aria-hidden="true" style="filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); background-color: rgba(0,0,0,0.2); border-radius: 50%; padding: 1.5rem; background-size: 50%;"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next" style="z-index: 20 !important; width: 8%;">
+            <span class="carousel-control-next-icon" aria-hidden="true" style="filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); background-color: rgba(0,0,0,0.2); border-radius: 50%; padding: 1.5rem; background-size: 50%;"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</section>
+
+<style>
+    /* Ensure hero slider controls are always on top and clickable */
+    .carousel-control-prev, .carousel-control-next {
+        opacity: 0.8;
+        transition: opacity 0.3s;
+    }
+    .carousel-control-prev:hover, .carousel-control-next:hover {
+        opacity: 1;
+    }
+</style>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- CATEGORY STRIP (Dynamic Thumbnails) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="category-strip py-5 border-bottom" style="background: var(--lx-cream);">
+    <div class="container">
+        <div class="text-center mb-4" data-aos="fade-up">
+            <span class="section-tag section-tag-sm mb-2">CURATED FOR YOU</span>
+            <h3 class="fw-bold h4">Shop by <span class="text-gold">Collection</span></h3>
+        </div>
+        <div class="category-scroll-wrapper" data-aos="fade-up">
+            <div class="row g-4 flex-nowrap overflow-auto pb-3 custom-scrollbar">
+                {% for i in range(1, 7) %}
+                {% set col_img = home_images['coll_img_' ~ i] %}
+                {% set col_name = home_images['coll_name_' ~ i] %}
+                {% if col_img %}
+                <div class="col-auto">
+                    <div class="text-center category-item-wrap" style="width: 100px;">
+                        <a href="{{ url_for('products.collections', slug=home_images['coll_slug_' ~ i] or '') }}" class="text-decoration-none">
+                            <div class="category-thumb-wrapper rounded-circle overflow-hidden mx-auto mb-3 shadow border border-2 border-accent" 
+                                 style="width: 80px; height: 80px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;">
+                                <img src="{{ col_img }}" class="w-100 h-100 object-fit-cover" alt="{{ col_name }}">
+                                <div class="thumb-overlay"></div>
+                            </div>
+                            <span class="category-label d-block small fw-bold text-uppercase ls-1" 
+                                  style="font-size: 0.65rem; color: var(--lx-text); letter-spacing: 0.5px;">{{ col_name }}</span>
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- INTEGRATED STOREFRONT (SIDEBAR + GRID) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="storefront-container" id="explore">
+    <div class="container">
+        <div class="row g-4">
+
+            <!-- LEFT SIDEBAR: Filters (Desktop View) -->
+            <aside class="col-lg-3 d-none d-lg-block">
+                <div class="filter-sidebar storefront-sidebar">
+                    <div class="filter-group">
+                        <h6 class="filter-group-title">Collections</h6>
+                        <ul class="filter-list">
+                            <li><a href="#" class="filter-link active" data-filter="all">All Candles</a></li>
+                            {% for cat in categories %}
+                            <li><a href="#" class="filter-link" data-filter="{{ cat.slug }}">{{ cat.name }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="filter-group">
+                        <h6 class="filter-group-title d-flex justify-content-between align-items-center mb-3">
+                            <span>Max Price</span>
+                            <span id="priceMaxDisplay" class="text-gold fw-bold" style="font-size: 0.9rem;">₹5000</span>
+                        </h6>
+                        <div class="price-range-wrapper px-2">
+                            <input title="Filter by Price" type="range" class="form-range custom-range" min="500"
+                                max="10000" step="500" id="priceRangeInput" value="5000"
+                                oninput="document.getElementById('priceMaxDisplay').innerText = '₹' + this.value">
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h6 class="filter-group-title">Intensity</h6>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            {% for i in range(1, 6) %}
+                            <button class="btn btn-outline-secondary btn-sm intensity-btn" data-intensity="{{ i }}">
+                                {{ i }} <i class="bi bi-fire"></i>
+                            </button>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Promo Mini Sidebar Card -->
+                    <div class="sidebar-promo mt-5 rounded-4 p-4 text-center"
+                        style="background: linear-gradient(135deg, var(--lx-black) 0%, var(--lx-cream-dark) 100%); border: 1px solid var(--lx-accent);">
+                        <i class="bi bi-gift text-gold fs-2 mb-2"></i>
+                        <h6 class="text-white">Wholesale?</h6>
+                        <p class="small text-muted mb-3">Get bulk pricing for events and stores.</p>
+                        <a href="{{ url_for('b2b.corporate_page') }}" class="btn btn-luxoya-gold btn-sm w-100">JOIN
+                            B2B</a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN GRID CONTENT -->
+            <main class="col-lg-9 col-12">
+                <!-- Sorting & View Controls -->
+                <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-cream rounded-3 border sticky-control-bar">
+                    <div class="d-flex align-items-center">
+                        <span class="small text-muted me-3 d-none d-sm-block">Showing {{ all_products|length }}
+                            products</span>
+                        <select class="form-select form-select-sm border-0 bg-transparent fw-600" style="width: auto;">
+                            <option value="featured">Sort by: Featured</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="rating">Best Rated</option>
+                        </select>
+                    </div>
+                    <div class="d-lg-none">
+                        <button class="btn btn-sm btn-outline-secondary px-3" data-bs-toggle="offcanvas"
+                            data-bs-target="#filterOffcanvas">
+                            Field Filters <i class="bi bi-sliders ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Product Grid -->
+                <div class="row g-3 product-grid-main mt-1" id="storefrontGrid">
+                    {% for product in all_products %}
+                    <!-- Product Card -->
+                    <div class="col-6 col-md-6 col-lg-4 product-item {{ product.category.slug if product.category else '' }}"
+                        data-price="{{ product.price }}">
+                        <div class="product-card">
+                            <a href="{{ url_for('products.product_detail', slug=product.slug) }}">
+                                <div class="product-img-wrapper">
+                                    {% if product.image_url %}
+                                    <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-img">
+                                    {% else %}
+                                    <div class="product-img-placeholder"><i class="bi bi-lamp fs-1 text-gold"></i></div>
+                                    {% endif %}
+
+                                    {% if product.discount_percentage > 0 %}
+                                    <span class="product-badge">-{{ product.discount_percentage }}%</span>
+                                    {% endif %}
+                                    <div class="card-overlay-actions">
+                                        <button class="overlay-btn-circle"
+                                            onclick="event.preventDefault(); addToCart('{{ product.id }}')"><i
+                                                class="bi bi-bag-plus"></i></button>
+                                        <button class="overlay-btn-circle"><i class="bi bi-heart"></i></button>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="product-info p-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="product-category mb-1">{{ product.category.name if product.category
+                                            else 'Fragrance' }}</p>
+                                        <h6 class="product-name mb-2">
+                                            <a href="{{ url_for('products.product_detail', slug=product.slug) }}">{{
+                                                product.name }}</a>
+                                        </h6>
+                                    </div>
+                                    <div class="scent-intensity d-none d-sm-block text-gold" title="Scent Intensity">
+                                        <i class="bi bi-fire small"></i>
+                                        <i class="bi bi-fire small"></i>
+                                        <i class="bi bi-fire small"></i>
+                                    </div>
+                                </div>
+                                <div class="product-footer mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div class="product-price">
+                                            {% if product.sale_price and product.sale_price < product.price %} <span
+                                                class="price-current fs-5 fw-bold">₹{{ "%.0f"|format(product.sale_price)
+                                                }}</span>
+                                                <span class="price-original ms-1 small">₹{{ "%.0f"|format(product.price)
+                                                    }}</span>
+                                                {% else %}
+                                                <span class="price-current fs-5 fw-bold">₹{{
+                                                    "%.0f"|format(product.price) }}</span>
+                                                {% endif %}
+                                        </div>
+                                        <div class="product-rating small text-gold">
+                                            <i class="bi bi-star-fill"></i> <span>{{ product.rating_avg or '5.0'
+                                                }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-outline-secondary btn-sm flex-grow-1 glow-on-hover"
+                                            onclick="event.preventDefault(); addToCart('{{ product.id }}')"><i
+                                                class="bi bi-cart me-1"></i> Add</button>
+                                        <button onclick="event.preventDefault(); buyNow('{{ product.id }}')"
+                                           class="btn btn-luxoya-gold btn-sm flex-grow-1"><i
+                                                 class="bi bi-bag-check me-1"></i> Buy Now</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insert Promo Banners inside the grid at intervals -->
+                    {% if loop.index == 3 %}
+                    <div class="col-12 promo-banner-in-grid mb-4" data-aos="zoom-in">
+                        <div class="h-100 rounded-4 overflow-hidden position-relative d-flex align-items-center"
+                            style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('{{ home_images.promo_limit_img or 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=1200' }}'); background-size: cover; background-position: center;">
+                            <div class="p-5 text-white">
+                                <span class="badge-gold mb-2">Limited Edition</span>
+                                <h3 class="fw-bold mb-3">{{ home_images.promo_limit_title or 'Midnight Moss Collection' }}</h3>
+                                <p class="mb-4">{{ home_images.promo_limit_desc or 'Experience the depth of evening fragrances.' }}</p>
+                                <a href="{{ home_images.promo_limit_link or '#' }}" class="btn btn-outline-white border-2 px-4 py-2 text-white">DISCOVER NOW</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </main>
+        </div>
+    </div>
+</section>
+
+<!-- 📱 MOBILE FILTER OFFCANVAS -->
+<div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="filterOffcanvas">
+    <div class="offcanvas-header border-bottom border-secondary">
+        <h5 class="offcanvas-title text-gold">Filter Products</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <!-- Sidebar content replicated here for mobile -->
+        <div class="filter-group">
+            <h6 class="filter-group-title">Collections</h6>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-sm btn-outline-gold active">All</button>
+                {% for cat in categories %}
+                <button class="btn btn-sm btn-outline-gold">{{ cat.name }}</button>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="filter-group mt-4">
+            <h6 class="filter-group-title">Price Range</h6>
+            <input type="range" class="form-range" min="0" max="5000" id="mobilePriceRange">
+            <div class="d-flex justify-content-between text-muted small">
+                <span>₹0</span>
+                <span>₹5000</span>
+            </div>
+        </div>
+        <button class="btn btn-luxoya-gold w-100 mt-5" data-bs-dismiss="offcanvas">Apply Filters</button>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- GIFT BOX COLLECTIONS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="section-padding bg-cream border-top">
+    <div class="container">
+        <div class="row align-items-center mb-5">
+            <div class="col-lg-6" data-aos="fade-right">
+                <span class="section-tag mb-2">CURATED GIFTING</span>
+                <h2 class="section-title">{{ home_images.gift_hampers_header or 'Gift Box Collections' }}</h2>
+                <p class="section-text mb-0">{{ home_images.gift_hampers_desc or 'Discover our elegant gift hampers curated with our finest premium candles.' }}</p>
+            </div>
+            <div class="col-lg-6 text-lg-end mt-4 mt-lg-0" data-aos="fade-left">
+                <a href="{{ url_for('products.collections', slug='gift-hampers') }}"
+                    class="btn btn-outline-gold px-4 py-2">View All Gift Boxes</a>
+            </div>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <!-- Gift Box 1 -->
+            <div class="col-6 col-md-6 col-lg-6" data-aos="fade-up" data-aos-delay="100">
+                <div class="blog-card-v3 rounded-4 overflow-hidden position-relative product-card-hover"
+                    style="border: 1px solid var(--lx-surface-border);">
+                    <img src="{{ home_images.gift_hampers_img_1 or 'https://images.unsplash.com/photo-1608181831718-2501ef3e1420?w=800' }}" alt="Gift Hamper 1"
+                        class="w-100 object-fit-cover" style="height: 400px; transition: transform 0.5s;">
+                    <div class="position-absolute bottom-0 w-100 p-4"
+                        style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
+                        <h4 class="text-white fw-bold">{{ home_images.gift_hampers_title_1 or 'Festive Aura Combo' }}</h4>
+                        <p class="text-light small mb-3">{{ home_images.gift_hampers_desc_1 or 'Includes 3 premium jar candles + wick trimmer.' }}</p>
+                        <a href="{{ home_images.gift_hampers_link_1 or url_for('products.collections', slug='gift-hampers') }}"
+                            class="btn btn-luxoya-gold btn-sm">Shop Set</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Gift Box 2 -->
+            <div class="col-6 col-md-6 col-lg-6" data-aos="fade-up" data-aos-delay="200">
+                <div class="blog-card-v3 rounded-4 overflow-hidden position-relative product-card-hover"
+                    style="border: 1px solid var(--lx-surface-border);">
+                    <img src="{{ home_images.gift_hampers_img_2 or 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=800' }}" alt="Gift Hamper 2"
+                        class="w-100 object-fit-cover" style="height: 400px; transition: transform 0.5s;">
+                    <div class="position-absolute bottom-0 w-100 p-4"
+                        style="background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
+                        <h4 class="text-white fw-bold">{{ home_images.gift_hampers_title_2 or 'Signature Duo Hamper' }}</h4>
+                        <p class="text-light small mb-3">{{ home_images.gift_hampers_desc_2 or 'Two custom-blended scents in an elegant presentation box.' }}</p>
+                        <a href="{{ home_images.gift_hampers_link_2 or url_for('products.collections', slug='gift-hampers') }}"
+                            class="btn btn-luxoya-gold btn-sm">Shop Set</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- BRAND PHILOSOPHY -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="section-padding bg-cream border-top">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <span class="section-tag mb-2">OUR ESSENCE</span>
+            <h2 class="section-title">Brand <span class="text-gold">Philosophy</span></h2>
+            <p class="section-text mx-auto" style="max-width: 600px;">Crafting moments of tranquility through artisanal scents and pure soy luxury.</p>
+        </div>
+        <div class="row g-4">
+            {% for i in range(1, 4) %}
+            <div class="col-6 col-sm-6 col-md-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
+                <div class="philosophy-card">
+                    <div class="phi-img-wrapper rounded-4 overflow-hidden shadow-lg" style="height: 350px;">
+                        <img src="{{ home_images['home_phi_img_' ~ i] }}" class="w-100 h-100 object-fit-cover" alt="Philosophy {{ i }}">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- CUSTOMIZATION STUDIO -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="section-padding py-5 bg-white border-top">
+    <div class="container">
+        <div class="rounded-4 overflow-hidden position-relative d-flex align-items-center"
+            style="background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 100%), url('{{ home_images.custom_studio_img or 'https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=1200' }}'); background-size: cover; background-position: center; min-height: 450px;"
+            data-aos="zoom-in">
+            <div class="p-4 p-md-5 text-white col-lg-6">
+                <span
+                    class="badge mb-3 d-inline-block px-3 py-2 border border-secondary rounded-pill text-gold bg-transparent">DESIGN
+                    YOUR OWN</span>
+                <h3 class="fw-bold mb-3 fs-1 text-white">{{ home_images.custom_studio_title or 'Custom Candle Studio' }}</h3>
+                <p class="mb-4 text-light">{{ home_images.custom_studio_desc or 'Design your signature scent. Choose a vessel, pick a fragrance, and add a personalized luxury label.' }}</p>
+                <a href="{{ url_for('products.customize') }}" class="btn btn-luxoya-gold btn-lg">Start Customizing</a>
+                <ul class="list-unstyled mt-4 d-flex gap-4">
+                    <li class="small text-white"><i class="bi bi-check2 text-gold me-1"></i> Choose Wax</li>
+                    <li class="small text-white"><i class="bi bi-check2 text-gold me-1"></i> Pick Fragrance</li>
+                    <li class="small text-white"><i class="bi bi-check2 text-gold me-1"></i> Custom Label</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- SHOP BY VIDEO (vertical reels) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="section-padding py-5 bg-dark-luxoya border-top overflow-hidden text-white" id="shop-by-video">
+    <div class="container overflow-hidden">
+        <div class="d-flex justify-content-between align-items-end mb-4" data-aos="fade-up">
+            <div>
+                <span class="section-tag section-tag-sm mb-1 px-1">INSPIRE</span>
+                <h2 class="section-title fs-3 mb-0">Shop by <span class="text-gold">Video</span></h2>
+            </div>
+            <a href="{{ url_for('reels') }}" class="text-gold text-decoration-none small fw-bold">View Shorts/Reels <i
+                    class="bi bi-arrow-right"></i></a>
+        </div>
+
+        <style>
+            .video-reels-container {
+                display: flex;
+                overflow-x: auto;
+                gap: 1.5rem;
+                padding-bottom: 1rem;
+                scrollbar-width: none;
+                scroll-snap-type: x mandatory;
+            }
+
+            .video-reels-container::-webkit-scrollbar {
+                display: none;
+            }
+
+            .video-reel-item {
+                min-width: 280px;
+                max-width: 280px;
+                height: 500px;
+                position: relative;
+                border-radius: 16px;
+                overflow: hidden;
+                flex-shrink: 0;
+                background: #000;
+                scroll-snap-align: start;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .overlay-play {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 4rem;
+                color: rgba(255, 255, 255, 0.8);
+                z-index: 2;
+                transition: transform 0.2s, color 0.2s;
+            }
+
+            .video-reel-item:hover .overlay-play {
+                transform: translate(-50%, -50%) scale(1.1);
+                color: var(--lx-gold);
+            }
+
+            .reel-title {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                padding: 40px 20px 20px 20px;
+                background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+                color: white;
+                font-weight: 600;
+                font-family: var(--lx-font-display);
+                font-size: 1.2rem;
+                z-index: 2;
+            }
+        </style>
+
+        <div class="video-reels-container" data-aos="fade-up" data-aos-delay="100">
+            {% for reel in reels_data %}
+            <div class="video-reel-item" onclick="window.location.href='{{ reel.url }}'">
+                <div class="overlay-play"><i class="bi bi-play-circle text-white shadow-sm rounded-circle"></i></div>
+                <img src="{{ reel.thumb }}" alt="{{ reel.title }}" class="w-100 h-100 object-fit-cover opacity-75">
+                <div class="reel-title"><i class="bi bi-fire me-1 text-gold"></i> {{ reel.title }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- CORPORATE SECTION (Simplified) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="section-padding bg-dark-luxoya" id="b2b-cta">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6" data-aos="fade-right">
+                <span class="section-tag section-tag-light">B2B SERVICES</span>
+                <h2 class="section-title text-white">Elevate Your Corporate <span class="text-gold">Gifting</span></h2>
+                <p class="section-text text-light">Bespoke candle solutions, custom labeled and curated for corporate
+                    events and luxury gifting.</p>
+                <div class="d-flex gap-3 mt-4">
+                    <a href="{{ url_for('b2b.corporate_page') }}" class="btn btn-luxoya-gold btn-lg">Request
+                        Quotation</a>
+                    <a href="{{ url_for('contact') }}" class="btn btn-luxoya-outline btn-lg">Contact Us</a>
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="fade-left">
+                <div class="rounded-4 overflow-hidden border border-accent shadow-lg" style="height: 380px;">
+                    <img src="{{ home_images.b2b_img }}" alt="B2B Candles"
+                        style="width:100%; height:100%; object-fit:cover;">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- NEWSLETTER CTA -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="cta-section" data-aos="fade-up">
+    <div class="container">
+        <div class="cta-wrapper">
+            <h2 class="section-title text-white text-center">Join the Luxoya <span class="text-gold">Experience</span>
+            </h2>
+            <p class="text-center text-light mb-4">Subscribe to unlock early access to our exclusive new collections.
+            </p>
+            <form class="cta-form mx-auto" style="max-width: 500px;" onsubmit="return false;">
+                <div class="input-group">
+                    <input type="email" class="form-control" placeholder="Enter your email address">
+                    <button class="btn btn-luxoya-gold" type="submit">Subscribe</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- B2B / CORPORATE SECTION -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="section-padding bg-cream border-top">
+    <div class="container">
+        <div class="row align-items-center g-0 rounded-4 overflow-hidden shadow-lg bg-surface" style="min-height: 400px;" data-aos="fade-up">
+            <div class="col-12 col-lg-5 order-2 order-lg-1 p-4 p-lg-5">
+                <span class="section-tag mb-2">CORPORATE PARTNERSHIPS</span>
+                <h2 class="section-title">Elevate Your <span class="text-gold">Corporate Gifting</span></h2>
+                <p class="section-text mb-4">From wedding favors to executive appreciation gifts, Luxoya provides bespoke fragrance solutions that leave a lasting impression of excellence.</p>
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-gold-muted text-gold d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-patch-check"></i></div>
+                        <span class="small fw-bold">Custom Branding & Labels</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-gold-muted text-gold d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;"><i class="bi bi-truck"></i></div>
+                        <span class="small fw-bold">Priority Bulk Shipping</span>
+                    </div>
+                </div>
+                <a href="{{ url_for('b2b.corporate_page') }}" class="btn btn-luxoya-gold btn-lg px-5">GET A QUOTE</a>
+            </div>
+            <div class="col-lg-7 order-1 order-lg-2 position-relative" style="min-height: 400px;">
+                <img src="{{ home_images.b2b_img or 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=1200' }}" 
+                     class="position-absolute w-100 h-100 object-fit-cover" alt="B2B Corporate Gifting">
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.category-thumb-wrapper:hover { 
+    transform: scale(1.15) rotate(5deg); 
+    box-shadow: 0 10px 25px rgba(248, 213, 126, 0.3) !important;
+    border-color: #fff !important;
+}
+.thumb-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.3));
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+.category-thumb-wrapper:hover .thumb-overlay { opacity: 1; }
+.category-label { transition: color 0.3s, transform 0.3s; }
+.category-item-wrap:hover .category-label { color: var(--lx-gold) !important; transform: translateY(-3px); }
+
+.phi-img-wrapper { transition: transform 0.5s ease; cursor: pointer; }
+.phi-img-wrapper:hover { transform: translateY(-10px); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Counter animation for hero stats
+    function animateCounters() {
+        const counters = document.querySelectorAll('.stat-number[data-count]');
+        counters.forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-count'));
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    counter.textContent = target.toLocaleString();
+                    clearInterval(timer);
+                } else {
+                    counter.textContent = Math.floor(current).toLocaleString();
+                }
+            }, 16);
+        });
+    }
+
+    // Trigger on scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                animateCounters();
+                observer.disconnect();
+            }
+        });
+    }, { threshold: 0.5 });
+
+    const statsSection = document.querySelector('.hero-stats');
+    if (statsSection) observer.observe(statsSection);
+
+    // Price filter functionality
+    const priceRangeInput = document.getElementById('priceRangeInput');
+    if (priceRangeInput) {
+        priceRangeInput.addEventListener('change', function () {
+            const maxPrice = parseInt(this.value);
+            const products = document.querySelectorAll('.product-item');
+            products.forEach(p => {
+                const priceMatch = p.dataset.price ? parseFloat(p.dataset.price) <= maxPrice : true;
+                if (priceMatch) {
+                    p.style.display = 'block';
+                } else {
+                    p.style.display = 'none';
+                }
+            });
+            // trigger AOS refresh if loaded
+            if (typeof AOS !== 'undefined') AOS.refresh();
+        });
+    }
+</script>
+{% endblock %}

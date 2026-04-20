@@ -1,0 +1,395 @@
+{% extends "admin/base.html" %}
+{% block title %}Home Page{% endblock %}
+{% block page_title %}Home Page Editor{% endblock %}
+
+{% block admin_content %}
+
+<style>
+.homepage-section {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+.homepage-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+.image-upload-card {
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding: 15px;
+    background: #fafafa;
+    height: 100%;
+}
+.preview-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+}
+[data-theme="dark"] .homepage-section { background: #1a1a1a; color: #eee; }
+[data-theme="dark"] .image-upload-card { background: #242424; border-color: #333; }
+</style>
+
+<!-- Hero Slider Section -->
+<div class="homepage-section">
+    <div class="homepage-section-title">Hero Slider (Images & Videos)</div>
+    <p class="text-muted small mb-3">Update the 4 slider slots. You can use an image OR a video (MP4/WEBM).</p>
+    
+    <div class="row g-3">
+        {% for idx in range(1, 11) %}
+        <div class="col-md-3 col-sm-6">
+            <div class="image-upload-card d-flex flex-column">
+                <h6>Slot {{ idx }}</h6>
+                <div class="position-relative mb-2" style="height: 100px; overflow: hidden; background: #000; border-radius: 6px;">
+                    <img id="preview_slider_img_{{ idx }}" class="w-100 h-100 object-fit-cover" src="">
+                    <video id="preview_hero_vid_{{ idx }}" class="w-100 h-100 object-fit-cover" src="" style="display: none;" controls muted></video>
+                </div>
+
+                <div class="mb-2">
+                    <label class="small text-muted mb-1">Image Slide</label>
+                    <div class="d-flex gap-2">
+                        <input type="file" id="file_slider_img_{{ idx }}" class="d-none" accept="image/*" onchange="uploadSettingImage('slider_img_{{ idx }}', this)">
+                        <button class="btn btn-sm btn-outline-primary w-100" onclick="document.getElementById('file_slider_img_{{ idx }}').click()">
+                            <i class="bi bi-image"></i> Upload
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="small text-muted mb-1">Video Slide (URL or Upload)</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="input_hero_vid_{{ idx }}" class="form-control" placeholder="URL (.mp4)" onblur="saveTextSetting('hero_vid_{{ idx }}', this.value)">
+                        <input type="file" id="file_hero_vid_{{ idx }}" class="d-none" accept="video/mp4,video/webm" onchange="uploadSettingImage('hero_vid_{{ idx }}', this)">
+                        <button class="btn btn-outline-secondary" onclick="document.getElementById('file_hero_vid_{{ idx }}').click()">
+                            <i class="bi bi-camera-video"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-auto pt-2 border-top">
+                    <button class="btn btn-sm btn-link text-danger p-0 w-100 text-decoration-none" onclick="deleteSettingImage('slider_img_{{ idx }}'); deleteSettingImage('hero_vid_{{ idx }}');">
+                        <i class="bi bi-trash"></i> Reset Slot
+                    </button>
+                </div>
+                <div id="status_slider_img_{{ idx }}" class="text-center mt-1 small"></div>
+                <div id="status_hero_vid_{{ idx }}" class="text-center mt-1 small"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Shop by Video (Reels) Section -->
+<div class="homepage-section">
+    <div class="homepage-section-title">Shop by Video (Reels)</div>
+    <p class="text-muted small mb-3">Manage the 6 video reels displayed on the homepage. Use MP4/WEBM URLs.</p>
+    
+    <div class="row g-3">
+        {% for idx in range(1, 7) %}
+        <div class="col-md-4 col-sm-6">
+            <div class="image-upload-card">
+                <div class="d-flex justify-content-between">
+                    <h6>Reel {{ idx }}</h6>
+                    <img id="preview_reel_{{ idx }}_thumb" style="width: 40px; height: 50px; object-fit: cover; border-radius: 4px; background: #eee;">
+                </div>
+                
+                <div class="mb-2 mt-2">
+                    <label class="small fw-600 mb-1">Reel Video URL</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="input_reel_{{ idx }}_url" class="form-control" placeholder="Link to MP4" onblur="saveTextSetting('reel_{{ idx }}_url', this.value)">
+                        <input type="file" id="file_reel_{{ idx }}_url" class="d-none" accept="video/mp4,video/webm" onchange="uploadSettingImage('reel_{{ idx }}_url', this)">
+                        <button class="btn btn-outline-secondary" onclick="document.getElementById('file_reel_{{ idx }}_url').click()">
+                            <i class="bi bi-upload"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="small fw-600 mb-1">Display Title</label>
+                    <input type="text" id="input_reel_{{ idx }}_title" class="form-control form-control-sm" placeholder="e.g. Scent Pouring" onblur="saveTextSetting('reel_{{ idx }}_title', this.value)">
+                </div>
+                <div class="mb-2">
+                    <label class="small fw-600 mb-1">Cover Thumbnail</label>
+                    <div class="d-flex gap-2">
+                        <input type="file" id="file_reel_{{ idx }}_thumb" class="d-none" accept="image/*" onchange="uploadSettingImage('reel_{{ idx }}_thumb', this)">
+                        <button class="btn btn-sm btn-outline-primary w-100" onclick="document.getElementById('file_reel_{{ idx }}_thumb').click()">
+                            <i class="bi bi-image"></i> Change Cover
+                        </button>
+                    </div>
+                </div>
+                <div id="status_reel_{{ idx }}_url" class="text-center small"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Brand Philosophy Section -->
+<div class="homepage-section">
+    <div class="homepage-section-title">Brand Philosophy Images</div>
+    <div class="row g-3">
+        {% for idx in range(1, 4) %}
+        <div class="col-md-4">
+            <div class="image-upload-card">
+                <h6>Philosophy {{ idx }}</h6>
+                <img id="preview_home_phi_img_{{ idx }}" class="preview-img" src="">
+                <input type="file" id="file_home_phi_img_{{ idx }}" class="d-none" onchange="uploadSettingImage('home_phi_img_{{ idx }}', this)">
+                <button class="btn btn-sm btn-outline-primary w-100" onclick="document.getElementById('file_home_phi_img_{{ idx }}').click()">Upload</button>
+                <div id="status_home_phi_img_{{ idx }}" class="text-center mt-2 small"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Our Collections Section -->
+<div class="homepage-section">
+    <div class="homepage-section-title">Our Collections Category Thumbnails</div>
+    <div class="row g-3">
+        {% for idx in range(1, 7) %}
+        <div class="col-md-4 col-sm-6">
+            <div class="image-upload-card">
+                <h6>Collection Slot {{ idx }}</h6>
+                <img id="preview_coll_img_{{ idx }}" class="preview-img" src="" style="height: 120px;">
+                <div class="mb-2">
+                    <label class="small text-muted mb-1">Display Name</label>
+                    <input type="text" id="input_coll_name_{{ idx }}" class="form-control form-control-sm" placeholder="e.g. Signature" onblur="saveTextSetting('coll_name_{{ idx }}', this.value)">
+                </div>
+                <input type="file" id="file_coll_img_{{ idx }}" class="d-none" onchange="uploadSettingImage('coll_img_{{ idx }}', this)">
+                <button class="btn btn-sm btn-outline-primary w-100" onclick="document.getElementById('file_coll_img_{{ idx }}').click()">Change Image</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Limited Edition Promo Section -->
+<div class="homepage-section">
+    <div class="homepage-section-title">Limited Edition Banner (Grid Promo)</div>
+    <div class="image-upload-card">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <h6>Banner Image</h6>
+                <img id="preview_promo_limit_img" class="preview-img" src="">
+                <input type="file" id="file_promo_limit_img" class="d-none" onchange="uploadSettingImage('promo_limit_img', this)">
+                <button class="btn btn-sm btn-outline-primary w-100" onclick="document.getElementById('file_promo_limit_img').click()">Change Banner Image</button>
+            </div>
+            <div class="col-md-8">
+                <div class="mb-2">
+                    <label class="small fw-600 mb-1">Promo Title</label>
+                    <input type="text" id="input_promo_limit_title" class="form-control" placeholder="e.g. Midnight Moss Collection" onblur="saveTextSetting('promo_limit_title', this.value)">
+                </div>
+                <div class="mb-2">
+                    <label class="small fw-600 mb-1">Promo Subtitle / Description</label>
+                    <input type="text" id="input_promo_limit_desc" class="form-control" placeholder="e.g. Experience the depth of evening fragrances." onblur="saveTextSetting('promo_limit_desc', this.value)">
+                </div>
+                <div class="mb-2">
+                    <label class="small fw-600 mb-1">Button Link (URL)</label>
+                    <input type="text" id="input_promo_limit_link" class="form-control" placeholder="/collections/limited-edition" onblur="saveTextSetting('promo_limit_link', this.value)">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gift Hampers Section -->
+<div class="homepage-section">
+    <div class="homepage-section-title">Gift Hampers Section</div>
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="p-3 bg-light rounded border">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="small fw-600 mb-1">Section Header</label>
+                        <input type="text" id="input_gift_hampers_header" class="form-control" placeholder="Gift Box Collections" onblur="saveTextSetting('gift_hampers_header', this.value)">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small fw-600 mb-1">Section Description</label>
+                        <input type="text" id="input_gift_hampers_desc" class="form-control" placeholder="Discover our elegant gift hampers..." onblur="saveTextSetting('gift_hampers_desc', this.value)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-3">
+        {% for idx in range(1, 3) %}
+        <div class="col-md-6">
+            <div class="image-upload-card">
+                <h6>Hamper Card {{ idx }}</h6>
+                <img id="preview_gift_hampers_img_{{ idx }}" class="preview-img" src="" style="height: 200px;">
+                <div class="mb-2">
+                    <label class="small fw-600 mb-1">Card Title</label>
+                    <input type="text" id="input_gift_hampers_title_{{ idx }}" class="form-control" placeholder="e.g. Festive Aura Combo" onblur="saveTextSetting('gift_hampers_title_{{ idx }}', this.value)">
+                </div>
+                <div class="mb-2">
+                    <label class="small fw-600 mb-1">Card Subtitle</label>
+                    <input type="text" id="input_gift_hampers_desc_{{ idx }}" class="form-control" placeholder="e.g. Includes 3 premium jar candles..." onblur="saveTextSetting('gift_hampers_desc_{{ idx }}', this.value)">
+                </div>
+                <div class="mb-3">
+                    <label class="small fw-600 mb-1">Link (URL)</label>
+                    <input type="text" id="input_gift_hampers_link_{{ idx }}" class="form-control" placeholder="/collections/gift-hampers" onblur="saveTextSetting('gift_hampers_link_{{ idx }}', this.value)">
+                </div>
+                <input type="file" id="file_gift_hampers_img_{{ idx }}" class="d-none" onchange="uploadSettingImage('gift_hampers_img_{{ idx }}', this)">
+                <button class="btn btn-sm btn-outline-primary w-100" onclick="document.getElementById('file_gift_hampers_img_{{ idx }}').click()">Change Image</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- B2B Section Cover -->
+<div class="homepage-section">
+    <div class="homepage-section-title">B2B / Corporate Banner Image</div>
+    <div class="image-upload-card">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <img id="preview_b2b_img" class="preview-img" src="" style="height: 150px;">
+            </div>
+            <div class="col-md-8">
+                <p class="text-muted small">This image appears in the 'Elevate Your Corporate Gifting' section at the bottom of the homepage.</p>
+                <input type="file" id="file_b2b_img" class="d-none" onchange="uploadSettingImage('b2b_img', this)">
+                <button class="btn btn-sm btn-outline-primary px-4" onclick="document.getElementById('file_b2b_img').click()">Change B2B Image</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Studio Section -->
+<div class="homepage-section">
+    <div class="homepage-section-title">Custom Candle Studio (Call to Action)</div>
+    <div class="image-upload-card">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <h6>Studio Background</h6>
+                <img id="preview_custom_studio_img" class="preview-img" src="">
+                <input type="file" id="file_custom_studio_img" class="d-none" onchange="uploadSettingImage('custom_studio_img', this)">
+                <button class="btn btn-sm btn-outline-primary w-100" onclick="document.getElementById('file_custom_studio_img').click()">Change Background</button>
+            </div>
+            <div class="col-md-8">
+                <div class="mb-2">
+                    <label class="small fw-600 mb-1">Studio Title</label>
+                    <input type="text" id="input_custom_studio_title" class="form-control" placeholder="e.g. Custom Candle Studio" onblur="saveTextSetting('custom_studio_title', this.value)">
+                </div>
+                <div class="mb-2">
+                    <label class="small fw-600 mb-1">Studio Description</label>
+                    <input type="text" id="input_custom_studio_desc" class="form-control" placeholder="Design your signature scent..." onblur="saveTextSetting('custom_studio_desc', this.value)">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const FALLBACKS = {
+    'slider_img_1': 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=1200',
+    'slider_img_2': 'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=1200',
+    'slider_img_3': 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=1200',
+    'slider_img_4': 'https://images.unsplash.com/photo-1572726729207-a78d6feb18d7?w=1200',
+    'b2b_img': 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=1200'
+};
+
+async function loadHomepageSettings() {
+    try {
+        const res = await fetch('/admin/api/settings?t=' + Date.now());
+        const d = await res.json();
+        
+        // Handle Images & Fallbacks
+        document.querySelectorAll('img[id^="preview_"]').forEach(img => {
+            const key = img.id.replace('preview_', '');
+            if (d[key]) {
+                img.src = d[key] + (d[key].includes('?') ? '&' : '?') + 't=' + Date.now();
+                img.style.display = 'block';
+            } else if (FALLBACKS[key]) {
+                img.src = FALLBACKS[key];
+                img.style.display = 'block';
+            }
+        });
+
+        // Handle Text Inputs
+        document.querySelectorAll('input[type="text"][id^="input_"]').forEach(input => {
+            const key = input.id.replace('input_', '');
+            if (d[key] !== undefined) input.value = d[key];
+        });
+
+        // Handle Hero Video Previews
+        for (let i = 1; i <= 10; i++) {
+            const vidUrl = d['hero_vid_' + i];
+            const vidEl = document.getElementById('preview_hero_vid_' + i);
+            const imgEl = document.getElementById('preview_slider_img_' + i);
+            if (vidEl && imgEl) {
+                if (vidUrl) {
+                    vidEl.src = vidUrl;
+                    vidEl.style.display = 'block';
+                    imgEl.style.display = 'none';
+                    const textInp = document.getElementById('input_hero_vid_' + i);
+                    if(textInp) textInp.value = vidUrl;
+                } else {
+                    vidEl.style.display = 'none';
+                    imgEl.style.display = 'block';
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Error loading settings:', e);
+    }
+}
+
+async function saveTextSetting(key, value) {
+    if(!key) return;
+    try {
+        await fetch('/admin/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ [key]: value }),
+            credentials: 'same-origin'
+        });
+        loadHomepageSettings();
+    } catch (e) { console.error(e); }
+}
+
+async function uploadSettingImage(key, inputEl) {
+    if (!inputEl.files || !inputEl.files[0]) return;
+    const file = inputEl.files[0];
+    const statusEl = document.getElementById('status_' + key) || { innerHTML: '' };
+    
+    // Increased size for videos (50MB)
+    if (file.size > 50 * 1024 * 1024) { alert('File too large (max 50MB)'); return; }
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('key', key);
+    
+    statusEl.innerHTML = '<span class="text-info fw-bold">Uploading...</span>';
+    
+    try {
+        const res = await fetch('/admin/api/settings/image', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        });
+        const resp = await res.json();
+        if (resp.success) {
+            statusEl.innerHTML = '<span class="text-success small">Done!</span>';
+            loadHomepageSettings();
+            setTimeout(() => { statusEl.innerHTML = ''; }, 2000);
+        } else { alert(resp.error || 'Upload failed'); }
+    } catch(e) { statusEl.innerHTML = 'Error'; }
+}
+
+async function deleteSettingImage(key) {
+    if(confirm('Clear this setting?')) await saveTextSetting(key, "");
+}
+
+document.addEventListener('DOMContentLoaded', loadHomepageSettings);
+</script>
+{% endblock %}

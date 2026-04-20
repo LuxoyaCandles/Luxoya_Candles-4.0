@@ -1,0 +1,382 @@
+{% extends "admin/base.html" %}
+{% block title %}Manufacturing Inventory{% endblock %}
+{% block page_title %}Resource Inventory{% endblock %}
+
+{% block admin_content %}
+<div class="row g-4 mb-4">
+    <div class="col-lg-12">
+        <div class="card-premium p-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="h5 mb-1">Raw Materials & Supplies</h2>
+                <p class="text-muted small mb-0">Track wicks, wax, jars, and fragrances for production.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-dark d-flex align-items-center gap-2 border border-secondary border-opacity-10 px-4 rounded-pill" onclick="generateForecast()">
+                    <i class="bi bi-stars text-gold"></i> AI Forecast
+                </button>
+                <button class="btn btn-premium d-flex align-items-center gap-2 px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#itemModal" onclick="resetForm()">
+                    <i class="bi bi-plus-lg"></i> Add Material
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Forecast Result -->
+<div id="forecastArea" class="mb-4" style="display:none;">
+    <div class="card-premium p-4 border border-gold border-opacity-25" style="background: rgba(201,169,110,0.05);">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-stars text-gold me-2"></i>AI Production Forecast</h5>
+            <button class="btn-close btn-close-white btn-sm" onclick="document.getElementById('forecastArea').style.display='none'"></button>
+        </div>
+        <div id="forecastContent" class="small text-muted" style="line-height: 1.6;"></div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card-new text-center">
+            <div class="text- gold fs-2 mb-1"><i class="bi bi-water"></i></div>
+            <div class="small text-muted text-uppercase fw-bold">Wax Stock</div>
+            <h4 class="mb-0 mt-1" id="stockWax">0 kg</h4>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-new text-center">
+            <div class="text-gold fs-2 mb-1"><i class="bi bi-fire"></i></div>
+            <div class="small text-muted text-uppercase fw-bold">Wick Count</div>
+            <h4 class="mb-0 mt-1" id="stockWick">0 units</h4>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-new text-center">
+            <div class="text-gold fs-2 mb-1"><i class="bi bi-cup-hot"></i></div>
+            <div class="small text-muted text-uppercase fw-bold">Jar Inventory</div>
+            <h4 class="mb-0 mt-1" id="stockJar">0 units</h4>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card-new text-center">
+            <div class="text-gold fs-2 mb-1"><i class="bi bi-droplet-half"></i></div>
+            <div class="small text-muted text-uppercase fw-bold">Fragrance</div>
+            <h4 class="mb-0 mt-1" id="stockFrag">0 ml</h4>
+        </div>
+    </div>
+</div>
+
+<div class="card-premium p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="position-relative" style="width: 300px;">
+            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+            <input type="text" id="inventorySearch" class="form-control ps-5 border-0 bg-dark bg-opacity-10 rounded-pill" placeholder="Filter materials...">
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill" id="lowStockAlert" style="display:none;">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> Low Stock Items Detected
+            </span>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.04); color: var(--lx-text) !important;">
+            <thead>
+                <tr class="text-muted small border-bottom border-secondary border-opacity-10" style="font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase;">
+                    <th class="py-3 px-4">MATERIAL NAME</th>
+                    <th class="py-3">SPECIFICATION</th>
+                    <th class="py-3">CURRENT STOCK</th>
+                    <th class="py-3">REORDER AT</th>
+                    <th class="py-3">SUPPLIER</th>
+                    <th class="py-3 text-end px-4">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody id="inventoryTable" class="small" style="color: var(--lx-text) !important;">
+                <tr><td colspan="6" class="text-center py-5 text-muted">Loading manufacturing database...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-premium overflow-hidden">
+            <div class="modal-header border-bottom border-secondary border-opacity-10 p-4">
+                <h5 class="modal-title h6 fw-bold" id="modalTitle">New Raw Material</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="itemForm">
+                    <input type="hidden" id="itemId">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Material Name</label>
+                        <input type="text" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="itemName" required placeholder="e.g. Soy Wax Flakes">
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Category</label>
+                            <select class="form-select border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="itemType">
+                                <option value="wax">Wax</option>
+                                <option value="wick">Wick</option>
+                                <option value="jar">Glass Jar</option>
+                                <option value="fragrance">Fragrance Oil</option>
+                                <option value="packaging">Packaging</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Specific Type / Fragrance</label>
+                            <input type="text" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="itemSpecific" placeholder="e.g. Soy Flakes, Lavender">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Current Stock</label>
+                            <input type="number" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="itemStock" step="0.01" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Unit</label>
+                            <select class="form-select border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="itemUnit">
+                                <option value="kg">kilograms (kg)</option>
+                                <option value="g">grams (g)</option>
+                                <option value="units">units (pcs)</option>
+                                <option value="ml">milliliters (ml)</option>
+                                <option value="l">liters (l)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted">Low Stock Level</label>
+                            <input type="number" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="itemReorder" step="0.1">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted">Cost/Unit (₹)</label>
+                            <input type="number" class="form-control border-0 shadow-sm" style="background: var(--lx-input-bg); color: var(--lx-text);" id="itemCost" step="0.01" oninput="document.getElementById('itemTotal').value = ''">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted text-gold">Total (₹)</label>
+                            <input type="number" class="form-control border-0 shadow-sm border-gold border-opacity-25" style="background: rgba(201,169,110,0.05); color: var(--lx-gold);" id="itemTotal" step="0.01" placeholder="Bill total" oninput="document.getElementById('itemCost').value = ''">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted">Supplier</label>
+                            <input type="text" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="itemSupplier" placeholder="Vendor">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-0">
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted">Purchased By</label>
+                            <select class="form-select border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="itemPurchaser">
+                                <option value="">None / Company</option>
+                                <!-- Populated via JS -->
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted">Purchase Date</label>
+                            <input type="date" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="itemDate">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted">Upload Bill (Optional)</label>
+                            <input type="file" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="itemBill" accept="image/*">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary border-opacity-10 p-4">
+                <button type="button" class="btn btn-dark btn-sm rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-premium btn-sm rounded-pill px-4" onclick="saveItem()">Save Material</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let allMaterials = [];
+    let partners = [];
+
+    async function loadInventory() {
+        try {
+            const res = await fetch('/admin/api/inventory');
+            const data = await res.json();
+            allMaterials = data.materials;
+            
+            if(data.low_stock_count > 0) {
+                document.getElementById('lowStockAlert').style.display = 'inline-block';
+            } else {
+                document.getElementById('lowStockAlert').style.display = 'none';
+            }
+            
+            updateStats();
+            renderTable(allMaterials);
+
+            // Load partners for dropdown
+            const pRes = await fetch('/admin/api/finance/partnership-stats');
+            const pData = await pRes.json();
+            partners = pData.partners;
+            const pSelect = document.getElementById('itemPurchaser');
+            const currentVal = pSelect.value;
+            pSelect.innerHTML = '<option value="">None / Company</option>' + 
+                partners.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            pSelect.value = currentVal;
+
+        } catch (e) { console.error(e); }
+    }
+
+    function updateStats() {
+        const stats = { wax: 0, wick: 0, jar: 0, fragrance: 0 };
+        allMaterials.forEach(m => {
+            if(stats[m.type] !== undefined) stats[m.type] += m.stock;
+        });
+        document.getElementById('stockWax').textContent = stats.wax.toFixed(1) + ' kg';
+        document.getElementById('stockWick').textContent = stats.wick + ' units';
+        document.getElementById('stockJar').textContent = stats.jar + ' units';
+        document.getElementById('stockFrag').textContent = stats.fragrance.toFixed(0) + ' ml';
+    }
+
+    function renderTable(materials) {
+        const tbody = document.getElementById('inventoryTable');
+        if(!materials.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted">No materials found in inventory</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = materials.map(m => `
+            <tr class="border-bottom border-secondary border-opacity-10">
+                <td class="px-4 py-3">
+                    <div class="fw-bold fs-6">${m.name}</div>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        <span class="smaller text-muted" style="font-size:0.65rem">ID: #${m.id}</span>
+                        ${m.purchased_by ? `<span class="badge rounded-pill bg-light bg-opacity-10 text-muted" style="font-size: 0.55rem;">SOURCE: ${m.purchased_by}</span>` : ''}
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-dark border border-secondary border-opacity-25 px-2 text-gold">${m.type.toUpperCase()}</span>
+                    ${m.specific_type ? `<div class="smaller mt-1 text-muted" style="font-size:0.75rem;">${m.specific_type}</div>` : ''}
+                </td>
+                <td>
+                    <div class="${m.is_low_stock ? 'text-danger fw-bold' : 'fw-bold'}">${m.stock} ${m.unit}</div>
+                    ${m.is_low_stock ? '<span class="smaller text-danger" style="font-size:0.65rem; font-weight: 900;">REORDER SOON</span>' : ''}
+                </td>
+                <td class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">${m.reorder_level} ${m.unit}</td>
+                <td class="text-muted small">${m.supplier || '-'}</td>
+                <td class="text-end px-4">
+                    <div class="d-flex justify-content-end gap-1">
+                        ${m.bill_url ? `
+                            <a href="${m.bill_url}" target="_blank" class="btn btn-sm btn-outline-gold border-0" title="View Bill">
+                                <i class="bi bi-receipt"></i>
+                            </a>
+                        ` : ''}
+                        <button class="btn btn-sm btn-dark" onclick="editItem(${m.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger border-0" onclick="deleteItem(${m.id})"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function resetForm() {
+        document.getElementById('itemForm').reset();
+        document.getElementById('itemId').value = '';
+        document.getElementById('modalTitle').textContent = 'New Raw Material';
+    }
+
+    async function saveItem() {
+        requestAuth(async () => {
+            const id = document.getElementById('itemId').value;
+            const btn = document.querySelector('button[onclick="saveItem()"]');
+            if(btn) btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('itemName').value);
+            formData.append('type', document.getElementById('itemType').value);
+            formData.append('specific_type', document.getElementById('itemSpecific').value);
+            formData.append('stock', document.getElementById('itemStock').value);
+            formData.append('unit', document.getElementById('itemUnit').value);
+            formData.append('reorder_level', document.getElementById('itemReorder').value);
+            formData.append('cost', document.getElementById('itemCost').value);
+            formData.append('total_cost', document.getElementById('itemTotal').value);
+            formData.append('supplier', document.getElementById('itemSupplier').value);
+            formData.append('purchased_by_id', document.getElementById('itemPurchaser').value);
+            formData.append('date', document.getElementById('itemDate').value);
+            const bill = document.getElementById('itemBill').files[0];
+            if(bill) formData.append('bill', bill);
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/admin/api/inventory/${id}` : '/admin/api/inventory';
+
+            try {
+                const res = await fetch(url, { method, body: formData });
+                if (res.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('itemModal')).hide();
+                    loadInventory();
+                    showToast('Inventory updated successfully');
+                } else {
+                    const d = await res.json();
+                    alert(d.error || 'Failed to save material');
+                }
+            } catch (e) { alert(e.message); }
+            finally { if(btn) btn.disabled = false; }
+        });
+    }
+
+    function editItem(id) {
+        const m = allMaterials.find(x => x.id === id);
+        if(!m) return;
+        document.getElementById('itemId').value = m.id;
+        document.getElementById('itemName').value = m.name;
+        document.getElementById('itemType').value = m.type;
+        document.getElementById('itemSpecific').value = m.specific_type || '';
+        document.getElementById('itemStock').value = m.stock;
+        document.getElementById('itemUnit').value = m.unit;
+        document.getElementById('itemReorder').value = m.reorder_level;
+        document.getElementById('itemCost').value = m.cost;
+        document.getElementById('itemTotal').value = '';
+        document.getElementById('itemSupplier').value = m.supplier;
+        document.getElementById('itemPurchaser').value = m.purchased_by_id || '';
+        document.getElementById('itemDate').value = m.purchase_date ? m.purchase_date.split('T')[0] : '';
+        document.getElementById('modalTitle').textContent = 'Edit Material';
+        new bootstrap.Modal(document.getElementById('itemModal')).show();
+    }
+
+    async function deleteItem(id) {
+        requestAuth(async () => {
+            try {
+                const res = await fetch(`/admin/api/inventory/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    loadInventory();
+                    showToast('Material removed from manufacturing db');
+                } else {
+                    const d = await res.json();
+                    alert(d.error || 'Delete failed');
+                }
+            } catch (e) { alert(e.message); }
+        });
+    }
+
+    document.getElementById('inventorySearch').addEventListener('input', e => {
+        const q = e.target.value.toLowerCase();
+        renderTable(allMaterials.filter(m => m.name.toLowerCase().includes(q) || m.type.includes(q)));
+    });
+
+    async function generateForecast() {
+        const area = document.getElementById('forecastArea');
+        const content = document.getElementById('forecastContent');
+        area.style.display = 'block';
+        content.innerHTML = '<div class="py-3"><div class="spinner-border spinner-border-sm text-gold me-2"></div> AI is analyzing inventory data and sales history...</div>';
+        
+        try {
+            const res = await fetch('/admin/api/ai/inventory-forecast', { method: 'POST' });
+            const data = await res.json();
+            if(data.forecast) {
+                const html = data.forecast.split('\n').filter(l => l.trim()).map(l => `<div class="mb-2">● ${l.replace(/^[\s\.\-\*]+/, '')}</div>`).join('');
+                content.innerHTML = html;
+            } else {
+                content.innerHTML = 'AI could not generate a forecast at this time.';
+            }
+        } catch(e) { content.innerHTML = '<span class="text-danger">Failed to connect to Luxoya AI Laboratory.</span>'; }
+    }
+
+    loadInventory();
+</script>
+{% endblock %}

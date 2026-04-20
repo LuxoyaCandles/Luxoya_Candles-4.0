@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}My Orders{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-navbar">
+    <div class="container">
+        <h1 class="section-title mb-4">My <span class="text-gold">Orders</span></h1>
+        
+        <div id="ordersLoading" class="text-center py-5">
+            <div class="spinner-border text-gold" role="status"></div>
+        </div>
+        
+        <div id="ordersEmpty" class="text-center py-5" style="display:none;">
+            <i class="bi bi-bag" style="font-size: 4rem; color: var(--gold);"></i>
+            <h3 class="mt-3">No Orders Yet</h3>
+            <p class="text-muted">Start shopping to see your orders here.</p>
+            <a href="{{ url_for('products.collections') }}" class="btn btn-luxoya-gold">Browse Collections</a>
+        </div>
+        
+        <div id="ordersList"></div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadOrders() {
+    try {
+        const res = await fetch('/api/orders', {credentials: 'same-origin'});
+        const data = await res.json();
+        document.getElementById('ordersLoading').style.display = 'none';
+        
+        if (!data.orders || data.orders.length === 0) {
+            document.getElementById('ordersEmpty').style.display = 'block';
+            return;
+        }
+        
+        const statusColors = {
+            pending: 'warning', confirmed: 'info', processing: 'primary',
+            shipped: 'primary', delivered: 'success', cancelled: 'danger'
+        };
+        
+        document.getElementById('ordersList').innerHTML = data.orders.map(order => `
+        <div class="order-card mb-3" data-aos="fade-up">
+            <div class="order-card-header">
+                <div>
+                    <h6 class="mb-0">Order #${order.order_number}</h6>
+                    <small class="text-muted">${new Date(order.created_at).toLocaleDateString('en-IN', {year:'numeric', month:'long', day:'numeric'})}</small>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-${statusColors[order.status] || 'secondary'}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                    <div class="mt-1"><strong>₹${order.total_amount.toFixed(0)}</strong></div>
+                </div>
+            </div>
+            <div class="order-card-body">
+                <div class="d-flex flex-wrap gap-3">
+                    ${order.items.map(item => `
+                    <div class="order-item-mini">
+                        <div class="order-item-img">
+                            ${item.product && item.product.image_url ? `<img src="${item.product.image_url}" alt="">` : '<i class="bi bi-lamp text-gold" style="font-size:1.5rem"></i>'}
+                        </div>
+                        <div>
+                            <small class="fw-semibold">${item.is_custom ? '✨ Custom Candle' : (item.product_name || (item.product ? item.product.name : 'Product'))} × ${item.quantity}</small>
+                            ${item.customization ? `<br><small class="text-muted" style="font-size:.7rem">${item.customization.jar_type} · ${item.customization.colour} · ${item.customization.fragrance}</small>` : ''}
+                        </div>
+                    </div>`).join('')}
+                </div>
+            </div>
+            <div class="order-card-footer">
+                <a href="/orders/${order.order_number}" class="btn btn-sm btn-outline-gold">View Details</a>
+                <a href="/orders/${order.order_number}/track" class="btn btn-sm btn-outline-gold"><i class="bi bi-geo-alt me-1"></i>Track</a>
+                ${order.payment_status === 'paid' ? `<a href="/api/orders/${order.order_number}/invoice?download=1" target="_blank" class="btn btn-sm btn-luxoya-gold"><i class="bi bi-download me-1"></i>Invoice</a>` : ''}
+                ${order.status === 'delivered' ? `<a href="/orders/${order.order_number}" class="btn btn-sm btn-luxoya-gold"><i class="bi bi-star me-1"></i>Write Review</a>` : ''}
+                ${order.status === 'delivered' && !order.return_request ? `<a href="/orders/${order.order_number}#returnSection" class="btn btn-sm btn-outline-danger"><i class="bi bi-arrow-return-left me-1"></i>Return</a>` : ''}
+                ${order.return_request ? `<span class="badge bg-${order.return_request.status==='approved'||order.return_request.status==='completed'?'success':order.return_request.status==='rejected'?'danger':'warning'} ms-1">Return: ${order.return_request.status}</span>` : ''}
+            </div>
+        </div>`).join('');
+        
+    } catch (err) {
+        document.getElementById('ordersLoading').style.display = 'none';
+        showToast('Please login to view orders', 'error');
+    }
+}
+loadOrders();
+</script>
+{% endblock %}

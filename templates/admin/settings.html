@@ -1,0 +1,825 @@
+{% extends "admin/base.html" %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block admin_content %}
+<div class="admin-card">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <h5 class="mb-1"><i class="bi bi-house-gear me-2"></i>Home Page Image Editor</h5>
+            <small class="text-muted">Use this dedicated screen to update homepage philosophy images.</small>
+        </div>
+        <a href="{{ url_for('admin.homepage_page') }}" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-images me-1"></i>Open Home Page Editor
+        </a>
+</div>
+
+<!-- Organization Profile -->
+<div class="admin-card mt-4">
+    <div class="d-flex align-items-center mb-4">
+        <div class="stat-icon bg-gold bg-opacity-10 text-gold me-3" style="width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+            <i class="bi bi-building"></i>
+        </div>
+        <div>
+            <h5 class="mb-0">Organization Profile</h5>
+            <small class="text-muted">Manage your business identity & contact information</small>
+        </div>
+    </div>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Company Name</label>
+            <input type="text" class="form-control" id="orgName" placeholder="e.g. Luxoya Candles">
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Support Email</label>
+            <input type="email" class="form-control" id="supportEmail" placeholder="support@luxoyacandles.com">
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Sales Email</label>
+            <input type="email" class="form-control" id="salesEmail" placeholder="sales@luxoyacandles.com">
+        </div>
+        <div class="col-md-12">
+            <label class="form-label">Official Address (Shown in footer & invoices)</label>
+            <textarea class="form-control" id="orgAddress" rows="2" placeholder="Villa No : 82,Mythri Lake View .S.No : 45,46 BC Colony ,Mallampet,Bollaram,Medchal ,Malkajgiri Dist-500090, Mythri Lake View, K.V.Rangareddy, Telangana, India, 500090"></textarea>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Primary Support Phone</label>
+            <input type="tel" class="form-control" id="orgPhone" placeholder="+91 9705840457">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Warehouse SPOC 1</label>
+            <input type="text" class="form-control" id="warehouseSpoc1" placeholder="ADHARSH | 9705840457">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Warehouse SPOC 2</label>
+            <input type="text" class="form-control" id="warehouseSpoc2" placeholder="VIEK | 87903129645">
+        </div>
+        <div class="col-12 mt-3">
+            <button class="btn btn-gold btn-sm" onclick="triggerSaveSettings(saveOrgProfile)">
+                <i class="bi bi-save me-1"></i>Save Profile
+            </button>
+            <span id="orgStatus" class="ms-2 small"></span>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- GST Settings -->
+    <div class="col-lg-6">
+        <div class="admin-card">
+            <div class="d-flex align-items-center mb-3">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning me-3" style="width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0">GST Number</h5>
+                    <small class="text-muted">Displayed on all invoices</small>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">GST Number (GSTIN)</label>
+                <input type="text" class="form-control" id="gstNumber" placeholder="e.g. 22AAAAA0000A1Z5" maxlength="15" style="text-transform:uppercase;">
+                <div class="form-text">15-character GST Identification Number</div>
+            </div>
+            <button class="btn btn-gold btn-sm" onclick="triggerSaveSettings(saveGST)">
+                <i class="bi bi-check-lg me-1"></i>Save GST Number
+            </button>
+            <span id="gstStatus" class="ms-2 small"></span>
+        </div>
+    </div>
+
+    <!-- Instagram Settings -->
+    <div class="col-lg-6">
+        <div class="admin-card">
+            <div class="d-flex align-items-center mb-3">
+                <div class="stat-icon bg-danger bg-opacity-10 text-danger me-3" style="width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+                    <i class="bi bi-instagram"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0">Instagram Handle</h5>
+                    <small class="text-muted">Shown on invoices with QR code</small>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Instagram Username</label>
+                <div class="input-group">
+                    <span class="input-group-text">@</span>
+                    <input type="text" class="form-control" id="instagramHandle" placeholder="luxoyacandles">
+                </div>
+                <div class="form-text">Instagram QR code will be generated automatically on invoices</div>
+            </div>
+            <button class="btn btn-gold btn-sm" onclick="triggerSaveSettings(saveInstagram)">
+                <i class="bi bi-check-lg me-1"></i>Save Instagram Handle
+            </button>
+            <span id="igStatus" class="ms-2 small"></span>
+        </div>
+    </div>
+
+    <!-- Homepage Image Settings -->
+    <div class="col-12">
+        <div class="admin-card">
+            <div class="d-flex align-items-center mb-3">
+                <div class="stat-icon bg-info bg-opacity-10 text-info me-3" style="width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+                    <i class="bi bi-images"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0">Homepage Philosophy Images</h5>
+                    <small class="text-muted">Set image URLs shown in the home page philosophy section</small>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Image 1 URL</label>
+                    <input type="text" class="form-control" id="homePhiImg1" placeholder="/img/store/... or https://...">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Image 2 URL</label>
+                    <input type="text" class="form-control" id="homePhiImg2" placeholder="/img/store/... or https://...">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Image 3 URL</label>
+                    <input type="text" class="form-control" id="homePhiImg3" placeholder="/img/store/... or https://...">
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <button class="btn btn-gold btn-sm" onclick="triggerSaveSettings(saveHomepageImages)">
+                    <i class="bi bi-check-lg me-1"></i>Save Homepage Images
+                </button>
+                <span id="homeImagesStatus" class="ms-2 small"></span>
+            </div>
+
+            <div class="row g-3 mt-2">
+                <div class="col-md-4">
+                    <small class="text-muted d-block mb-1">Preview 1</small>
+                    <img id="homePhiPreview1" src="" alt="Homepage image 1 preview" style="width:100%;height:120px;object-fit:cover;border-radius:8px;border:1px solid #eee;">
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block mb-1">Preview 2</small>
+                    <img id="homePhiPreview2" src="" alt="Homepage image 2 preview" style="width:100%;height:120px;object-fit:cover;border-radius:8px;border:1px solid #eee;">
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted d-block mb-1">Preview 3</small>
+                    <img id="homePhiPreview3" src="" alt="Homepage image 3 preview" style="width:100%;height:120px;object-fit:cover;border-radius:8px;border:1px solid #eee;">
+                </div>
+            </div>
+            <div class="form-text mt-2">Tip: product/category uploads already generate DB-backed URLs like /img/store/&lt;id&gt;. You can paste those here.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Settings Preview -->
+<div class="admin-card mt-2">
+    <h5><i class="bi bi-eye me-2"></i>Current Settings</h5>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Setting</th><th>Value</th><th>Status</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><i class="bi bi-receipt me-2 text-warning"></i>GST Number</td>
+                    <td id="previewGST" class="fw-semibold">—</td>
+                    <td><span class="badge" id="gstBadge">Not Set</span></td>
+                </tr>
+                <tr>
+                    <td><i class="bi bi-instagram me-2 text-danger"></i>Instagram Handle</td>
+                    <td id="previewIG" class="fw-semibold">—</td>
+                    <td><span class="badge" id="igBadge">Not Set</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+<!-- ─── Change Admin Email ────────────────────────────────────── -->
+<div class="admin-card mt-4">
+    <div class="d-flex align-items-center mb-4">
+        <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3" style="width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+            <i class="bi bi-envelope"></i>
+        </div>
+        <div>
+            <h5 class="mb-0">Change Admin Email</h5>
+            <small class="text-muted">Update your admin account email</small>
+        </div>
+    </div>
+    <div class="row g-3" style="max-width:400px;">
+        <div class="col-12">
+            <label class="form-label">New Admin Email</label>
+            <input type="email" class="form-control" id="newAdminEmail" placeholder="admin@luxoya.in">
+        </div>
+        <div class="col-12">
+            <button class="btn btn-gold btn-sm text-white" onclick="changeAdminEmail()">
+                <i class="bi bi-check-lg me-1"></i>Update Email
+            </button>
+            <span id="emailStatus" class="ms-2 small"></span>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Change Password ──────────────────────────── -->
+<div class="admin-card mt-4">
+    <div class="d-flex align-items-center mb-3">
+        <div class="stat-icon bg-primary bg-opacity-10 text-primary me-3" style="width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+            <i class="bi bi-key"></i>
+        </div>
+        <div>
+            <h5 class="mb-0">Change Password</h5>
+            <small class="text-muted">Update your admin account password</small>
+        </div>
+    </div>
+    <div class="row g-3" style="max-width:400px;">
+        <div class="col-12">
+            <label class="form-label">Current Password</label>
+            <input type="password" class="form-control" id="currentPassword" placeholder="Enter current password">
+        </div>
+        <div class="col-12">
+            <label class="form-label">New Password</label>
+            <input type="password" class="form-control" id="newPassword" placeholder="Min 8 characters">
+        </div>
+        <div class="col-12">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" class="form-control" id="confirmPassword" placeholder="Re-enter new password">
+        </div>
+        <div class="col-12">
+            <button class="btn btn-gold btn-sm" onclick="changePassword()">
+                <i class="bi bi-check-lg me-1"></i>Update Password
+            </button>
+            <span id="pwStatus" class="ms-2 small"></span>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Database Management ──────────────────────────── -->
+<div class="admin-card mt-4">
+    <div class="d-flex align-items-center mb-3">
+        <div class="stat-icon bg-danger bg-opacity-10 text-danger me-3" style="width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">
+            <i class="bi bi-database-gear"></i>
+        </div>
+        <div>
+            <h5 class="mb-0">Database Management</h5>
+            <small class="text-muted">Clear data from specific tables — users &amp; site config are protected</small>
+        </div>
+    </div>
+
+    <div class="alert alert-warning py-2 mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+        <strong>Caution:</strong> Clearing a table permanently deletes all its records.
+        Dependent data is also removed automatically.
+        User accounts and site configuration are never affected.
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <label class="form-label small">Remote Sync URL (Luxoya 4.0 Source)</label>
+            <input type="url" class="form-control form-control-sm" id="syncUrl" placeholder="https://luxoya-v4.vercel.app">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small">Master Sync Key</label>
+            <input type="password" class="form-control form-control-sm" id="syncKey" placeholder="Enter security key">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-luxoya-gold btn-sm w-100" onclick="syncFrom40()">
+                <i class="bi bi-cloud-download me-1"></i>Cloud Sync
+            </button>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <button class="btn btn-outline-warning btn-sm" onclick="syncDatabase()">
+            <i class="bi bi-arrow-repeat me-1"></i>Setup Default Data
+        </button>
+        <button class="btn btn-outline-success btn-sm" onclick="forceSyncStorefront()">
+            <i class="bi bi-magic me-1"></i>Force Active Sync
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="loadDBTables()">
+            <i class="bi bi-arrow-clockwise me-1"></i>Refresh Tables
+        </button>
+        <div id="syncStatus" class="ms-2 small d-flex align-items-center"></div>
+    </div>
+
+    <div id="dbTablesContainer">
+        <div class="text-center py-4"><div class="spinner-border text-secondary" role="status"></div></div>
+    </div>
+</div>
+
+<!-- Password Confirm Modal -->
+<div class="modal fade" id="dbClearModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Clear</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>You are about to clear <strong id="clearTableLabel"></strong>.</p>
+        <p class="text-danger mb-3">This action is irreversible.</p>
+        <label class="form-label">Admin Password</label>
+        <input type="password" class="form-control" id="dbClearPassword" placeholder="Enter your admin password">
+        <div id="dbClearError" class="text-danger small mt-2 d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger" id="dbClearConfirmBtn" onclick="confirmClearTable()">
+            <i class="bi bi-trash3 me-1"></i>Clear Data
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Password Confirm Modal for Settings Save -->
+<div class="modal fade" id="settingsSaveModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-gold text-dark">
+        <h5 class="modal-title"><i class="bi bi-shield-lock-fill me-2"></i>Confirm Administrative Action</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>You are about to modify system-wide settings. Please verify your administrative password to proceed.</p>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-control" id="settingsActionPassword" placeholder="Enter your password">
+        </div>
+        <div id="settingsSaveError" class="text-danger small d-none"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-gold" id="settingsSaveConfirmBtn">
+            <i class="bi bi-check-lg me-1"></i>Verify & Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* showToast helper for admin pages */
+function showToast(msg, type) {
+    type = type || 'info';
+    let c = document.getElementById('_adminToastContainer');
+    if (!c) { c = document.createElement('div'); c.id='_adminToastContainer'; c.style.cssText='position:fixed;top:20px;right:20px;z-index:9999;'; document.body.appendChild(c); }
+    const colors = {success:'#198754',danger:'#dc3545',warning:'#ffc107',info:'#0dcaf0'};
+    const d = document.createElement('div');
+    d.style.cssText = `background:${colors[type]||colors.info};color:#fff;padding:12px 20px;border-radius:8px;margin-bottom:8px;box-shadow:0 4px 12px rgba(0,0,0,.2);font-size:.9rem;opacity:0;transition:opacity .3s;`;
+    d.textContent = msg;
+    c.appendChild(d);
+    requestAnimationFrame(() => d.style.opacity = '1');
+    setTimeout(() => { d.style.opacity = '0'; setTimeout(() => d.remove(), 300); }, 4000);
+}
+/* ── DB Management ── */
+let dbTables = [];
+let clearingKey = '';
+
+async function loadDBTables() {
+    try {
+        const res = await fetch('/admin/api/db/tables', { credentials: 'same-origin' });
+        const d = await res.json();
+        dbTables = d.tables || [];
+        renderDBTables();
+    } catch(e) { document.getElementById('dbTablesContainer').innerHTML = '<p class="text-danger">Failed to load tables</p>'; }
+}
+
+function renderDBTables() {
+    const c = document.getElementById('dbTablesContainer');
+    if (!dbTables.length) { c.innerHTML = '<p class="text-muted">No clearable tables.</p>'; return; }
+    c.innerHTML = '<div class="table-responsive"><table class="table table-hover align-middle mb-0">' +
+        '<thead><tr><th>Table</th><th class="text-center">Records</th><th class="text-end">Action</th></tr></thead><tbody>' +
+        dbTables.map(t => `<tr>
+            <td><i class="bi bi-${t.icon} me-2 text-${t.color}"></i>${t.label}</td>
+            <td class="text-center"><span class="badge bg-${t.count ? t.color : 'secondary'} bg-opacity-75">${t.count}</span></td>
+            <td class="text-end">
+                <button class="btn btn-outline-danger btn-sm" ${t.count === 0 ? 'disabled' : ''}
+                    onclick="openClearModal('${t.key}','${t.label}')">
+                    <i class="bi bi-trash3 me-1"></i>Clear
+                </button>
+            </td>
+        </tr>`).join('') +
+        '</tbody></table></div>';
+}
+
+function openClearModal(key, label) {
+    clearingKey = key;
+    document.getElementById('clearTableLabel').textContent = label;
+    document.getElementById('dbClearPassword').value = '';
+    document.getElementById('dbClearError').classList.add('d-none');
+    document.getElementById('dbClearConfirmBtn').disabled = false;
+    new bootstrap.Modal(document.getElementById('dbClearModal')).show();
+}
+
+async function confirmClearTable() {
+    const pw = document.getElementById('dbClearPassword').value.trim();
+    const errEl = document.getElementById('dbClearError');
+    const btn = document.getElementById('dbClearConfirmBtn');
+
+    if (!pw) { errEl.textContent = 'Password is required'; errEl.classList.remove('d-none'); return; }
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Clearing...';
+    errEl.classList.add('d-none');
+
+    try {
+        const res = await fetch('/admin/api/db/clear', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ table: clearingKey, password: pw })
+        });
+        const d = await res.json();
+        if (!res.ok) {
+            errEl.textContent = d.error || 'Failed';
+            errEl.classList.remove('d-none');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-trash3 me-1"></i>Clear Data';
+            return;
+        }
+        bootstrap.Modal.getInstance(document.getElementById('dbClearModal')).hide();
+        showToast(d.message, 'success');
+        loadDBTables();
+    } catch(e) {
+        errEl.textContent = 'Network error';
+        errEl.classList.remove('d-none');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-trash3 me-1"></i>Clear Data';
+}
+
+/* ── Settings ── */
+async function loadSettings() {
+    try {
+        const res = await fetch('/admin/api/settings', { credentials: 'same-origin' });
+        const d = await res.json();
+
+        const gstInput = document.getElementById('gstNumber');
+        const igInput = document.getElementById('instagramHandle');
+        const previewGST = document.getElementById('previewGST');
+        const previewIG = document.getElementById('previewIG');
+        const gstBadge = document.getElementById('gstBadge');
+        const igBadge = document.getElementById('igBadge');
+        const homePhiImg1 = document.getElementById('homePhiImg1');
+        const homePhiImg2 = document.getElementById('homePhiImg2');
+        const homePhiImg3 = document.getElementById('homePhiImg3');
+        const homePhiPreview1 = document.getElementById('homePhiPreview1');
+        const homePhiPreview2 = document.getElementById('homePhiPreview2');
+        const homePhiPreview3 = document.getElementById('homePhiPreview3');
+
+        const orgName = document.getElementById('orgName');
+        const supportEmail = document.getElementById('supportEmail');
+        const salesEmail = document.getElementById('salesEmail');
+        const orgAddress = document.getElementById('orgAddress');
+        const orgPhone = document.getElementById('orgPhone');
+        const warehouseSpoc1 = document.getElementById('warehouseSpoc1');
+        const warehouseSpoc2 = document.getElementById('warehouseSpoc2');
+
+        if (orgName) orgName.value = d.org_name || '';
+        if (supportEmail) supportEmail.value = d.support_email || '';
+        if (salesEmail) salesEmail.value = d.sales_email || '';
+        if (orgAddress) orgAddress.value = d.org_address || '';
+        if (orgPhone) orgPhone.value = d.org_phone || '';
+        if (warehouseSpoc1) warehouseSpoc1.value = d.warehouse_spoc_1 || '';
+        if (warehouseSpoc2) warehouseSpoc2.value = d.warehouse_spoc_2 || '';
+
+        const fallback1 = '/static/images/philosophy/candle-jars.jpg';
+        const fallback2 = '/static/images/philosophy/candle-ambience.jpg';
+        const fallback3 = '/static/images/philosophy/candle-lighting.jpg';
+
+        if (d.gst_number) {
+            gstInput.value = d.gst_number;
+            previewGST.textContent = d.gst_number;
+            gstBadge.textContent = 'Active';
+            gstBadge.className = 'badge bg-success';
+        } else {
+            previewGST.textContent = '—';
+            gstBadge.textContent = 'Not Set';
+            gstBadge.className = 'badge bg-secondary';
+        }
+
+        if (d.instagram_handle) {
+            igInput.value = d.instagram_handle.replace(/^@/, '');
+            previewIG.textContent = d.instagram_handle;
+            igBadge.textContent = 'Active';
+            igBadge.className = 'badge bg-success';
+        } else {
+            previewIG.textContent = '—';
+            igBadge.textContent = 'Not Set';
+            igBadge.className = 'badge bg-secondary';
+        }
+
+        homePhiImg1.value = d.home_phi_img_1 || '';
+        homePhiImg2.value = d.home_phi_img_2 || '';
+        homePhiImg3.value = d.home_phi_img_3 || '';
+
+        homePhiPreview1.src = d.home_phi_img_1 || fallback1;
+        homePhiPreview2.src = d.home_phi_img_2 || fallback2;
+        homePhiPreview3.src = d.home_phi_img_3 || fallback3;
+
+        homePhiPreview1.onerror = () => { homePhiPreview1.src = fallback1; };
+        homePhiPreview2.onerror = () => { homePhiPreview2.src = fallback2; };
+        homePhiPreview3.onerror = () => { homePhiPreview3.src = fallback3; };
+    } catch(e) { console.error('Error loading settings:', e); }
+}
+
+async function saveGST(password) {
+    const val = document.getElementById('gstNumber').value.trim().toUpperCase();
+    const status = document.getElementById('gstStatus');
+    try {
+        status.innerHTML = '<span class="text-muted">Saving...</span>';
+        const res = await fetch('/admin/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ gst_number: val, password: password })
+        });
+        const d = await res.json();
+        if (!res.ok) {
+            status.innerHTML = `<span class="text-ruby fw-bold">${d.error}</span>`;
+            showToast(d.error, 'danger');
+            return;
+        }
+        status.innerHTML = '<span class="text-emerald fw-bold"><i class="bi bi-check-circle me-1"></i>Saved!</span>';
+        showToast('GST Number updated', 'success');
+        setTimeout(() => status.innerHTML = '', 3000);
+        loadSettings();
+    } catch(e) {
+        status.innerHTML = '<span class="text-ruby fw-bold">Error saving</span>';
+    }
+}
+
+async function saveInstagram(password) {
+    const val = document.getElementById('instagramHandle').value.trim();
+    const status = document.getElementById('igStatus');
+    try {
+        status.innerHTML = '<span class="text-muted">Saving...</span>';
+        const res = await fetch('/admin/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ instagram_handle: val, password: password })
+        });
+        const d = await res.json();
+        if (!res.ok) {
+            status.innerHTML = `<span class="text-ruby fw-bold">${d.error}</span>`;
+            showToast(d.error, 'danger');
+            return;
+        }
+        status.innerHTML = '<span class="text-emerald fw-bold"><i class="bi bi-check-circle me-1"></i>Saved!</span>';
+        showToast('Instagram handle updated', 'success');
+        setTimeout(() => status.innerHTML = '', 3000);
+        loadSettings();
+    } catch(e) {
+        status.innerHTML = '<span class="text-ruby fw-bold">Error saving</span>';
+    }
+}
+
+async function saveHomepageImages(password) {
+    const status = document.getElementById('homeImagesStatus');
+    const payload = {
+        home_phi_img_1: document.getElementById('homePhiImg1').value.trim(),
+        home_phi_img_2: document.getElementById('homePhiImg2').value.trim(),
+        home_phi_img_3: document.getElementById('homePhiImg3').value.trim(),
+        password: password
+    };
+
+    try {
+        status.innerHTML = '<span class="text-muted">Saving...</span>';
+        const res = await fetch('/admin/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+        });
+        const d = await res.json();
+        if (!res.ok) {
+            status.innerHTML = `<span class="text-ruby fw-bold">${d.error || 'Failed to save'}</span>`;
+            showToast(d.error || 'Failed to save images', 'danger');
+            return;
+        }
+        status.innerHTML = '<span class="text-emerald fw-bold"><i class="bi bi-check-circle me-1"></i>Saved!</span>';
+        showToast('Homepage images updated', 'success');
+        setTimeout(() => status.innerHTML = '', 3000);
+        loadSettings();
+    } catch(e) {
+        status.innerHTML = '<span class="text-ruby fw-bold">Error saving</span>';
+    }
+}
+
+loadSettings();
+loadDBTables();
+
+
+/* ── Change Admin Email ── */
+async function changeAdminEmail() {
+    const newEmail = document.getElementById('newAdminEmail').value.trim();
+    const status = document.getElementById('emailStatus');
+    
+    if (!newEmail) {
+        status.innerHTML = '<span class="text-danger">Email cannot be empty</span>';
+        return;
+    }
+    
+    try {
+        status.innerHTML = '<span class="text-muted">Updating...</span>';
+        const res = await fetch('/admin/api/admin/profile', {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            credentials: 'same-origin',
+            body: JSON.stringify({ email: newEmail })
+        });
+        let data = {};
+        const contentType = (res.headers.get('content-type') || '').toLowerCase();
+        if (contentType.includes('application/json')) {
+            data = await res.json();
+        } else {
+            const text = await res.text();
+            data = { error: text || 'Request failed' };
+        }
+        
+        if (res.ok) {
+            status.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>${data.message || 'Email updated! Please re-login.'}</span>`;
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+        } else {
+            status.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle me-1"></i>${data.error || 'Failed to update email'}</span>`;
+        }
+    } catch (err) {
+        console.error(err);
+        status.innerHTML = '<span class="text-danger">Error updating email</span>';
+    }
+}
+
+/* ── Change Password ── */
+async function changePassword() {
+    const current = document.getElementById('currentPassword').value.trim();
+    const newPw = document.getElementById('newPassword').value;
+    const confirm = document.getElementById('confirmPassword').value;
+    const status = document.getElementById('pwStatus');
+    status.innerHTML = '';
+
+    if (!current || !newPw || !confirm) { status.innerHTML = '<span class="text-danger">All fields are required</span>'; return; }
+    if (newPw.length < 8) { status.innerHTML = '<span class="text-danger">New password must be at least 8 characters</span>'; return; }
+    if (newPw !== confirm) { status.innerHTML = '<span class="text-danger">Passwords do not match</span>'; return; }
+
+    try {
+        const res = await fetch('/api/auth/change-password', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ current_password: current, new_password: newPw })
+        });
+        const d = await res.json();
+        if (!res.ok) { status.innerHTML = `<span class="text-danger">${d.error || 'Failed'}</span>`; return; }
+        status.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Password updated!</span>';
+        document.getElementById('currentPassword').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+        setTimeout(() => status.innerHTML = '', 5000);
+    } catch (e) { status.innerHTML = '<span class="text-danger">Error changing password</span>'; }
+}
+/* ── Org Profile with Password ── */
+let currentSaveAction = null;
+
+function triggerSaveSettings(actionFn) {
+    currentSaveAction = actionFn;
+    document.getElementById('settingsActionPassword').value = '';
+    document.getElementById('settingsSaveError').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('settingsSaveModal')).show();
+}
+
+document.getElementById('settingsSaveConfirmBtn').addEventListener('click', () => {
+    const pw = document.getElementById('settingsActionPassword').value.trim();
+    if (!pw) {
+        const err = document.getElementById('settingsSaveError');
+        err.textContent = 'Password is required';
+        err.classList.remove('d-none');
+        return;
+    }
+    if (currentSaveAction) {
+        currentSaveAction(pw);
+        bootstrap.Modal.getInstance(document.getElementById('settingsSaveModal')).hide();
+    }
+});
+
+async function saveOrgProfile(password) {
+    const status = document.getElementById('orgStatus');
+    const payload = {
+        org_name: document.getElementById('orgName').value.trim(),
+        support_email: document.getElementById('supportEmail').value.trim(),
+        sales_email: document.getElementById('salesEmail').value.trim(),
+        org_address: document.getElementById('orgAddress').value.trim(),
+        org_phone: document.getElementById('orgPhone').value.trim(),
+        warehouse_spoc_1: document.getElementById('warehouseSpoc1').value.trim(),
+        warehouse_spoc_2: document.getElementById('warehouseSpoc2').value.trim(),
+        password: password
+    };
+    
+    try {
+        status.innerHTML = '<span class="text-muted"><div class="spinner-border spinner-border-sm me-1"></div>Saving...</span>';
+        const res = await fetch('/admin/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+        });
+        const d = await res.json();
+        if (!res.ok) {
+            status.innerHTML = `<span class="text-ruby fw-bold"><i class="bi bi-x-circle me-1"></i>${d.error || 'Failed'}</span>`;
+            showToast(d.error || 'Failed to save profile', 'danger');
+            return;
+        }
+        status.innerHTML = '<span class="text-emerald fw-bold"><i class="bi bi-check-circle me-1"></i>Profile Saved!</span>';
+        showToast('Profile settings updated successfully', 'success');
+        setTimeout(() => status.innerHTML = '', 3000);
+        loadSettings();
+    } catch(e) {
+        status.innerHTML = '<span class="text-ruby fw-bold">Sync error</span>';
+    }
+}
+
+async function forceSyncStorefront() {
+    if(!confirm('This will force ALL products and categories to be ACTIVE and visible on the storefront. Use this to fix "NOT SYNCING" issues once you have added data. Proceed?')) return;
+    const status = document.getElementById('syncStatus');
+    status.innerHTML = '<span class="text-muted"><div class="spinner-border spinner-border-sm me-1"></div>Repairing Sync...</span>';
+
+    try {
+        const res = await fetch('/admin/api/db/force-sync', { method: 'POST', credentials: 'same-origin' });
+        const d = await res.json();
+        if(d.success) {
+            status.innerHTML = `<span class="text-success"><i class="bi bi-check-all me-1"></i>Sync Repaired!</span>`;
+            showToast(d.message, 'success');
+            loadDBTables();
+        } else {
+            status.innerHTML = `<span class="text-danger">Repair failed</span>`;
+            showToast(d.error, 'danger');
+        }
+    } catch(e) {
+        status.innerHTML = '<span class="text-danger">Connection error</span>';
+    }
+}
+
+async function syncFrom40() {
+    const url = document.getElementById('syncUrl').value.trim();
+    const key = document.getElementById('syncKey').value.trim();
+    const status = document.getElementById('syncStatus');
+
+    if (!url || !key) {
+        showToast('Sync URL and Key are required', 'danger');
+        return;
+    }
+
+    if (!confirm('This will fetch categories and products from the remote Luxoya 4.0 instance and merge them into this database. Continue?')) return;
+
+    status.innerHTML = '<span class="text-muted"><div class="spinner-border spinner-border-sm me-1"></div>Cloud Syncing...</span>';
+    
+    try {
+        const res = await fetch('/admin/api/sync-4.0', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ remote_url: url, sync_key: key })
+        });
+        const d = await res.json();
+        
+        if (res.ok) {
+            status.innerHTML = `<span class="text-success"><i class="bi bi-check-circle me-1"></i>Sync Success!</span>`;
+            showToast(d.message || 'Synced from 4.0 successfully', 'success');
+            loadDBTables();
+        } else {
+            status.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle me-1"></i>${d.error || 'Sync Failed'}</span>`;
+            showToast(d.error || 'Cloud sync failed', 'danger');
+        }
+    } catch(e) {
+        status.innerHTML = '<span class="text-danger">Sync connection error</span>';
+        showToast('Network error during cloud sync', 'danger');
+    }
+}
+
+async function syncDatabase() {
+    const status = document.getElementById('syncStatus');
+    if (!confirm('This will populate the database with default categories, products and site settings if they are missing. Continue?')) return;
+
+    status.innerHTML = '<span class="text-muted"><div class="spinner-border spinner-border-sm me-1"></div>Syncing...</span>';
+    try {
+        const res = await fetch('/admin/api/seed', {
+            method: 'POST',
+            credentials: 'same-origin'
+        });
+        const d = await res.json();
+        if (res.ok) {
+            status.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Sync Complete!</span>';
+            showToast(d.message || 'Store data synced successfully', 'success');
+            loadDBTables();
+            loadSettings();
+        } else {
+            status.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle me-1"></i>${d.error || 'Sync Failed'}</span>`;
+        }
+    } catch(e) {
+        status.innerHTML = '<span class="text-danger">Network Error</span>';
+    }
+    setTimeout(() => status.innerHTML = '', 5000);
+}
+</script>
+{% endblock %}

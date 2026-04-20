@@ -1,0 +1,322 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<style>
+    .card-premium { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--lx-border); }
+    .card-premium:hover { transform: translateY(-5px); border-color: var(--lx-gold); box-shadow: 0 15px 45px rgba(0,0,0,0.2); }
+    .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: #28a745; box-shadow: 0 0 10px #28a745; animation: pulse-live 2s infinite; }
+    @keyframes pulse-live { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
+    .text-gold { color: var(--lx-gold) !important; }
+    .stat-card-new { padding: 1.5rem; border-radius: 20px; background: var(--lx-card); border: 1px solid var(--lx-border); transition: all 0.3s; }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<!-- Header Area -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-12">
+        <div class="card-premium p-4 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, var(--lx-card) 0%, rgba(248, 213, 126, 0.03) 100%);">
+            <div>
+                <h2 class="h4 mb-1">Luxoya <span class="text-gold">Intelligence</span></h2>
+                <p class="text-muted small mb-0"><span class="live-dot me-2"></span>Systems Operational • Real-time tracking enabled</p>
+            </div>
+            <div class="d-flex gap-2">
+                {% if user.is_admin %}
+                <button id="seedBtn" class="btn btn-outline-premium btn-sm fw-bold px-3" onclick="initializeStoreData()">
+                    <i class="bi bi-rocket-takeoff me-1"></i> Setup Store
+                </button>
+                {% endif %}
+                <a href="{{ url_for('admin.orders_page') }}" class="btn btn-premium btn-sm shadow-sm px-4">Live Orders</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Vitals -->
+<div class="row g-4 mb-4" id="statsRow">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card-new">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="stat-icon bg-gold bg-opacity-10 text-gold rounded-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-currency-rupee fs-5"></i>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted text-uppercase ls-1 fw-bold d-block" style="font-size: 0.6rem;">Total Revenue</small>
+                    <h3 class="mb-0 fw-bold" id="statRevenue">₹0</h3>
+                </div>
+            </div>
+            <div id="chartMiniRevenue" style="height: 40px;"></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card-new">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="stat-icon bg-info bg-opacity-10 text-info rounded-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-bag-check fs-5"></i>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted text-uppercase ls-1 fw-bold d-block" style="font-size: 0.6rem;">Total Orders</small>
+                    <h3 class="mb-0 fw-bold" id="statOrders">0</h3>
+                </div>
+            </div>
+            <div id="chartMiniOrders" style="height: 40px;"></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card-new">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="stat-icon bg-success bg-opacity-10 text-success rounded-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-wallet2 fs-5"></i>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted text-uppercase ls-1 fw-bold d-block" style="font-size: 0.6rem;">Net Profit</small>
+                    <h3 class="mb-0 fw-bold" id="statProfit">₹0</h3>
+                </div>
+            </div>
+            <div id="chartMiniProfit" style="height: 40px;"></div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card-new">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning rounded-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-building fs-5"></i>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted text-uppercase ls-1 fw-bold d-block" style="font-size: 0.6rem;">Active B2B Leads</small>
+                    <h3 class="mb-0 fw-bold" id="statB2B">0</h3>
+                </div>
+            </div>
+            <div class="progress mt-3 bg-dark" style="height: 4px;">
+                <div id="statB2BProgress" class="progress-bar bg-warning" role="progressbar" style="width: 0%"></div>
+            </div>
+            <small class="text-muted smaller mt-1 d-block text-center">Wholesale & Custom Inquiries</small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <!-- Main Area Chart -->
+        <div class="card-premium p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h5 class="mb-0 fw-bold">Revenue Performance</h5>
+                    <p class="text-muted small mb-0">Daily growth insights for last 7 days</p>
+                </div>
+                <div class="badge bg-gold bg-opacity-10 text-gold border border-gold border-opacity-25 px-3 py-2 rounded-pill">
+                    <i class="bi bi-graph-up-arrow me-1"></i> Area Analysis
+                </div>
+            </div>
+            <div id="mainRevenueAreaChart" style="min-height: 350px;"></div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card-premium p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0 fw-bold text-gold">Latest Operations</h5>
+                <a href="{{ url_for('admin.orders_page') }}" class="btn btn-sm btn-link text-muted text-decoration-none">Review Ledger &raquo;</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02); color: var(--lx-text);">
+                    <thead class="text-muted small border-bottom border-secondary border-opacity-10">
+                        <tr>
+                            <th class="py-3">Ledger ID</th>
+                            <th class="py-3">Client</th>
+                            <th class="py-3 text-end">Volume</th>
+                            <th class="py-3 text-center">Status</th>
+                            <th class="py-3 text-end">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentOrders" class="small">
+                        <tr><td colspan="5" class="text-center py-5 text-muted"><div class="spinner-grow spinner-grow-sm text-gold me-2"></div> Syncing Ledger...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- AI Intelligence Card -->
+        <div class="card-premium p-4 mb-4 position-relative overflow-hidden" style="border: 1px solid var(--lx-gold-muted); background: linear-gradient(to bottom right, var(--lx-card), #1a1a1a);">
+            <div class="position-absolute fs-1 opacity-10" style="top: -10px; right: -10px;"><i class="bi bi-robot text-gold"></i></div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-lightning-charge-fill text-gold me-2"></i>Luxoya Insights</h5>
+                <button class="btn btn-sm text-muted rounded-circle" onclick="loadAiInsights()"><i class="bi bi-stars"></i></button>
+            </div>
+            <div id="aiInsightsArea" class="glass-card rounded-4 p-3 mb-3">
+                <div class="text-center py-3"><div class="spinner-border spinner-border-sm text-gold"></div></div>
+            </div>
+            <small class="text-muted smaller"><i class="bi bi-info-circle me-1"></i> AI-generated based on current ledger trends</small>
+        </div>
+
+        <!-- Category Donut Card -->
+        <div class="card-premium p-4 mb-4 text-center">
+            <h5 class="small fw-bold text-uppercase ls-1 text-gold mb-4 text-start">Niche Performance</h5>
+            <div id="categoryDonutChart"></div>
+        </div>
+
+        <!-- Market Popularity (Most Visited) -->
+        <div class="card-premium p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="small fw-bold text-uppercase ls-1 text-gold mb-0">Market Popularity</h5>
+                <i class="bi bi-eye text-gold"></i>
+            </div>
+            <div id="marketPopularity" class="d-flex flex-column gap-3">
+                <p class="text-muted smaller">Analyzing storefront traffic...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let mainChart = null;
+let donutChart = null;
+
+async function loadDashboard() {
+    try {
+        const res = await fetch('/admin/api/stats');
+        const d = await res.json();
+        
+        // Update Core Numbers
+        document.getElementById('statRevenue').textContent = '₹' + Math.floor(d.total_revenue || 0).toLocaleString('en-IN');
+        document.getElementById('statOrders').textContent = d.total_orders || 0;
+        document.getElementById('statProfit').textContent = '₹' + Math.floor(d.net_profit || 0).toLocaleString('en-IN');
+        
+        const b2bCount = d.pending_b2b || 0;
+        document.getElementById('statB2B').textContent = b2bCount;
+        document.getElementById('statB2BProgress').style.width = (b2bCount > 0 ? 100 : 0) + '%';
+
+        // Render Area Chart
+        renderMainAreaChart(d.daily_sales);
+        
+        // Render Category Donut
+        renderCategoryDonut(d.category_sales);
+
+        // Render Popularity
+        renderPopularity(d.top_visited);
+
+        // Render Activity
+        renderActivity(d.recent_orders);
+
+        // Load AI Insights
+        loadAiInsights();
+
+    } catch(e) { console.error('Dashboard Error:', e); }
+}
+
+function renderMainAreaChart(dailyData) {
+    if (!dailyData) return;
+    const options = {
+        series: [{ name: 'Revenue', data: dailyData.map(d => d.revenue) }],
+        chart: { type: 'area', height: 350, toolbar: { show: false }, zoom: { enabled: false }, background: 'transparent' },
+        colors: ['#f8d57e'],
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.1, stops: [0, 90, 100] } },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 3 },
+        xaxis: { categories: dailyData.map(d => d.date), labels: { style: { colors: '#666' } }, axisBorder: { show: false }, axisTicks: { show: false } },
+        yaxis: { labels: { style: { colors: '#666' }, formatter: (v) => '₹' + v.toLocaleString() } },
+        grid: { borderColor: 'rgba(255,255,255,0.05)', strokeDashArray: 4 },
+        theme: { mode: 'dark' }
+    };
+    if(mainChart) mainChart.destroy();
+    mainChart = new ApexCharts(document.querySelector("#mainRevenueAreaChart"), options);
+    mainChart.render();
+}
+
+function renderCategoryDonut(catData) {
+    if (!catData || !catData.length) return;
+    const options = {
+        series: catData.map(c => c.value),
+        labels: catData.map(c => c.name),
+        chart: { type: 'donut', height: 260 },
+        colors: ['#f8d57e', '#17a2b8', '#28a745', '#dc3545', '#ffc107'],
+        stroke: { show: false },
+        legend: { position: 'bottom', labels: { colors: '#999' } },
+        dataLabels: { enabled: false },
+        theme: { mode: 'dark' },
+        plotOptions: { pie: { donut: { size: '75%', labels: { show: true, total: { show: true, label: 'Sales', color: '#999', formatter: (w) => '₹' + w.globals.seriesTotals.reduce((a, b) => a + b, 0).toLocaleString() } } } } }
+    };
+    if(donutChart) donutChart.destroy();
+    donutChart = new ApexCharts(document.querySelector("#categoryDonutChart"), options);
+    donutChart.render();
+}
+
+function renderPopularity(visited) {
+    const cont = document.getElementById('marketPopularity');
+    if (!visited || !visited.length) { cont.innerHTML = '<p class="text-muted smaller">No traffic data yet</p>'; return; }
+    
+    cont.innerHTML = visited.map((p, i) => `
+        <div class="d-flex align-items-center">
+            <div class="stat-icon bg-gold bg-opacity-10 text-gold rounded-3 smaller me-3" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                ${i+1}
+            </div>
+            <div class="flex-grow-1">
+                <div class="small fw-bold text-body mb-0">${p.name}</div>
+                <div class="progress bg-dark" style="height: 3px; width: 100%;">
+                    <div class="progress-bar bg-gold" style="width: ${Math.min(100, (p.views/visited[0].views)*100)}%"></div>
+                </div>
+            </div>
+            <div class="ms-3 text-end"><span class="small text-gold fw-bold">${p.views}</span><br><small class="text-muted smaller">hits</small></div>
+        </div>
+    `).join('');
+}
+
+function renderActivity(orders) {
+    const tbody = document.getElementById('recentOrders');
+    if (!orders || !orders.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">Awaiting first transactions...</td></tr>'; return; }
+    
+    tbody.innerHTML = orders.map(o => `
+        <tr class="operation-row">
+            <td class="fw-bold text-gold opacity-75">#${o.order_number.split('-').pop()}</td>
+            <td>
+                <div class="client-name fs-6">${o.customer_name}</div>
+                <div class="verified-buyer fw-semibold"><i class="bi bi-patch-check-fill me-1"></i>VERIFIED CLIENT</div>
+            </td>
+            <td class="text-end fw-bold">₹${o.total_amount.toLocaleString()}</td>
+            <td class="text-center">
+                <span class="badge rounded-pill ${getStatusBadgeClass(o.status)}" style="font-size: 0.65rem; padding: 0.4em 1em;">${o.status.toUpperCase()}</span>
+            </td>
+            <td class="text-end text-muted small">${new Date(o.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+        </tr>
+    `).join('');
+}
+
+function getStatusBadgeClass(status) {
+    status = status.toLowerCase();
+    if (['paid', 'delivered', 'completed', 'shipped'].includes(status)) return 'bg-emerald-soft';
+    if (['pending', 'processing'].includes(status)) return 'bg-gold-soft';
+    if (['cancelled', 'failed', 'refunded'].includes(status)) return 'bg-ruby-soft';
+    return 'bg-secondary bg-opacity-10 text-muted';
+}
+
+async function loadAiInsights() {
+    try {
+        const area = document.getElementById('aiInsightsArea');
+        const res = await fetch('/admin/api/ai/insights');
+        const d = await res.json();
+        if(d.insights) {
+            area.innerHTML = d.insights.split('\n').filter(l => l.trim()).slice(0, 3).map(l => `<div class="mb-2 smaller text-white-50"><i class="bi bi-stars text-gold me-2"></i>${l.replace(/^[\d+.-]+/, '')}</div>`).join('');
+        }
+    } catch(e) {}
+}
+
+async function initializeStoreData() {
+    if(!confirm("Launch System Initialization? This will populate the core boutique ecosystem.")) return;
+    try {
+        const res = await fetch('/admin/api/seed', { method: 'POST' });
+        const d = await res.json();
+        alert(d.message || d.error);
+        location.reload();
+    } catch(e) { alert("Initialization failure."); }
+}
+
+document.addEventListener('DOMContentLoaded', loadDashboard);
+</script>
+{% endblock %}

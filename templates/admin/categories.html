@@ -1,0 +1,208 @@
+{% extends "admin/base.html" %}
+{% block title %}Categories{% endblock %}
+{% block page_title %}Categories{% endblock %}
+
+{% block admin_content %}
+<div class="admin-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Product Categories</h5>
+        <button class="btn btn-gold btn-sm" onclick="showAddCategory()">
+            <i class="bi bi-plus"></i> Add Category
+        </button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Slug</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="categoryTable">
+                <tr><td colspan="6" class="text-center">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="catModalTitle">Add Category</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    <input type="hidden" id="catId">
+                    <div class="mb-3">
+                        <label class="form-label">Category Name</label>
+                        <input type="text" id="catName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea id="catDesc" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Display Order</label>
+                            <input type="number" id="catOrder" class="form-control" value="0">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Status</label>
+                            <div class="form-check mt-1">
+                                <input class="form-check-input" type="checkbox" id="catActive" checked>
+                                <label class="form-check-label">Active</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Image URL</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="catImageURL" class="form-control" placeholder="/img/store/...">
+                            <input type="file" id="catFile" class="d-none" accept="image/*" onchange="uploadCatThumb(this)">
+                            <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('catFile').click()">
+                                <i class="bi bi-upload"></i>
+                            </button>
+                        </div>
+                        <div id="catThumbPreview" class="mt-2 text-center" style="display:none">
+                            <img src="" id="catThumbImg" style="max-height:80px; border-radius:4px;">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-gold" onclick="saveCategory()">Save Category</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let categories = [];
+
+async function loadCategories() {
+    const res = await fetch('/admin/api/categories');
+    const data = await res.json();
+    categories = data.categories || [];
+    renderCategories();
+}
+
+function renderCategories() {
+    const tbody = document.getElementById('categoryTable');
+    if(!categories.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">No categories found.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = categories.map(c => `
+        <tr>
+            <td>${c.display_order}</td>
+            <td><img src="${c.image_url || '/static/images/placeholder.jpg'}" style="width:40px;height:40px;object-fit:cover;border-radius:4px" onerror="this.src='/static/images/placeholder.jpg'"></td>
+            <td><strong>${c.name}</strong></td>
+            <td><code>${c.slug}</code></td>
+            <td><span class="badge bg-${c.is_active ? 'success' : 'secondary'}">${c.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-dark" onclick="editCategory('${c.id}')"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-outline-danger" onclick="deleteCategory('${c.id}')"><i class="bi bi-trash"></i></button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function showAddCategory() {
+    document.getElementById('catModalTitle').textContent = 'Add Category';
+    document.getElementById('categoryForm').reset();
+    document.getElementById('catId').value = '';
+    document.getElementById('catThumbPreview').style.display = 'none';
+    new bootstrap.Modal(document.getElementById('categoryModal')).show();
+}
+
+function editCategory(id) {
+    const c = categories.find(cat => cat.id == id);
+    if (!c) return;
+    document.getElementById('catModalTitle').textContent = 'Edit Category';
+    document.getElementById('catId').value = c.id;
+    document.getElementById('catName').value = c.name;
+    document.getElementById('catDesc').value = c.description || '';
+    document.getElementById('catOrder').value = c.display_order;
+    document.getElementById('catActive').checked = c.is_active;
+    document.getElementById('catImageURL').value = c.image_url || '';
+    
+    if(c.image_url) {
+        document.getElementById('catThumbImg').src = c.image_url;
+        document.getElementById('catThumbPreview').style.display = 'block';
+    } else {
+        document.getElementById('catThumbPreview').style.display = 'none';
+    }
+    
+    new bootstrap.Modal(document.getElementById('categoryModal')).show();
+}
+
+async function saveCategory() {
+    const id = document.getElementById('catId').value;
+    const data = {
+        name: document.getElementById('catName').value,
+        description: document.getElementById('catDesc').value,
+        display_order: document.getElementById('catOrder').value,
+        is_active: document.getElementById('catActive').checked,
+        image_url: document.getElementById('catImageURL').value
+    };
+    
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `/admin/api/categories/${id}` : '/admin/api/categories';
+    
+    const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    
+    if (res.ok) {
+        bootstrap.Modal.getInstance(document.getElementById('categoryModal')).hide();
+        loadCategories();
+    } else {
+        const d = await res.json();
+        alert(d.error || 'Failed to save category');
+    }
+}
+
+async function deleteCategory(id) {
+    if(!confirm('Are you sure? Only categories with no products can be deleted.')) return;
+    const res = await fetch(`/admin/api/categories/${id}`, { method: 'DELETE' });
+    if(res.ok) {
+        loadCategories();
+    } else {
+        const d = await res.json();
+        alert(d.error || 'Failed to delete');
+    }
+}
+
+async function uploadCatThumb(input) {
+    if(!input.files[0]) return;
+    const fd = new FormData();
+    fd.append('image', input.files[0]);
+    fd.append('key', 'temp_cat_img'); // Generic key
+    
+    const res = await fetch('/admin/api/settings/image', { method: 'POST', body: fd });
+    const data = await res.json();
+    if(data.success) {
+        document.getElementById('catImageURL').value = data.url;
+        document.getElementById('catThumbImg').src = data.url;
+        document.getElementById('catThumbPreview').style.display = 'block';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadCategories);
+</script>
+{% endblock %}

@@ -1,0 +1,388 @@
+{% extends "admin/base.html" %}
+{% block title %}Profit & Loss{% endblock %}
+{% block page_title %}Finance Management{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block admin_content %}
+<!-- Partnership Hub -->
+<div class="card-premium p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="mb-1">Partnership Hub</h5>
+            <p class="smaller text-muted mb-0">Track contributions and equity shares across the four founders.</p>
+        </div>
+        <div class="text-end">
+            <a href="/admin/audit-logs" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                <i class="bi bi-shield-lock me-1"></i> Audit Logs
+            </a>
+        </div>
+    </div>
+    <div class="row g-3" id="partnerStatsRow">
+        <!-- Partner cards will be rendered here -->
+        <div class="col-12 text-center py-4 text-muted small">Loading partnership data...</div>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-md-3">
+        <div class="stat-card-new">
+            <small class="text-muted text-uppercase ls-1 fw-bold" style="font-size: 0.65rem;">Total Sales Revenue</small>
+            <h3 class="mb-0 fw-bold mt-1 text-success" id="totalRev">₹0</h3>
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-3">
+        <div class="stat-card-new">
+            <small class="text-muted text-uppercase ls-1 fw-bold" style="font-size: 0.65rem;">Total Expenses</small>
+            <h3 class="mb-0 fw-bold mt-1 text-danger" id="totalExp">₹0</h3>
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-3">
+        <div class="stat-card-new">
+            <small class="text-muted text-uppercase ls-1 fw-bold" style="font-size: 0.65rem;">Total Capital</small>
+            <h3 class="mb-0 fw-bold mt-1 text-info" id="totalCapSummary">₹0</h3>
+        </div>
+    </div>
+    <div class="col-sm-6 col-md-3">
+        <div class="stat-card-new">
+            <small class="text-muted text-uppercase ls-1 fw-bold" style="font-size: 0.65rem;">Net Operating Profit</small>
+            <h3 class="mb-0 fw-bold mt-1 text-gold" id="netProfit">₹0</h3>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card-premium p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">Ledger Details</h5>
+                <button class="btn btn-premium btn-sm" data-bs-toggle="modal" data-bs-target="#recordModal">
+                    <i class="bi bi-plus-lg me-1"></i> Add Entry
+                </button>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.02); color: var(--lx-text);">
+                    <thead>
+                        <tr class="text-muted small border-bottom" style="font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase;">
+                            <th class="py-3 px-4">DATE</th>
+                            <th class="py-3">DESCRIPTION</th>
+                            <th class="py-3">CATEGORY</th>
+                            <th class="py-3 text-end">AMOUNT</th>
+                            <th class="py-3 text-end px-4">ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="financeTable" class="small">
+                        <tr><td colspan="5" class="text-center py-5 text-muted">Loading records...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card-premium p-4 mb-4">
+            <h5 class="mb-4 small fw-bold text-uppercase ls-1 text-gold">Expense Distribution</h5>
+            <div style="height: 250px; position: relative;">
+                <canvas id="expenseChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card-premium p-4 mb-4">
+            <h5 class="mb-3 small fw-bold text-uppercase ls-1">Capital Investment</h5>
+            <div class="bg-dark bg-opacity-25 rounded-4 p-3 border border-secondary border-opacity-10 mb-3">
+                <small class="text-muted d-block mb-1">Total Infused Capital</small>
+                <h4 class="mb-0 fw-bold text-info" id="totalCap">₹0</h4>
+            </div>
+            <p class="smaller text-muted">This represents the total capital injected into the business for operations and expansion.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Add Record Modal -->
+<div class="modal fade" id="recordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-premium overflow-hidden">
+            <div class="modal-header border-bottom border-secondary border-opacity-10 p-4">
+                <h5 class="modal-title h6 fw-bold">Add Finance Entry</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="recordForm">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Title / Description</label>
+                        <input type="text" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="recTitle" required placeholder="e.g. Facebook Ads April">
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Amount (₹)</label>
+                            <input type="number" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="recAmount" required step="0.01">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Type</label>
+                            <select class="form-select border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="recType">
+                                <option value="expense">Expense</option>
+                                <option value="capital">Capital Infusion</option>
+                                <option value="withdrawal">Withdrawal</option>
+                                <option value="other_income">Other Income</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Category</label>
+                            <input type="text" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="recCategory" list="catList">
+                            <datalist id="catList">
+                                <option value="Marketing">
+                                <option value="Raw Material">
+                                <option value="Shipping">
+                                <option value="Wages">
+                                <option value="Rent">
+                                <option value="Packaging">
+                                <option value="Office Supplies">
+                                <option value="Tools">
+                            </datalist>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Date</label>
+                            <input type="date" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="recDate">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Purchased By / Funding Source</label>
+                            <select class="form-select border-0 mb-1" style="background: var(--lx-input-bg); color: var(--lx-text);" id="recPartner">
+                                <option value="">Company Account (Default)</option>
+                                <!-- Populated via JS -->
+                            </select>
+                            <small class="text-gold" style="font-size:0.65rem;">*If a Partner paid personally, it auto-adds to their Capital.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">Upload Bill / Receipt (Photo)</label>
+                            <input type="file" class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="recBill" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small text-muted">Notes (Optional)</label>
+                        <textarea class="form-control border-0" style="background: var(--lx-input-bg); color: var(--lx-text);" id="recNotes" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary border-opacity-10 p-4">
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-premium btn-sm rounded-pill px-4" onclick="saveRecord()">Save Entry</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let partners = [];
+
+    async function loadFinance() {
+        try {
+            // Get dashboard stats for top summary
+            const statsRes = await fetch('/admin/api/stats');
+            const stats = await statsRes.json();
+            
+            document.getElementById('totalRev').textContent = '₹' + stats.total_revenue.toLocaleString();
+            document.getElementById('totalExp').textContent = '₹' + stats.total_expenses.toLocaleString();
+            document.getElementById('totalCapSummary').textContent = '₹' + stats.total_capital.toLocaleString();
+            document.getElementById('netProfit').textContent = '₹' + stats.net_profit.toLocaleString();
+            
+            // Get individual records
+            const res = await fetch('/admin/api/finance');
+            const data = await res.json();
+            renderTable(data.records);
+            renderPartnerStats(data.partner_stats);
+            renderExpenseChart(data.records);
+
+            // Populate partner dropdown
+            partners = data.partner_stats;
+            const pSelect = document.getElementById('recPartner');
+            const currentVal = pSelect.value;
+            pSelect.innerHTML = '<option value="">Company Account (Default)</option>' + 
+                partners.map(p => `<option value="${p.id}">Personal: ${p.name}</option>`).join('');
+            pSelect.value = currentVal;
+
+        } catch (e) { console.error(e); }
+    }
+
+    function renderPartnerStats(stats) {
+        const row = document.getElementById('partnerStatsRow');
+        if (!stats) return;
+        
+        row.innerHTML = stats.map(p => `
+            <div class="col-md-6 col-xl-3">
+                <div class="bg-dark bg-opacity-25 rounded-4 p-3 border border-secondary border-opacity-10 h-100">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="rounded-circle me-2" style="width: 8px; height: 8px; background: ${p.color}"></div>
+                        <small class="text-uppercase ls-1 fw-bold text-muted" style="font-size: 0.6rem;">${p.name}</small>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <h5 class="mb-0 fw-bold">₹${p.invested.toLocaleString()}</h5>
+                        <span class="badge rounded-pill bg-opacity-10 text-body" style="background: ${p.color}; font-size: 0.6rem;">${(p.ownership_percentage * 100).toFixed(0)}% SHARE</span>
+                    </div>
+                    <div class="progress mt-2" style="height: 3px; background: rgba(255,255,255,0.05);">
+                        <div class="progress-bar" style="width: 100%; background: ${p.color}"></div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    let expenseChart;
+    function renderExpenseChart(records) {
+        const expenses = records.filter(r => r.type === 'expense');
+        const categories = {};
+        expenses.forEach(r => {
+            const cat = r.category || 'Other';
+            categories[cat] = (categories[cat] || 0) + r.amount;
+        });
+
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+        if (expenseChart) expenseChart.destroy();
+
+        expenseChart = new Chart(ctx, {
+            type: 'polarArea',
+            data: {
+                labels: Object.keys(categories),
+                datasets: [{
+                    data: Object.values(categories),
+                    backgroundColor: [
+                        'rgba(248, 213, 126, 0.5)',
+                        'rgba(23, 162, 184, 0.5)',
+                        'rgba(0, 123, 255, 0.5)',
+                        'rgba(40, 167, 69, 0.5)',
+                        'rgba(220, 53, 69, 0.5)',
+                        'rgba(108, 117, 125, 0.5)'
+                    ],
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#999', font: { size: 10 }, usePointStyle: true }
+                    }
+                },
+                scales: {
+                    r: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        angleLines: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderTable(records) {
+        const tbody = document.getElementById('financeTable');
+        if (!records || !records.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted">No financial records found.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = records.map(r => `
+            <tr class="border-bottom border-secondary border-opacity-10">
+                <td class="px-4 py-3 text-muted" style="white-space: nowrap;">${new Date(r.date).toLocaleDateString()}</td>
+                <td>
+                    <div class="fw-bold fs-6">${r.title}</div>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        <span class="smaller text-muted text-uppercase" style="font-size:0.6rem">${r.type}</span>
+                        ${r.partner ? `<span class="badge rounded-pill bg-light bg-opacity-10 text-muted" style="font-size: 0.55rem;">BY: ${r.partner}</span>` : ''}
+                    </div>
+                </td>
+                <td><span class="badge bg-dark border border-secondary border-opacity-25 px-2">${r.category || '-'}</span></td>
+                <td class="text-end fw-bold ${r.type === 'expense' || r.type === 'withdrawal' || r.type === 'loss' ? 'text-danger' : 'text-success'}">
+                    ${r.type === 'expense' || r.type === 'withdrawal' || r.type === 'loss' ? '-' : '+'}₹${r.amount.toLocaleString()}
+                </td>
+                <td class="text-end px-4">
+                    <div class="d-flex justify-content-end gap-1">
+                        ${r.bill_url ? `
+                            <a href="${r.bill_url}" target="_blank" class="btn btn-sm btn-outline-gold border-0" title="View Bill">
+                                <i class="bi bi-receipt"></i>
+                            </a>
+                        ` : ''}
+                        <button class="btn btn-sm text-danger border-0" onclick="deleteRecord(${r.id})">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    async function saveRecord() {
+        requestAuth(async () => {
+            const btn = document.querySelector('button[onclick="saveRecord()"]');
+            if(btn) btn.disabled = true;
+            
+            const title = document.getElementById('recTitle').value;
+            const amount = document.getElementById('recAmount').value;
+            const billFile = document.getElementById('recBill').files[0];
+
+            if(!title || !amount) {
+                alert('Title and Amount are required');
+                if(btn) btn.disabled = false;
+                return;
+            }
+
+            // Use FormData for file upload
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('amount', amount);
+            formData.append('type', document.getElementById('recType').value);
+            formData.append('category', document.getElementById('recCategory').value);
+            formData.append('date', document.getElementById('recDate').value || null);
+            formData.append('partner_id', document.getElementById('recPartner').value);
+            formData.append('notes', document.getElementById('recNotes').value);
+            if (billFile) formData.append('bill', billFile);
+
+            try {
+                const res = await fetch('/admin/api/finance', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('recordModal')).hide();
+                    document.getElementById('recordForm').reset();
+                    loadFinance();
+                    showToast('Finance entry recorded successfully');
+                } else {
+                    const d = await res.json();
+                    alert(d.error || 'Failed to save');
+                }
+            } catch (e) { alert(e.message); }
+            finally { if(btn) btn.disabled = false; }
+        });
+    }
+
+    async function deleteRecord(id) {
+        requestAuth(async () => {
+            try {
+                const res = await fetch(\`/admin/api/finance/\${id}\`, { method: 'DELETE' });
+                if (res.ok) {
+                    loadFinance();
+                    showToast('Record deleted successfully');
+                } else {
+                    const d = await res.json();
+                    alert(d.error || 'Failed to delete');
+                }
+            } catch (e) { alert(e.message); }
+        });
+    }
+
+    document.getElementById('recDate').valueAsDate = new Date();
+    loadFinance();
+</script>
+{% endblock %}

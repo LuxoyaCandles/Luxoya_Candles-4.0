@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}System Error | Luxoya Candles{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-navbar d-flex align-items-center justify-content-center" style="min-height: 80vh; background: radial-gradient(circle at center, rgba(201,169,110,0.05) 0%, transparent 70%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 text-center">
+                <div class="mb-4">
+                    <span class="display-1 fw-bold text-gold opacity-25" style="letter-spacing: -5px;">500</span>
+                </div>
+                
+                <h2 class="h1 fw-bold text-luxoya mb-3" style="font-family: 'Playfair Display', serif;">Something went out of sync</h2>
+                <p class="text-muted fs-5 mb-5 mx-auto" style="max-width: 500px;">
+                    We encountered a temporary hiccup on our end. This is likely due to high traffic or a brief database connection blink.
+                </p>
+                
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                    <button onclick="window.history.back()" class="btn btn-gold px-5 py-3 rounded-pill shadow-sm">
+                        <i class="bi bi-arrow-left me-2"></i> Go Back and Try Again
+                    </button>
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary px-5 py-3 rounded-pill">
+                        Return to Shop
+                    </a>
+                </div>
+                
+                <div class="mt-5 pt-4 border-top border-secondary border-opacity-10">
+                    <p class="small text-muted mb-4 subtitle-font">Continuous support is available</p>
+                    <a href="mailto:support@luxoyacandles.com" class="text-decoration-none text-gold small fw-bold">
+                        <i class="bi bi-envelope-fill me-1"></i> Report an Issue
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .text-luxoya { color: var(--lx-text, #2d2d2d); }
+    .text-gold { color: #c9a96e; }
+    .btn-gold { 
+        background-color: #c9a96e; 
+        border-color: #c9a96e; 
+        color: white; 
+        transition: all 0.3s ease;
+    }
+    .btn-gold:hover { 
+        background-color: #b3945a; 
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(201,169,110,0.2) !important;
+    }
+</style>
+{% endblock %}

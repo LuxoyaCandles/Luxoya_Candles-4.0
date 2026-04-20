@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Create Account{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-6 col-lg-5">
+                <div class="auth-card" data-aos="fade-up">
+                    <div class="text-center mb-4">
+                        <a href="{{ url_for('index') }}" class="d-inline-block">
+                            <img src="{{ url_for('static', filename='images/logo-light-theme.png') }}" alt="Luxoya Candles" height="80" class="mb-2" style="border-radius: 10px;">
+                        </a>
+                        <h3 class="auth-title mt-3">Join Luxoya</h3>
+                        <p class="text-muted small">Begin your illuminated journey</p>
+                    </div>
+
+                    <!-- Google Sign-Up Primary -->
+                    <button class="btn btn-outline-dark w-100 btn-lg shadow-sm mb-4 d-flex align-items-center justify-content-center glow-on-hover" id="googleBtn" onclick="googleLogin()" style="background: #fff; border: 1px solid #ddd; color: #333; font-weight: 600;">
+                        <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width="24" class="me-2"> Continue with Google
+                    </button>
+
+                    <!-- Divider -->
+                    <div class="d-flex align-items-center mb-4 text-center">
+                        <hr class="flex-grow-1">
+                        <span class="px-3 text-muted small fw-bold">OR REGISTER MANUALLY</span>
+                        <hr class="flex-grow-1">
+                    </div>
+
+                    <!-- Registration Form -->
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <input type="text" class="form-control form-control-lg bg-light" id="full_name" name="full_name" placeholder="Full Name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="email" class="form-control form-control-lg bg-light" id="email" name="email" placeholder="Email Address" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="tel" class="form-control form-control-lg bg-light" id="phone" name="phone" placeholder="Mobile Number" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="password-field-container">
+                                <input type="password" class="form-control form-control-lg bg-light pe-5" id="password" name="password" placeholder="Create Password" required minlength="8">
+                                <button type="button" class="password-toggle-btn" onclick="togglePassword('password', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="password-field-container">
+                                <input type="password" class="form-control form-control-lg bg-light pe-5" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required minlength="8">
+                                <button type="button" class="password-toggle-btn" onclick="togglePassword('confirm_password', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="registerError" class="alert alert-danger d-none" role="alert"></div>
+                        <div id="registerSuccess" class="alert alert-success d-none" role="alert"></div>
+
+                        <button type="submit" class="btn btn-luxoya-gold w-100 btn-lg" id="registerBtn">
+                            <span class="btn-text">CREATE ACCOUNT</span>
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <span class="text-muted small">Already a member?</span>
+                        <a href="{{ url_for('auth.login') }}" class="text-gold ms-1 small fw-bold text-decoration-none">SIGN IN</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

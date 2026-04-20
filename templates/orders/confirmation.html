@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Order Confirmed{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-navbar text-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6" data-aos="zoom-in">
+                <div class="confirmation-card">
+                    <div class="confirmation-icon">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <h2>Thank You!</h2>
+                    <p class="text-muted mb-4">Your order has been placed successfully.</p>
+                    
+                    <div class="confirmation-details">
+                        <div class="detail-row"><span>Order Number</span><strong>{{ order.order_number }}</strong></div>
+                        <div class="detail-row"><span>Total Amount</span><strong>₹{{ "%.0f"|format(order.total_amount) }}</strong></div>
+                        <div class="detail-row"><span>Payment Status</span>
+                            <span class="badge bg-{{ 'success' if order.payment_status == 'paid' else 'warning' }}">
+                                {{ order.payment_status|capitalize }}
+                            </span>
+                        </div>
+                        <div class="detail-row"><span>Items</span><span>{{ order.items|length }} item(s)</span></div>
+                    </div>
+                    
+                    <p class="mt-4 text-muted small">
+                        A confirmation email has been sent to your registered email address.
+                    </p>
+                    
+                    <div class="d-flex gap-3 justify-content-center mt-4">
+                        <a href="{{ url_for('orders.order_detail_page', order_id=order.order_number) }}" class="btn btn-gold">View Order</a>
+                        <a href="{{ url_for('orders.order_tracking_page', order_id=order.order_number) }}" class="btn btn-outline-gold">
+                            <i class="bi bi-geo-alt me-1"></i>Track Order
+                        </a>
+                        <a href="{{ url_for('products.listing') }}" class="btn btn-outline-dark">Continue Shopping</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

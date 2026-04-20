@@ -1,0 +1,82 @@
+{% extends "admin/base.html" %}
+{% block title %}Invoices{% endblock %}
+{% block page_title %}Invoices & Transactions{% endblock %}
+
+{% block admin_content %}
+<div class="admin-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex gap-2 align-items-center">
+            <input type="text" class="form-control form-control-sm" id="searchInvoice" placeholder="Search order # or name..." style="width:250px" oninput="renderInvoices()">
+            <span class="text-muted small" id="invoiceCount">Loading...</span>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Order #</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Transaction ID</th>
+                    <th>Method</th>
+                    <th>Order Status</th>
+                    <th>Payment Date</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="invoiceTable">
+                <tr><td colspan="8" class="text-center py-4"><span class="spinner-border spinner-border-sm"></span> Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let allInvoices = [];
+
+async function loadInvoices() {
+    const res = await fetch('/admin/api/invoices', {credentials: 'same-origin'});
+    const data = await res.json();
+    allInvoices = data.invoices || [];
+    renderInvoices();
+}
+
+function renderInvoices() {
+    const q = (document.getElementById('searchInvoice').value || '').toLowerCase();
+    let filtered = allInvoices;
+    if (q) {
+        filtered = filtered.filter(inv =>
+            (inv.order_number || '').toLowerCase().includes(q) ||
+            (inv.customer_name || '').toLowerCase().includes(q) ||
+            (inv.razorpay_payment_id || '').toLowerCase().includes(q)
+        );
+    }
+    document.getElementById('invoiceCount').textContent = `${filtered.length} paid orders`;
+    
+    const tbody = document.getElementById('invoiceTable');
+    if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">No invoices found</td></tr>';
+        return;
+    }
+    
+    const osc = {pending:'warning',confirmed:'info',processing:'primary',shipped:'secondary',delivered:'success',cancelled:'danger'};
+    
+    tbody.innerHTML = filtered.map(inv => `
+        <tr>
+            <td><strong>${inv.order_number}</strong></td>
+            <td>${inv.customer_name}<br><small class="text-muted">${inv.customer_email}</small></td>
+            <td><strong>₹${parseFloat(inv.total_amount).toLocaleString('en-IN')}</strong></td>
+            <td><code style="font-size:0.75rem">${inv.razorpay_payment_id || '-'}</code></td>
+            <td><span class="badge bg-dark">${(inv.payment_method || 'N/A').toUpperCase()}</span></td>
+            <td><span class="badge bg-${osc[inv.order_status]||'secondary'}">${inv.order_status}</span></td>
+            <td class="text-muted small">${inv.payment_date ? new Date(inv.payment_date).toLocaleDateString('en-IN') : '-'}</td>
+            <td><a href="/admin/api/orders/${inv.id}/invoice?download=1" class="btn btn-sm btn-outline-dark" title="Download Invoice" target="_blank"><i class="bi bi-download"></i></a></td>
+        </tr>
+    `).join('');
+}
+
+loadInvoices();
+</script>
+{% endblock %}

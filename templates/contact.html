@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Contact Us{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-navbar">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-5" data-aos="fade-right">
+                <span class="badge badge-gold mb-3">Get in Touch</span>
+                <h2>We'd Love to <span class="text-gold">Hear</span> from You</h2>
+                <p class="text-muted">Have a question about our candles, need help with an order, or want to discuss a custom project? Reach out!</p>
+                
+                <div class="contact-info mt-4">
+                    <div class="d-flex mb-3"><i class="bi bi-geo-alt text-gold fs-5 me-3"></i><div><strong>Address</strong><br><span class="text-muted">{{ site_settings.get('org_address', 'Villa No : 82,Mythri Lake View .S.No : 45,46 BC Colony ,Mallampet,Bollaram,Medchal ,Malkajgiri Dist-500090') }}</span></div></div>
+                    <div class="d-flex mb-3"><i class="bi bi-envelope text-gold fs-5 me-3"></i><div><strong>Email</strong><br><a href="mailto:{{ site_settings.get('sales_email', 'sales@luxoyacandles.com') }}" class="text-muted">{{ site_settings.get('sales_email', 'sales@luxoyacandles.com') }}</a></div></div>
+                    <div class="d-flex mb-3"><i class="bi bi-phone text-gold fs-5 me-3"></i><div><strong>Phone</strong><br><a href="tel:{{ site_settings.get('org_phone', '+91 9705840457') }}" class="text-muted">{{ site_settings.get('org_phone', '+91 9705840457') }}</a></div></div>
+                    <div class="d-flex mb-3"><i class="bi bi-clock text-gold fs-5 me-3"></i><div><strong>Hours</strong><br><span class="text-muted">Mon-Sat: 10 AM – 7 PM IST</span></div></div>
+                </div>
+                
+                <div class="d-flex gap-3 mt-4">
+                    <a href="https://www.instagram.com/luxoyacandles" target="_blank" class="social-link"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="social-link"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="social-link"><i class="bi bi-twitter-x"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-7" data-aos="fade-left">
+                <div class="contact-form-card">
+                    <form id="contactForm">
+                        <div class="row g-3">
+                            <div class="col-md-6"><label class="form-label">Name</label><input type="text" class="form-control" id="cName" required></div>
+                            <div class="col-md-6"><label class="form-label">Email</label><input type="email" class="form-control" id="cEmail" required></div>
+                            <div class="col-md-6"><label class="form-label">Phone</label><input type="tel" class="form-control" id="cPhone"></div>
+                            <div class="col-md-6">
+                                <label class="form-label">Subject</label>
+                                <select class="form-select" id="cSubject">
+                                    <option>General Inquiry</option>
+                                    <option>Order Help</option>
+                                    <option>Custom Candle</option>
+                                    <option>Corporate/B2B</option>
+                                    <option>Feedback</option>
+                                </select>
+                            </div>
+                            <div class="col-12"><label class="form-label">Message</label><textarea class="form-control" rows="5" id="cMessage" required></textarea></div>
+                            <div class="col-12"><button type="submit" class="btn btn-gold btn-lg w-100">Send Message</button></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.getElementById('contactForm').addEventListener('submit', e => {
+    e.preventDefault();
+    // In production, send to API or email service
+    const form = e.target;
+    form.innerHTML = `
+        <div class="text-center py-5 animate__animated animate__fadeIn">
+            <i class="bi bi-stars text-gold d-block mb-3" style="font-size: 3rem;"></i>
+            <h3 class="fw-bold">Message Received!</h3>
+            <p class="text-muted">Thank you for reaching out to Luxoya. Our team has received your message and will get back to you within 24 hours.</p>
+            <button class="btn btn-outline-gold btn-sm mt-3 px-4" onclick="location.reload()">Send Another</button>
+        </div>
+    `;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% block title %}{{ current_category.name if current_category else 'All Collections' }}{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item active">{{ current_category.name if current_category else 'Collections' }}</li>
+            </ol>
+        </nav>
+        <h1 class="page-title" data-aos="fade-up">{{ current_category.name if current_category else 'All Collections' }}</h1>
+        <p class="page-subtitle" data-aos="fade-up" data-aos-delay="100">
+            {{ current_category.description if current_category else 'Explore our handcrafted luxury soy candle collections' }}
+        </p>
+    </div>
+</section>
+
+<!-- Products Section -->
+<section class="section-padding">
+    <div class="container">
+        <div class="row">
+            <!-- Filters Sidebar -->
+            <div class="col-lg-3 mb-4 d-none d-lg-block">
+                <div class="filter-sidebar" data-aos="fade-right">
+                    <h6 class="filter-title">Categories</h6>
+                    <div class="filter-group">
+                        <a href="{{ url_for('products.collections') }}" 
+                           class="filter-link {{ 'active' if not current_category else '' }}">All Collections</a>
+                        {% for cat in categories %}
+                        <a href="{{ url_for('products.collections', slug=cat.slug) }}" 
+                           class="filter-link {{ 'active' if current_category and current_category.id == cat.id else '' }}">
+                            {{ cat.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="filter-group">
+                        <h6 class="filter-group-title d-flex justify-content-between align-items-center mb-3">
+                            <span>Max Price</span>
+                            <span id="priceMaxDisplay" class="text-gold fw-bold" style="font-size: 0.9rem;">₹5000</span>
+                        </h6>
+                        <div class="price-range-wrapper px-2">
+                            <input title="Filter by Price" type="range" class="form-range custom-range" min="500"
+                                max="10000" step="500" id="priceRangeInput" value="5000"
+                                oninput="document.getElementById('priceMaxDisplay').innerText = '₹' + this.value"
+                                onchange="applyFilters()">
+                        </div>
+                    </div>
+                    
+                    <h6 class="filter-title mt-4">Sort By</h6>
+                    <div class="filter-group mb-4">
+                        <select class="form-select form-select-sm" id="sortSelect" onchange="applyFilters()">
+                            <option value="newest">Newest First</option>
+                            <option value="price_low">Price: Low to High</option>
+                            <option value="price_high">Price: High to Low</option>
+                            <option value="rating">Highest Rated</option>
+                            <option value="name">Name A-Z</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-sidebar-ad mt-4 p-3 rounded-3 text-center" style="background: linear-gradient(135deg, #1a1a1a 0%, #333 100%); border: 1px solid #c9a96e33;">
+                        <i class="bi bi-file-earmark-pdf text-gold mb-2 d-block" style="font-size: 2rem;"></i>
+                        <h6 class="text-white small mb-2">Offline Catalog</h6>
+                        <p class="text-muted mb-3" style="font-size: 0.75rem;">Download our full product collection as a PDF.</p>
+                        <a href="{{ url_for('products.catalog_download') }}" target="_blank" class="btn btn-sm btn-luxoya-gold w-100">
+                            Download PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Products Grid -->
+            <div class="col-lg-9">
+                <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-cream rounded-3 border sticky-control-bar">
+                    <p class="mb-0 text-muted" id="resultCount">Loading products...</p>
+                    <div class="d-lg-none">
+                        <button class="btn btn-sm btn-outline-secondary px-3" data-bs-toggle="offcanvas" data-bs-target="#collectionsFilterOffcanvas">
+                            Filters <i class="bi bi-sliders ms-1"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2 d-none d-md-flex">
+                        <button class="btn btn-sm btn-outline-dark active" onclick="setGridView('grid')" id="gridBtn">
+                            <i class="bi bi-grid"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-dark" onclick="setGridView('list')" id="listBtn">
+                            <i class="bi bi-list"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="row g-4" id="productsGrid">
+                    <!-- Products loaded via JS -->
+                </div>
+                
+                <!-- Loading -->
+                <div class="text-center py-5" id="productsLoading">
+                    <div class="spinner-border text-gold" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                
+                <!-- Empty state -->
+                <div class="text-center py-5 d-none" id="productsEmpty">
+                    <i class="bi bi-box-seam" style="font-size: 3rem; color: #c9a96e;"></i>
+                    <h5 class="mt-3">No products found</h5>
+                    <p class="text-muted">Try adjusting your filters or browse all collections.</p>
+                    <a href="{{ url_for('products.collections') }}" class="btn btn-luxoya-gold">View All</a>
+                </div>
+                
+                <!-- Pagination -->
+                <nav class="mt-5 d-none" id="productsPagination">
+                    <ul class="pagination pagination-luxoya justify-content-center" id="paginationList">
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Mobile Filter Offcanvas -->
+<div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="collectionsFilterOffcanvas">
+    <div class="offcanvas-header border-bottom border-secondary">
+        <h5 class="offcanvas-title text-gold">Filters</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="filter-group mb-4">
+            <h6 class="filter-group-title text-white">Categories</h6>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+                <a href="{{ url_for('products.collections') }}" 
+                   class="btn btn-sm btn-outline-gold {{ 'active' if not current_category else '' }}">All</a>
+                {% for cat in categories %}
+                <a href="{{ url_for('products.collections', slug=cat.slug) }}" 
+                   class="btn btn-sm btn-outline-gold {{ 'active' if current_category and current_category.id == cat.id else '' }}">
+                    {{ cat.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="filter-group mb-4">
+            <h6 class="filter-group-title d-flex justify-content-between align-items-center mb-3 text-white">
+                <span>Max Price</span>
+                <span id="priceMaxDisplayMobile" class="text-gold fw-bold" style="font-size: 0.9rem;">₹5000</span>
+            </h6>
+            <div class="price-range-wrapper px-2">
+                <input title="Filter by Price" type="range" class="form-range custom-range" min="500"
+                    max="10000" step="500" id="mobilePriceRangeInput" value="5000"
+                    oninput="document.getElementById('priceMaxDisplayMobile').innerText = '₹' + this.value; document.getElementById('priceRangeInput').value = this.value; applyFilters();">
+            </div>
+        </div>
+        
+        <div class="filter-group mb-4">
+            <h6 class="filter-group-title text-white mb-2">Sort By</h6>
+            <select class="form-select form-select-sm" id="mobileSortSelect" onchange="document.getElementById('sortSelect').value = this.value; applyFilters();">
+                <option value="newest">Newest First</option>
+                <option value="price_low">Price: Low to High</option>
+                <option value="price_high">Price: High to Low</option>
+                <option value="rating">Highest Rated</option>
+                <option value="name">Name A-Z</option>
+            </select>
+        </div>
+        
+        <button class="btn btn-luxoya-gold w-100 mt-4" data-bs-dismiss="offcanvas">Apply Filters</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const currentCategory = '{{ current_category.slug if current_category else "" }}';
+let currentPage = 1;
+let currentView = 'grid';
+
+function setGridView(view) {
+    currentView = view;
+    document.getElementById('gridBtn').classList.toggle('active', view === 'grid');
+    document.getElementById('listBtn').classList.toggle('active', view === 'list');
+    loadProducts();
+}
+
+function applyFilters() {
+    currentPage = 1;
+    loadProducts();
+}
+
+async function loadProducts(page = 1) {
+    currentPage = page;
+    const sort = document.getElementById('sortSelect').value;
+    const minPrice = '';
+    const priceRangeInput = document.getElementById('priceRangeInput');
+    const maxPrice = priceRangeInput ? priceRangeInput.value : '';
+    
+    let url = `/api/products?page=${page}&sort=${sort}`;
+    if (currentCategory) url += `&category=${currentCategory}`;
+    if (minPrice) url += `&min_price=${minPrice}`;
+    if (maxPrice) url += `&max_price=${maxPrice}`;
+    
+    document.getElementById('productsLoading').classList.remove('d-none');
+    document.getElementById('productsGrid').innerHTML = '';
+    document.getElementById('productsEmpty').classList.add('d-none');
+    document.getElementById('productsPagination').classList.add('d-none');
+    
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        document.getElementById('productsLoading').classList.add('d-none');
+        document.getElementById('resultCount').textContent = `${data.total} product${data.total !== 1 ? 's' : ''} found`;
+        
+        if (data.products.length === 0) {
+            document.getElementById('productsEmpty').classList.remove('d-none');
+            return;
+        }
+        
+        const grid = document.getElementById('productsGrid');
+        const colClass = currentView === 'grid' ? 'col-6 col-md-6 col-lg-4' : 'col-12';
+        
+        grid.innerHTML = data.products.map(p => `
+            <div class="${colClass}">
+                <div class="product-card ${currentView === 'list' ? 'product-card-list' : ''}">
+                    <a href="/product/${p.slug}">
+                        <div class="product-img-wrapper">
+                            ${p.image_url ? 
+                                `<img src="${p.image_url}" alt="${p.name}" class="product-img">` : 
+                                '<div class="product-img-placeholder"><i class="bi bi-lamp fs-1 text-gold"></i></div>'}
+                            ${p.discount_percentage > 0 ? `<span class="product-badge">-${p.discount_percentage}%</span>` : ''}
+                        </div>
+                    </a>
+                    <div class="product-info">
+                        <p class="product-category">${p.category ? p.category.name : ''}</p>
+                        <h6 class="product-name"><a href="/product/${p.slug}">${p.name}</a></h6>
+                        ${p.fragrance ? `<p class="product-fragrance"><i class="bi bi-flower1"></i> ${p.fragrance}</p>` : ''}
+                        <div class="product-price">
+                            ${p.sale_price && p.sale_price < p.price ? 
+                                `<span class="price-current">₹${Math.round(p.sale_price)}</span>
+                                 <span class="price-original">₹${Math.round(p.price)}</span>` :
+                                `<span class="price-current">₹${Math.round(p.price)}</span>`}
+                        </div>
+                        <div class="product-rating">
+                            ${'<i class="bi bi-star-fill"></i>'.repeat(Math.round(p.rating_avg))}${'<i class="bi bi-star"></i>'.repeat(5 - Math.round(p.rating_avg))}
+                            <span class="rating-count">(${p.rating_count})</span>
+                        </div>
+                        <div class="d-flex gap-2 mt-2">
+                            <button class="btn btn-add-cart flex-grow-1" onclick="addToCart('${p.id}', 1, true)" ${!p.in_stock ? 'disabled' : ''}>
+                                ${p.in_stock ? '<i class="bi bi-bag-plus me-1"></i> Add' : 'Out of Stock'}
+                            </button>
+                            <button class="btn btn-luxoya-gold btn-sm flex-grow-1" onclick="buyNow('${p.id}')" ${!p.in_stock ? 'disabled' : ''}>
+                                <i class="bi bi-lightning-charge me-1"></i> Buy Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        // Pagination
+        if (data.pages > 1) {
+            document.getElementById('productsPagination').classList.remove('d-none');
+            let phtml = '';
+            if (data.has_prev) phtml += `<li class="page-item"><a class="page-link" href="#" onclick="loadProducts(${page-1});return false;">&laquo;</a></li>`;
+            for (let i = 1; i <= data.pages; i++) {
+                phtml += `<li class="page-item ${i === page ? 'active' : ''}"><a class="page-link" href="#" onclick="loadProducts(${i});return false;">${i}</a></li>`;
+            }
+            if (data.has_next) phtml += `<li class="page-item"><a class="page-link" href="#" onclick="loadProducts(${page+1});return false;">&raquo;</a></li>`;
+            document.getElementById('paginationList').innerHTML = phtml;
+        }
+    } catch (err) {
+        document.getElementById('productsLoading').classList.add('d-none');
+        document.getElementById('productsEmpty').classList.remove('d-none');
+    }
+}
+
+// Load on page ready
+document.addEventListener('DOMContentLoaded', () => loadProducts());
+</script>
+{% endblock %}
