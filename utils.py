@@ -585,7 +585,7 @@ def ask_ai(prompt, system_context="You are the Luxoya AI Admin Assistant. You he
             
             # Use a stable Gemini model
             response = client.models.generate_content(
-                model="gemini-1.5-flash", # Switched to 1.5-flash for maximum production stability
+                model="gemini-pro", # Using gemini-pro as the most stable fallback across API versions
                 contents=full_prompt
             )
             
