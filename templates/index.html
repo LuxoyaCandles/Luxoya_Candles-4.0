@@ -3,59 +3,67 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- HERO SLIDER -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<section class="hero-slider-section">
+<!-- ════════════════════════════════════════════════<section class="hero-slider-section">
     <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="false">
         <!-- Indicators (Dynamic) -->
         <div class="carousel-indicators">
-            {% set active_count = 0 %}
+            {% set ns_indicators = namespace(count=0) %}
             {% for i in range(1, 11) %}
                 {% if home_images['slider_img_' ~ i] or home_images['hero_vid_' ~ i] %}
-                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ active_count }}" 
-                            class="{% if active_count == 0 %}active{% endif %}" 
-                            aria-current="{% if active_count == 0 %}true{% endif %}" 
-                            aria-label="Slide {{ active_count + 1 }}"></button>
-                    {% set active_count = active_count + 1 %}
+                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ ns_indicators.count }}" 
+                            class="{% if ns_indicators.count == 0 %}active{% endif %}" 
+                            aria-current="{% if ns_indicators.count == 0 %}true{% endif %}" 
+                            aria-label="Slide {{ ns_indicators.count + 1 }}"></button>
+                    {% set ns_indicators.count = ns_indicators.count + 1 %}
                 {% endif %}
             {% endfor %}
         </div>
 
         <!-- Carousel Inner -->
         <div class="carousel-inner" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-            {% set slide_idx = 0 %}
+            {% set ns_slides = namespace(idx=0) %}
             {% for i in range(1, 11) %}
                 {% set img_url = home_images['slider_img_' ~ i] %}
                 {% set vid_url = home_images['hero_vid_' ~ i] %}
                 {% if img_url or vid_url %}
-                <div class="carousel-item {% if slide_idx == 0 %}active{% endif %}" style="transition: transform 1s ease, opacity .5s ease-out;">
+                <div class="carousel-item {% if ns_slides.idx == 0 %}active{% endif %}" style="transition: transform 1s ease, opacity .5s ease-out;">
                     {% if vid_url %}
                         <video src="{{ vid_url }}" class="d-block w-100" autoplay muted loop playsinline 
                                style="height: 65vh; object-fit: cover;"></video>
                     {% else %}
                         <img src="{{ img_url }}" class="d-block w-100" alt="Luxoya Hero {{ i }}" 
-                             style="height: 65vh; object-fit: cover;">
+                               style="height: 65vh; object-fit: cover;">
                     {% endif %}
-                    <div class="carousel-caption" style="background: rgba(0,0,0,0.2); backdrop-filter: blur(5px); border-radius: 20px; bottom: 10%; padding: 15px; border: 1px solid rgba(255,255,255,0.1);">
-                        <span class="badge-gold mb-2" style="font-size: 0.8rem;">Exclusive Luxury</span>
-                        <h2 class="fw-bold text-white mb-2 fs-2">Luxoya Candles</h2>
-                        <p class="text-white-50 mb-3 small d-none d-sm-block">Hand-poured fragrances for your sacred spaces.</p>
-                        <a href="#explore" class="btn btn-luxoya-gold px-4 py-2">SHOP NOW</a>
+                    <div class="carousel-caption" style="background: rgba(0,0,0,0.2); backdrop-filter: blur(5px); border-radius: 20px; bottom: 10%; padding: 15px; border: 1px solid rgba(255,255,255,0.1); pointer-events: none;">
+                        <div style="pointer-events: auto;">
+                            <span class="badge-gold mb-2" style="font-size: 0.8rem;">Exclusive Luxury</span>
+                            <h2 class="fw-bold text-white mb-2 fs-2">Luxoya Candles</h2>
+                            <p class="text-white-50 mb-3 small d-none d-sm-block">Hand-poured fragrances for your sacred spaces.</p>
+                            <a href="#explore" class="btn btn-luxoya-gold px-4 py-2">SHOP NOW</a>
+                        </div>
                     </div>
                 </div>
-                {% set slide_idx = slide_idx + 1 %}
+                {% set ns_slides.idx = ns_slides.idx + 1 %}
                 {% endif %}
             {% endfor %}
         </div>
 
-        <!-- Controls -->
-        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev" style="z-index: 20 !important; width: 8%;">
-            <span class="carousel-control-prev-icon" aria-hidden="true" style="filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); background-color: rgba(0,0,0,0.2); border-radius: 50%; padding: 1.5rem; background-size: 50%;"></span>
+        <!-- Controls (Hardened for Mobile/Desktop) -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev" 
+                style="z-index: 40 !important; width: 12%; height: 100%; top: 0; opacity: 1;">
+            <span class="carousel-control-prev-icon" aria-hidden="true" 
+                  style="filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5)); background-color: rgba(0,0,0,0.4); border-radius: 50%; padding: 1.8rem; background-size: 40%; transition: all 0.3s ease;"></span>
             <span class="visually-hidden">Previous</span>
         </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next" style="z-index: 20 !important; width: 8%;">
-            <span class="carousel-control-next-icon" aria-hidden="true" style="filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); background-color: rgba(0,0,0,0.2); border-radius: 50%; padding: 1.5rem; background-size: 50%;"></span>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next" 
+                style="z-index: 40 !important; width: 12%; height: 100%; top: 0; opacity: 1;">
+            <span class="carousel-control-next-icon" aria-hidden="true" 
+                  style="filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5)); background-color: rgba(0,0,0,0.4); border-radius: 50%; padding: 1.8rem; background-size: 40%; transition: all 0.3s ease;"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</section>
+0 5px rgba(0,0,0,0.5)); background-color: rgba(0,0,0,0.2); border-radius: 50%; padding: 1.5rem; background-size: 50%;"></span>
             <span class="visually-hidden">Next</span>
         </button>
     </div>
