@@ -26,7 +26,7 @@
                 {% set img_url = home_images['slider_img_' ~ i] %}
                 {% set vid_url = home_images['hero_vid_' ~ i] %}
                 {% if img_url or vid_url %}
-                <div class="carousel-item {% if ns_slides.idx == 0 %}active{% endif %}" style="transition: transform 1s ease, opacity .5s ease-out;">
+                <div class="carousel-item {% if ns_slides.idx == 0 %}active{% endif %}" >
                     {% if vid_url %}
                         <video src="{{ vid_url }}" class="d-block w-100" autoplay muted loop playsinline 
                                style="height: 65vh; object-fit: cover;"></video>
@@ -597,6 +597,19 @@
 {% endblock %}
 
 {% block extra_js %}
+    // Manual Carousel Initialization for Hero
+    document.addEventListener('DOMContentLoaded', function() {
+        const heroEl = document.getElementById('heroCarousel');
+        if (heroEl) {
+            console.log('Initializing Hero Carousel manually...');
+            new bootstrap.Carousel(heroEl, {
+                interval: 5000,
+                ride: 'carousel',
+                pause: false
+            });
+        }
+    });
+
 <script>
     // Counter animation for hero stats
     function animateCounters() {

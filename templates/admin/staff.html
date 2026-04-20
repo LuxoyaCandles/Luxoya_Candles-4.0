@@ -181,7 +181,7 @@
                 <td class="text-muted"><i class="bi bi-envelope me-2"></i>${s.email}</td>
                 <td>${statusBadge}</td>
                 <td class="text-end pe-4">
-                    <button class="btn btn-sm btn-outline-info me-1" onclick="openPermsModal(${s.id}, '${s.role}')" ${s.role === 'admin' ? 'disabled title="Admins have full access automatically"' : 'title="Edit Granular Permissions"'}>
+                    <button class="btn btn-sm btn-outline-info me-1" onclick="openPermsModal(''${s.id}, '${s.role}')" ${s.role === 'admin' ? 'disabled title="Admins have full access automatically"' : 'title="Edit Granular Permissions"'}>
                         <i class="bi bi-shield-check"></i>
                     </button>
                     <button class="btn btn-sm btn-outline-warning me-1" onclick="openResetModal(${s.id})" ${isMe ? 'disabled' : ''} title="Reset Password">
@@ -254,7 +254,7 @@
         { id: 'admin.settings', name: 'Store Settings' }
     ];
 
-    async function openPermsModal(id, role) {
+    async function openPermsModal(''id, role) {
         if (role === 'admin') return alert('Administrators automatically have access to all modules.');
         document.getElementById('permUserId').value = id;
 

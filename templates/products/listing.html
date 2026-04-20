@@ -233,7 +233,11 @@ async function loadProducts(page = 1) {
                     <div class="product-info">
                         <p class="product-category">${p.category ? p.category.name : ''}</p>
                         <h6 class="product-name"><a href="/product/${p.slug}">${p.name}</a></h6>
-                        ${p.fragrance ? `<p class="product-fragrance"><i class="bi bi-flower1"></i> ${p.fragrance}</p>` : ''}
+                        <div class="d-flex flex-wrap gap-1 mb-2">
+                            ${p.fragrance ? `<span class="badge bg-cream text-muted border-0 fw-normal" style="font-size: 0.65rem;"><i class="bi bi-flower1 me-1"></i>${p.fragrance}</span>` : ''}
+                            ${p.weight ? `<span class="badge bg-cream text-muted border-0 fw-normal" style="font-size: 0.65rem;"><i class="bi bi-tag me-1"></i>${p.weight} grms</span>` : ''}
+                            ${p.burn_time ? `<span class="badge bg-cream text-muted border-0 fw-normal" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>${p.burn_time} hrs</span>` : ''}
+                        </div>
                         <div class="product-price">
                             ${p.sale_price && p.sale_price < p.price ? 
                                 `<span class="price-current">₹${Math.round(p.sale_price)}</span>
