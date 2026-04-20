@@ -194,7 +194,7 @@ def create_app(config_name=None):
             
             # Batch fetch all relevant settings
             reel_keys = []
-            for i in range(1, 7):
+            for i in range(1, 11):
                 reel_keys.extend([f'reel_{i}_url', f'reel_{i}_title', f'reel_{i}_thumb'])
             
             all_necessary_keys = all_keys + reel_keys
@@ -221,7 +221,7 @@ def create_app(config_name=None):
             
             # Get Reels
             reels_data = []
-            for i in range(1, 7):
+            for i in range(1, 11):
                 url = db_settings.get(f'reel_{i}_url', '')
                 if url:
                     reels_data.append({
@@ -276,11 +276,54 @@ def create_app(config_name=None):
         
     @app.route('/reels')
     def reels():
-        return render_template('reels.html')
+        from models import SiteSettings
+        reels_data = []
+        try:
+            db_settings = {s.key: s.value for s in SiteSettings.query.filter(SiteSettings.key.like('reel_%')).all()}
+            for i in range(1, 11):
+                url = db_settings.get(f'reel_{i}_url', '')
+                if url:
+                    reels_data.append({
+                        'url': url,
+                        'title': db_settings.get(f'reel_{i}_title', 'Luxoya Moment'),
+                        'thumb': db_settings.get(f'reel_{i}_thumb', '') or 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=400',
+                        'desc': db_settings.get(f'reel_{i}_desc', 'Experience the magic of handcrafted luxury.')
+                    })
+        except: pass
+        
+        if not reels_data:
+            reels_data = [
+                {'url': '#', 'title': 'Scent Pouring', 'desc': 'Watch the magic of pure soy wax blending.', 'thumb': 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=800'},
+                {'url': '#', 'title': 'Packing Ritual', 'desc': 'Every order packed with extreme precision.', 'thumb': 'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=800'},
+                {'title': 'Ambience Lite', 'desc': 'Setting the mood for a perfect evening.', 'thumb': 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=800'},
+                {'title': 'Fragrance Stories', 'desc': 'A journey from blossom to luxury jar.', 'thumb': 'https://images.unsplash.com/photo-1572726729207-a78d6feb18d7?w=800'}
+            ]
+            
+        return render_template('reels.html', reels_data=reels_data)
     
     @app.route('/contact')
     def contact():
         return render_template('contact.html')
+
+    @app.route('/blog')
+    def blog():
+        return render_template('blog.html')
+
+    @app.route('/shipping-policy')
+    def shipping_policy():
+        return render_template('legal/shipping.html')
+
+    @app.route('/returns-refunds')
+    def returns_refunds():
+        return render_template('legal/returns.html')
+
+    @app.route('/privacy-policy')
+    def privacy_policy():
+        return render_template('legal/privacy.html')
+
+    @app.route('/terms-service')
+    def terms_service():
+        return render_template('legal/terms.html')
     
     # Error handlers
     @app.errorhandler(404)

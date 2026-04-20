@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Shipping Policy{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-navbar">
+    <div class="container" style="max-width: 800px;">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item active">Shipping Policy</li>
+            </ol>
+        </nav>
+
+        <h1 class="section-title mb-4">Shipping <span class="text-gold">Policy</span></h1>
+        
+        <div class="content-body" data-aos="fade-up">
+            <p class="lead">Thank you for visiting and shopping at Luxoya Candles. Following are the terms and conditions that constitute our Shipping Policy.</p>
+            
+            <h5 class="mt-4 text-gold">1. Shipment Processing Time</h5>
+            <p>All orders are processed within 1-3 business days. Orders are not shipped or delivered on weekends or holidays.</p>
+            <p>If we are experiencing a high volume of orders, shipments may be delayed by a few days. Please allow additional days in transit for delivery. If there will be a significant delay in shipment of your order, we will contact you via email or telephone.</p>
+
+            <h5 class="mt-4 text-gold">2. Shipping Rates & Delivery Estimates</h5>
+            <p>Shipping charges for your order will be calculated and displayed at checkout. We offer standard and express shipping options across India and internationally.</p>
+            <ul>
+                <li><strong>Domestic (India):</strong> 3-7 Business Days</li>
+                <li><strong>International:</strong> 7-15 Business Days</li>
+            </ul>
+            <p class="small text-muted">Note: Delivery delays can occasionally occur due to customs or carrier peak seasons.</p>
+
+            <h5 class="mt-4 text-gold">3. Shipment Confirmation & Order Tracking</h5>
+            <p>You will receive a Shipment Confirmation email once your order has shipped containing your tracking number(s). The tracking number will be active within 24 hours.</p>
+
+            <h5 class="mt-4 text-gold">4. Customs, Duties and Taxes</h5>
+            <p>Luxoya Candles is not responsible for any customs and taxes applied to your order. All fees imposed during or after shipping are the responsibility of the customer (tariffs, taxes, etc.).</p>
+
+            <h5 class="mt-4 text-gold">5. Damages</h5>
+            <p>If you received your order damaged, please contact us immediately to file a claim. Please save all packaging materials and damaged goods before filing a claim.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -333,7 +333,7 @@
                         <li><a href="{{ url_for('about') }}">About Us</a></li>
                         <li><a href="{{ url_for('b2b.corporate_page') }}">Corporate</a></li>
                         <li><a href="{{ url_for('contact') }}">Contact</a></li>
-                        <li><a href="#">Blog</a></li>
+                        <li><a href="{{ url_for('blog') }}">Blog</a></li>
                     </ul>
                 </div>
 
@@ -341,10 +341,10 @@
                 <div class="col-6 col-md-4 col-lg-2 mt-4 mt-sm-0">
                     <h6 class="footer-heading">Support</h6>
                     <ul class="footer-links">
-                        <li><a href="#">Shipping Policy</a></li>
-                        <li><a href="#">Returns & Refunds</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="{{ url_for('shipping_policy') }}">Shipping Policy</a></li>
+                        <li><a href="{{ url_for('returns_refunds') }}">Returns & Refunds</a></li>
+                        <li><a href="{{ url_for('privacy_policy') }}">Privacy Policy</a></li>
+                        <li><a href="{{ url_for('terms_service') }}">Terms of Service</a></li>
                     </ul>
                 </div>
 

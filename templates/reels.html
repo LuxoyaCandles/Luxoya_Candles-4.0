@@ -213,39 +213,44 @@
 
     <!-- Reels Swipe Container -->
     <div class="reels-container">
-        {% set videos = [
-            {'title': 'Scent Pouring', 'desc': 'Watch the magic of pure soy wax blending.', 'img': 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=800'},
-            {'title': 'Packing Ritual', 'desc': 'Every order packed with extreme precision.', 'img': 'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=800'},
-            {'title': 'Ambience Lite', 'desc': 'Setting the mood for a perfect evening.', 'img': 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=800'},
-            {'title': 'Fragrance Stories', 'desc': 'A journey from blossom to luxury jar.', 'img': 'https://images.unsplash.com/photo-1572726729207-a78d6feb18d7?w=800'}
-        ] %}
-
-        {% for vid in videos %}
+        {% for reel in reels_data %}
         <div class="reel-wrapper">
             <div class="reel-content">
-                <!-- Using placeholder images since we dont have .mp4 reels yet -->
-                <img class="reel-video" src="{{ vid.img }}" alt="{{ vid.title }}">
+                {% if reel.url and reel.url != '#' %}
+                <video class="reel-video" src="{{ reel.url }}" loop muted playsinline poster="{{ reel.thumb }}"></video>
+                {% else %}
+                <img class="reel-video" src="{{ reel.thumb }}" alt="{{ reel.title }}">
+                <div class="position-absolute top-50 start-50 translate-middle text-center opacity-50">
+                    <i class="bi bi-play-circle fs-1"></i>
+                    <p class="small mt-2">Preview Mode</p>
+                </div>
+                {% endif %}
                 
                 <!-- Bottom Description & Shop Button -->
                 <div class="reel-overlay">
-                    <div class="reel-title">{{ vid.title }}</div>
-                    <div class="reel-desc">{{ vid.desc }}</div>
-                    <a href="{{ url_for('products.collections') }}" class="btn-reel-shop">
-                        <i class="bi bi-cart2"></i> Shop Collection
-                    </a>
+                    <div class="reel-title">{{ reel.title }}</div>
+                    <div class="reel-desc">{{ reel.desc }}</div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('products.collections') }}" class="btn-reel-shop">
+                            <i class="bi bi-bag-heart"></i> SHOP NOW
+                        </a>
+                        <button class="btn btn-outline-light rounded-circle shadow" onclick="toggleMainReelAudio(this)" style="width: 48px; height: 48px;">
+                            <i class="bi bi-volume-mute-fill"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Right Sidebar Actions -->
                 <div class="reel-sidebar">
                     <button class="reel-action-btn" onclick="this.classList.toggle('liked')">
                         <i class="bi bi-heart-fill"></i>
-                        <span>12K</span>
+                        <span>{{ range(100, 999)|random }}K</span>
                     </button>
                     <button class="reel-action-btn">
                         <i class="bi bi-chat-dots-fill"></i>
-                        <span>405</span>
+                        <span>{{ range(10, 99)|random }}</span>
                     </button>
-                    <button class="reel-action-btn">
+                    <button class="reel-action-btn" onclick="copyReelLink('{{ reel.url }}')">
                         <i class="bi bi-share-fill"></i>
                         <span>Share</span>
                     </button>
@@ -256,25 +261,47 @@
     </div>
 
     <script>
-        // Simple script to handle play/pause logic if real videos were added
-        // Currently it just scrolls.
         document.addEventListener('DOMContentLoaded', () => {
-            const reels = document.querySelectorAll('.reel-wrapper');
-            let currentReel = 0;
+            const videoElements = document.querySelectorAll('.reel-video');
             
-            // To simulate video playing/pausing based on intersection
+            // Intersection Observer to handle autoplay
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
+                    const video = entry.target;
+                    if (video.tagName !== 'VIDEO') return;
+
                     if (entry.isIntersecting) {
-                        // Reel is active. Here we would do: video.play()
+                        video.play().catch(e => console.warn("Autoplay failed:", e));
                     } else {
-                        // Reel is not active. Here we would do: video.pause()
+                        video.pause();
+                        video.currentTime = 0; // Reset to start
                     }
                 });
-            }, { threshold: 0.6 });
+            }, { threshold: 0.7 });
 
-            reels.forEach(reel => observer.observe(reel));
+            videoElements.forEach(el => observer.observe(el));
         });
+
+        // Global Mute/Unmute Toggle
+        let isGlobalMuted = true;
+        function toggleMainReelAudio(btn) {
+            const icon = btn.querySelector('i');
+            isGlobalMuted = !isGlobalMuted;
+            
+            document.querySelectorAll('video').forEach(v => {
+                v.muted = isGlobalMuted;
+            });
+
+            document.querySelectorAll('.btn-outline-light i.bi-volume-up-fill, .btn-outline-light i.bi-volume-mute-fill').forEach(i => {
+                i.className = isGlobalMuted ? 'bi bi-volume-mute-fill' : 'bi bi-volume-up-fill';
+            });
+        }
+
+        function copyReelLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Reel link copied to clipboard!');
+            });
+        }
     </script>
 </body>
 </html>

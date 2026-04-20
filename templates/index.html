@@ -431,7 +431,7 @@
                 display: flex;
                 overflow-x: auto;
                 gap: 1.5rem;
-                padding-bottom: 1rem;
+                padding: 10px 0 20px 0;
                 scrollbar-width: none;
                 scroll-snap-type: x mandatory;
             }
@@ -445,28 +445,56 @@
                 max-width: 280px;
                 height: 500px;
                 position: relative;
-                border-radius: 16px;
+                border-radius: 20px;
                 overflow: hidden;
                 flex-shrink: 0;
                 background: #000;
-                scroll-snap-align: start;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                scroll-snap-align: center;
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+                cursor: pointer;
+                transition: transform 0.3s ease;
+            }
+            .video-reel-item:hover { transform: translateY(-5px); }
+
+            .reel-video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: opacity 0.5s;
             }
 
-            .overlay-play {
+            .reel-audio-toggle {
+                position: absolute;
+                top: 15px;
+                right: 15px;
+                z-index: 10;
+                background: rgba(0,0,0,0.5);
+                border: none;
+                color: white;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                backdrop-filter: blur(4px);
+            }
+
+            .overlay-play-static {
                 position: absolute;
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
-                font-size: 4rem;
-                color: rgba(255, 255, 255, 0.8);
-                z-index: 2;
-                transition: transform 0.2s, color 0.2s;
+                font-size: 3rem;
+                color: white;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s;
+                z-index: 5;
             }
 
-            .video-reel-item:hover .overlay-play {
-                transform: translate(-50%, -50%) scale(1.1);
-                color: var(--lx-gold);
+            .video-reel-item:not(.playing) .overlay-play-static {
+                opacity: 0.8;
             }
 
             .reel-title {
@@ -474,21 +502,25 @@
                 bottom: 0;
                 left: 0;
                 right: 0;
-                padding: 40px 20px 20px 20px;
-                background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+                padding: 50px 20px 20px 20px;
+                background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
                 color: white;
                 font-weight: 600;
-                font-family: var(--lx-font-display);
-                font-size: 1.2rem;
+                font-size: 1rem;
                 z-index: 2;
+                pointer-events: none;
             }
         </style>
 
         <div class="video-reels-container" data-aos="fade-up" data-aos-delay="100">
             {% for reel in reels_data %}
-            <div class="video-reel-item" onclick="window.location.href='{{ reel.url }}'">
-                <div class="overlay-play"><i class="bi bi-play-circle text-white shadow-sm rounded-circle"></i></div>
-                <img src="{{ reel.thumb }}" alt="{{ reel.title }}" class="w-100 h-100 object-fit-cover opacity-75">
+            <div class="video-reel-item">
+                <video src="{{ reel.url }}" class="reel-video w-100 h-100 object-fit-cover" 
+                       loop muted playsinline poster="{{ reel.thumb }}"></video>
+                <button class="reel-audio-toggle" onclick="toggleReelAudio(this)">
+                    <i class="bi bi-volume-mute-fill"></i>
+                </button>
+                <div class="overlay-play-static"><i class="bi bi-play-fill text-white"></i></div>
                 <div class="reel-title"><i class="bi bi-fire me-1 text-gold"></i> {{ reel.title }}</div>
             </div>
             {% endfor %}
@@ -597,20 +629,71 @@
 {% endblock %}
 
 {% block extra_js %}
-    // Manual Carousel Initialization for Hero
-    document.addEventListener('DOMContentLoaded', function() {
-        const heroEl = document.getElementById('heroCarousel');
-        if (heroEl) {
-            console.log('Initializing Hero Carousel manually...');
-            new bootstrap.Carousel(heroEl, {
-                interval: 5000,
-                ride: 'carousel',
-                pause: false
-            });
-        }
-    });
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- 1. HERO CAROUSEL HARDENING ---
+        const heroEl = document.getElementById('heroCarousel');
+        if (heroEl) {
+            console.log('Initializing Hero Carousel manually with touch support...');
+            const carousel = new bootstrap.Carousel(heroEl, {
+                interval: 5000,
+                ride: 'carousel',
+                pause: false,
+                touch: true // Force touch swiping enablement
+            });
+            
+            // Manual swipe gesture detection for extra reliability
+            let touchstartX = 0;
+            let touchendX = 0;
+            heroEl.addEventListener('touchstart', e => touchstartX = e.changedTouches[0].screenX);
+            heroEl.addEventListener('touchend', e => {
+                touchendX = e.changedTouches[0].screenX;
+                if (touchendX < touchstartX - 50) carousel.next();
+                if (touchendX > touchstartX + 50) carousel.prev();
+            });
+        }
+
+        // --- 2. VIDEO REELS AUTOPLAY LOGIC ---
+        const reels = document.querySelectorAll('.reel-video');
+        const reelObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const video = entry.target;
+                if (entry.isIntersecting) {
+                    video.play().catch(e => console.warn('Autoplay prevented:', e));
+                    video.parentElement.classList.add('playing');
+                } else {
+                    video.pause();
+                    video.parentElement.classList.remove('playing');
+                }
+            });
+        }, { threshold: 0.6 });
+
+        reels.forEach(reel => reelObserver.observe(reel));
+    });
+
+    // Toggle sound for reels
+    function toggleReelAudio(btn) {
+        const video = btn.parentElement.querySelector('video');
+        const icon = btn.querySelector('i');
+        if (video.muted) {
+            // Unmute this one, mute all others for better UX
+            document.querySelectorAll('.reel-video').forEach(v => v.muted = true);
+            document.querySelectorAll('.reel-audio-toggle i').forEach(i => {
+                i.classList.remove('bi-volume-up-fill');
+                i.classList.add('bi-volume-mute-fill');
+            });
+            
+            video.muted = false;
+            icon.classList.remove('bi-volume-mute-fill');
+            icon.classList.add('bi-volume-up-fill');
+        } else {
+            video.muted = true;
+            icon.classList.remove('bi-volume-up-fill');
+            icon.classList.add('bi-volume-mute-fill');
+        }
+    }
+
     // Counter animation for hero stats
     function animateCounters() {
         const counters = document.querySelectorAll('.stat-number[data-count]');

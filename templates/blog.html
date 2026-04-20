@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Blog{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-navbar">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <span class="section-tag mb-2">JOURNAL</span>
+            <h1 class="section-title">The Luxoya <span class="text-gold">Stories</span></h1>
+            <p class="section-text mx-auto" style="max-width: 600px;">Explore the art of candle making, fragrance notes, and home styling tips from our candle masters.</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <!-- Blog Post 1 -->
+            <div class="col-md-6 col-lg-4" data-aos="fade-up">
+                <article class="card h-100 border-0 bg-cream rounded-4 overflow-hidden product-card-hover">
+                    <img src="https://images.unsplash.com/photo-1602607360922-47951de49a31?w=600" class="card-img-top" alt="Scent Psychology" style="height: 250px; object-fit: cover;">
+                    <div class="card-body p-4">
+                        <span class="badge bg-gold-soft text-gold px-3 mb-2">Fragrance</span>
+                        <h4 class="fw-bold mb-3">The Psychology of Scent: Why Certain Candles Calm Us</h4>
+                        <p class="text-muted small mb-4">Discover how specific essential oils and fragrance notes interact with the brain to reduce stress...</p>
+                        <a href="#" class="btn btn-outline-gold btn-sm">Read Post</a>
+                    </div>
+                </article>
+            </div>
+
+            <!-- Blog Post 2 -->
+            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                <article class="card h-100 border-0 bg-cream rounded-4 overflow-hidden product-card-hover">
+                    <img src="https://images.unsplash.com/photo-1603006905003-be475563bc59?w=600" class="card-img-top" alt="Candle Care" style="height: 250px; object-fit: cover;">
+                    <div class="card-body p-4">
+                        <span class="badge bg-gold-soft text-gold px-3 mb-2">Masterclass</span>
+                        <h4 class="fw-bold mb-3">5 Tips to Make Your Luxury Candles Last Longer</h4>
+                        <p class="text-muted small mb-4">Wick trimming to burn cycles - learn the professional secrets to maintaining your candle's life...</p>
+                        <a href="#" class="btn btn-outline-gold btn-sm">Read Post</a>
+                    </div>
+                </article>
+            </div>
+
+            <!-- Blog Post 3 -->
+            <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                <article class="card h-100 border-0 bg-cream rounded-4 overflow-hidden product-card-hover">
+                    <img src="https://images.unsplash.com/photo-1543332164-6e82f355badc?w=600" class="card-img-top" alt="Home Decor" style="height: 250px; object-fit: cover;">
+                    <div class="card-body p-4">
+                        <span class="badge bg-gold-soft text-gold px-3 mb-2">Styling</span>
+                        <h4 class="fw-bold mb-3">Styling Your Home with Decorative Scented Jars</h4>
+                        <p class="text-muted small mb-4">How to create a stunning focal point using our ceramic and glass collection in contemporary spaces...</p>
+                        <a href="#" class="btn btn-outline-gold btn-sm">Read Post</a>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <div class="text-center mt-5 py-4">
+            <p class="text-muted italic">More stories coming soon...</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

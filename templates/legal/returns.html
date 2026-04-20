@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Returns & Refunds{% endblock %}
+
+{% block content %}
+<section class="section-padding pt-navbar">
+    <div class="container" style="max-width: 800px;">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item active">Returns & Refunds</li>
+            </ol>
+        </nav>
+
+        <h1 class="section-title mb-4">Returns & <span class="text-gold">Refunds</span></h1>
+        
+        <div class="content-body" data-aos="fade-up">
+            <h5 class="mt-4 text-gold">1. Return Policy</h5>
+            <p>At Luxoya Candles, we want you to be completely satisfied with your purchase. If you're not happy, we're here to help.</p>
+            <p>You have <strong>7 calendar days</strong> to return an item from the date you received it. To be eligible for a return, your item must be <strong>unused, unopened (seal intact), and in the same condition</strong> that you received it. It must also be in the original packaging.</p>
+
+            <h5 class="mt-4 text-gold">2. Non-Returnable Items</h5>
+            <p>Several types of goods are exempt from being returned:</p>
+            <ul>
+                <li>Customized or personalized candles.</li>
+                <li>Used candles or candles with broken seals.</li>
+                <li>Gift cards.</li>
+                <li>Items on clearance or final sale.</li>
+            </ul>
+
+            <h5 class="mt-4 text-gold">3. Refunds</h5>
+            <p>Once we receive your item, we will inspect it and notify you that we have received your returned item. We will immediately notify you on the status of your refund after inspecting the item.</p>
+            <p>If your return is approved, we will initiate a refund to your original method of payment. You will receive the credit within 5-10 business days, depending on your card issuer's policies.</p>
+
+            <h5 class="mt-4 text-gold">4. Shipping</h5>
+            <p>You will be responsible for paying for your own shipping costs for returning your item. Shipping costs are non-refundable. If you receive a refund, the cost of original shipping will be deducted from your refund.</p>
+
+            <h5 class="mt-4 text-gold">5. Exchanges</h5>
+            <p>We only replace items if they are defective or damaged. If you need to exchange it for the same item, send us an email at {{ branding.support_email }}.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
