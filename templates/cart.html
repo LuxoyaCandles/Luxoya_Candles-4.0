@@ -213,33 +213,57 @@ function updateSummary() {
 async function updateQty(itemId, newQty) {
     if (newQty < 1) { removeItem(itemId); return; }
     try {
-        await fetch(`/api/cart/${itemId}`, {
+        const res = await fetch(`/api/cart/${itemId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ quantity: newQty })
         });
-        loadCart();
-        updateCartBadge();
-    } catch (err) { console.error(err); }
+        if (!res.ok) {
+            const err = await res.json();
+            showToast(err.error || 'Failed to update quantity');
+        } else {
+            loadCart();
+            updateCartBadge();
+        }
+    } catch (err) { 
+        console.error(err);
+        showToast('Network error updating cart'); 
+    }
 }
 
 async function removeItem(itemId) {
     try {
-        await fetch(`/api/cart/${itemId}`, { method: 'DELETE' });
-        showToast('Item removed from cart');
-        loadCart();
-        updateCartBadge();
-    } catch (err) { console.error(err); }
+        const res = await fetch(`/api/cart/${itemId}`, { method: 'DELETE' });
+        if (!res.ok) {
+            const err = await res.json();
+            showToast(err.error || 'Failed to remove item');
+        } else {
+            showToast('Item removed from cart');
+            loadCart();
+            updateCartBadge();
+        }
+    } catch (err) { 
+        console.error(err);
+        showToast('Network error removing item'); 
+    }
 }
 
 async function clearCart() {
     if (!confirm('Remove all items from your cart?')) return;
     try {
-        await fetch('/api/cart/clear', { method: 'DELETE' });
-        showToast('Cart cleared');
-        loadCart();
-        updateCartBadge();
-    } catch (err) { console.error(err); }
+        const res = await fetch('/api/cart/clear', { method: 'DELETE' });
+        if (!res.ok) {
+            const err = await res.json();
+            showToast(err.error || 'Failed to clear cart');
+        } else {
+            showToast('Cart cleared');
+            loadCart();
+            updateCartBadge();
+        }
+    } catch (err) { 
+        console.error(err);
+        showToast('Network error clearing cart'); 
+    }
 }
 
 async function applyCoupon() {

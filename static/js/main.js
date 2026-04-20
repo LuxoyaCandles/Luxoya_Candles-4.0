@@ -7,14 +7,37 @@
 const originalFetch = window.fetch;
 window.fetch = async function() {
     let [resource, config] = arguments;
-    if (config && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(config.method?.toUpperCase())) {
-        if (!config.headers) config.headers = {};
+    
+    // Ensure config exists for mutation
+    if (!config) config = {};
+    if (!config.headers) config.headers = {};
+    if (!config.credentials) config.credentials = 'include';
+
+    const method = (config.method || 'GET').toUpperCase();
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
         const match = document.cookie.match(new RegExp('(^| )csrf_access_token=([^;]+)'));
         if (match) {
             config.headers['X-CSRF-TOKEN'] = match[2];
+        } else {
+            console.warn("CSRF Token missing for state-changing request. Login may be required.");
         }
     }
-    return originalFetch(resource, config);
+    
+    try {
+        const response = await originalFetch(resource, config);
+        // Auto-handle 401 Unauthorized for APIs
+        if (response.status === 401 && resource.toString().includes('/api/')) {
+            const data = await response.clone().json().catch(() => ({}));
+            if (data.login_required) {
+                console.warn("Session expired. Redirecting to login.");
+                // window.location.href = '/login'; 
+            }
+        }
+        return response;
+    } catch (err) {
+        console.error("Fetch Interceptor Error:", err);
+        throw err;
+    }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
