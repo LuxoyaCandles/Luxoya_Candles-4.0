@@ -160,7 +160,24 @@
                         {% endif %}
                         <div class="meta-item">
                             <i class="bi bi-{{ 'check-circle text-success' if product.in_stock else 'x-circle text-danger' }}"></i>
-                            <span>{{ 'In Stock (' ~ product.stock ~ ' available)' if product.in_stock else 'Out of Stock' }}</span>
+                            <span>{{ 'In Stock' if product.in_stock else 'Out of Stock' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Fragrance Pyramid (Luxury Touch) -->
+                    <div class="fragrance-pyramid mb-4 p-3 rounded-4" style="background: rgba(201,169,110,0.05); border: 1px solid rgba(201,169,110,0.1);">
+                        <h6 class="small fw-bold text-uppercase ls-2 mb-3"><i class="bi bi-triangle text-gold me-2"></i>Olfactory Pyramid</h6>
+                        <div class="pyramid-layer mb-2">
+                            <span class="small text-gold fw-bold">TOP:</span>
+                            <span class="small text-muted ms-2">Bergamot, Kashmiri Saffron, Citrus Peel</span>
+                        </div>
+                        <div class="pyramid-layer mb-2">
+                            <span class="small text-gold fw-bold">HEART:</span>
+                            <span class="small text-muted ms-2">Damascus Rose, Soft Peony, Smoked Oud</span>
+                        </div>
+                        <div class="pyramid-layer">
+                            <span class="small text-gold fw-bold">BASE:</span>
+                            <span class="small text-muted ms-2">White Musk, Sandalwood, Warm Amber</span>
                         </div>
                     </div>
                     
@@ -507,7 +524,40 @@
             </div>
         </div>
     </div>
+</section>
+
+<!-- 📱 Mobile Sticky Purchase Bar -->
+<div class="mobile-sticky-bar d-lg-none fixed-bottom bg-white border-top shadow-lg p-2 py-3" id="mobileStickyBar" style="z-index: 1050; transform: translateY(100%); transition: transform 0.3s ease-out;">
+    <div class="container d-flex align-items-center gap-3">
+        <div class="flex-grow-1 overflow-hidden">
+            <h6 class="small mb-0 text-truncate fw-bold text-dark">{{ product.name }}</h6>
+            <div class="small text-gold fw-bold">₹{{ "%.0f"|format(product.sale_price if product.sale_price else product.price) }}</div>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-dark btn-sm px-3" onclick="addToCartDetail()">
+                <i class="bi bi-bag"></i>
+            </button>
+            <button class="btn btn-luxoya-gold px-4 py-2 btn-sm fw-bold" onclick="buyNow(productId, parseInt(document.getElementById('quantity').value))">
+                BUY NOW
+            </button>
+        </div>
+    </div>
 </div>
+
+<style>
+    .mobile-sticky-bar {
+        background: #ffffff !important;
+        border-top: 1px solid rgba(0,0,0,0.05);
+    }
+    .mobile-sticky-bar.show {
+        transform: translateY(0) !important;
+    }
+    /* Ensure footer/content doesn't get hidden behind the bar on mobile */
+    @media (max-width: 991.98px) {
+        body { padding-bottom: 80px; }
+    }
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -774,6 +824,22 @@ document.querySelector('.rating-review-link')?.addEventListener('click', functio
 
 // Initialize star rating display
 setRating(5);
+
+// ─────────────────────────────────────
+// MOBILE STICKY BAR LOGIC (Enhanced)
+// ─────────────────────────────────────
+window.addEventListener('scroll', function() {
+    if (window.innerWidth >= 992) return;
+    const bar = document.getElementById('mobileStickyBar');
+    if (!bar) return;
+
+    // Show bar after scrolling down 400px (past hero area)
+    if (window.scrollY > 400) {
+        bar.classList.add('show');
+    } else {
+        bar.classList.remove('show');
+    }
+});
 
 // Auto-open Reviews tab if URL hash is #tabReviews
 if (window.location.hash === '#tabReviews') {

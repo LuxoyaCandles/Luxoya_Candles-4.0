@@ -219,7 +219,7 @@ def create_app(config_name=None):
             if not home_images.get('coll_name_5'): home_images['coll_name_5'] = 'Gift Sets'
             if not home_images.get('coll_name_6'): home_images['coll_name_6'] = 'Limited'
             
-            # Get Reels
+            # Get Reels (from SiteSettings)
             reels_data = []
             for i in range(1, 11):
                 url = db_settings.get(f'reel_{i}_url', '')
@@ -230,12 +230,24 @@ def create_app(config_name=None):
                         'thumb': db_settings.get(f'reel_{i}_thumb', '') or 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=400'
                     })
             
+            # Fetch Product Videos
+            try:
+                prod_vids = Product.query.filter(Product.video_url != None, Product.is_active == True).all()
+                for p in prod_vids:
+                    reels_data.insert(0, {
+                        'url': p.video_url,
+                        'title': p.name,
+                        'thumb': p.image_url or 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=400',
+                        'product_slug': p.slug
+                    })
+            except Exception as e:
+                app.logger.warning(f"Error fetching product reels: {e}")
+
             # Fallback for empty reels
             if not reels_data:
                 reels_data = [
-                    {'url': '#', 'title': 'Scent Pouring', 'thumb': 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=400'},
-                    {'url': '#', 'title': 'Packing Ritual', 'thumb': 'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=400'},
-                    {'url': '#', 'title': 'Handmade Magic', 'thumb': 'https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=400'},
+                    {'url': 'https://assets.mixkit.co/videos/preview/mixkit-aromatic-candle-burning-in-the-dark-34440-large.mp4', 'title': 'Scent Pouring', 'thumb': 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=400'},
+                    {'url': 'https://assets.mixkit.co/videos/preview/mixkit-hand-lighting-a-candle-in-a-dark-room-34441-large.mp4', 'title': 'Handmade Magic', 'thumb': 'https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=400'},
                 ]
 
             featured, all_products, categories = [], [], []
@@ -276,9 +288,10 @@ def create_app(config_name=None):
         
     @app.route('/reels')
     def reels():
-        from models import SiteSettings
+        from models import SiteSettings, Product
         reels_data = []
         try:
+            # 1. Get manually configured reels
             db_settings = {s.key: s.value for s in SiteSettings.query.filter(SiteSettings.key.like('reel_%')).all()}
             for i in range(1, 11):
                 url = db_settings.get(f'reel_{i}_url', '')
@@ -289,14 +302,24 @@ def create_app(config_name=None):
                         'thumb': db_settings.get(f'reel_{i}_thumb', '') or 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=400',
                         'desc': db_settings.get(f'reel_{i}_desc', 'Experience the magic of handcrafted luxury.')
                     })
-        except: pass
+            
+            # 2. Get Product videos
+            prod_vids = Product.query.filter(Product.video_url != None, Product.is_active == True).all()
+            for p in prod_vids:
+                reels_data.insert(0, {
+                    'url': p.video_url,
+                    'title': p.name,
+                    'thumb': p.image_url or 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=400',
+                    'desc': p.short_description or f'Discover the fragrance of {p.name}.',
+                    'product_slug': p.slug
+                })
+        except Exception as e:
+            app.logger.warning(f"Reels fetch error: {e}")
         
         if not reels_data:
             reels_data = [
-                {'url': '#', 'title': 'Scent Pouring', 'desc': 'Watch the magic of pure soy wax blending.', 'thumb': 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=800'},
-                {'url': '#', 'title': 'Packing Ritual', 'desc': 'Every order packed with extreme precision.', 'thumb': 'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=800'},
-                {'title': 'Ambience Lite', 'desc': 'Setting the mood for a perfect evening.', 'thumb': 'https://images.unsplash.com/photo-1543332164-6e82f355badc?w=800'},
-                {'title': 'Fragrance Stories', 'desc': 'A journey from blossom to luxury jar.', 'thumb': 'https://images.unsplash.com/photo-1572726729207-a78d6feb18d7?w=800'}
+                {'url': 'https://assets.mixkit.co/videos/preview/mixkit-aromatic-candle-burning-in-the-dark-34440-large.mp4', 'title': 'Signature Glow', 'desc': 'Watch the magic of pure soy wax blending.', 'thumb': 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=800'},
+                {'url': 'https://assets.mixkit.co/videos/preview/mixkit-hand-lighting-a-candle-in-a-dark-room-34441-large.mp4', 'title': 'Handmade Magic', 'desc': 'Every order packed with extreme precision.', 'thumb': 'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=800'},
             ]
             
         return render_template('reels.html', reels_data=reels_data)

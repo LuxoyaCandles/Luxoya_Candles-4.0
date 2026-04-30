@@ -215,6 +215,8 @@
             {% if user.is_admin %}
             <a href="{{ url_for('admin.staff_page') }}" class="sidebar-link {% if 'staff' in request.endpoint|default('') %}active{% endif %}">
                 <i class="bi bi-person-badge"></i> Staff Access</a>
+            <a href="{{ url_for('admin.audit_logs_page') }}" class="sidebar-link {% if 'audit' in request.endpoint|default('') %}active{% endif %}">
+                <i class="bi bi-journal-text"></i> Audit Trail</a>
             {% endif %}
             {% endif %}
 

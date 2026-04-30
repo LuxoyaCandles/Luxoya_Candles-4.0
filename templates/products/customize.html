@@ -1,12 +1,109 @@
-{% extends "base.html" %}
-{% block title %}Customize Your Candle{% endblock %}
-
 {% block content %}
+<style>
+    /* Cinematic Candle Preview */
+    .candle-preview {
+        height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle, #fff 0%, #f8f9fa 100%);
+        border-radius: 20px;
+        overflow: hidden;
+        position: relative;
+    }
+    .preview-candle {
+        position: relative;
+        width: 160px;
+        height: 200px;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .preview-jar {
+        position: absolute;
+        bottom: 0; left: 0; width: 100%; height: 100%;
+        border-radius: 10px 10px 20px 20px;
+        border: 2px solid rgba(0,0,0,0.05);
+        z-index: 5;
+        transition: all 0.5s ease;
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(2px);
+    }
+    /* Jar Variants */
+    .jar-classic { background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.4); }
+    .jar-ceramic { background: #f0f0f0; border: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); }
+    .jar-tin { background: linear-gradient(135deg, #d4af37 0%, #f9f295 50%, #d4af37 100%); border: none; }
+    .jar-marble { background: url('https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=200'); background-size: cover; border: none; }
+
+    .preview-wax {
+        position: absolute;
+        bottom: 5px; left: 5px; right: 5px; height: 90%;
+        border-radius: 5px 5px 15px 15px;
+        z-index: 3;
+        transition: background 0.5s ease;
+        box-shadow: inset 0 -10px 20px rgba(0,0,0,0.1);
+    }
+    .preview-wick {
+        position: absolute;
+        top: -10px; left: 50%;
+        width: 4px; height: 15px;
+        background: #333;
+        transform: translateX(-50%);
+        z-index: 2;
+    }
+    .preview-flame {
+        position: absolute;
+        top: -35px; left: 50%;
+        transform: translateX(-50%);
+        z-index: 6;
+        font-size: 1.8rem;
+        animation: flicker 0.1s infinite alternate;
+        filter: drop-shadow(0 0 10px rgba(255, 193, 7, 0.8));
+    }
+    @keyframes flicker {
+        0% { transform: translateX(-50%) scale(1); opacity: 0.9; }
+        100% { transform: translateX(-50%) scale(1.05) rotate(1deg); opacity: 1; }
+    }
+    .preview-label {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 70%;
+        background: #fff;
+        padding: 10px 5px;
+        text-align: center;
+        font-family: 'Playfair Display', serif;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        z-index: 10;
+        border: 1px solid #eee;
+    }
+
+    .option-card {
+        cursor: pointer;
+        border: 2px solid #f8f9fa;
+        border-radius: 15px;
+        padding: 15px;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: #fff;
+    }
+    .option-card.active {
+        border-color: var(--gold);
+        background: #fffdf5;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(212, 175, 55, 0.1);
+    }
+    .option-icon { font-size: 1.5rem; margin-bottom: 5px; color: var(--gold); }
+    .colour-swatch { width: 30px; height: 30px; border-radius: 50%; margin: 0 auto 5px; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+</style>
+
 <section class="section-padding pt-navbar">
     <div class="container">
         <div class="text-center mb-5" data-aos="fade-up">
-            <h1 class="section-title">Create Your <span class="text-gold">Dream Candle</span></h1>
-            <p class="text-muted">Design a unique candle that reflects your style and personality</p>
+            <h1 class="section-title">Design Your <span class="text-gold">Masterpiece</span></h1>
+            <p class="text-muted">Handcrafted luxury, tailored precisely to your senses.</p>
         </div>
 
         <!-- Loading spinner -->
@@ -41,11 +138,11 @@
             <!-- Live Preview + Summary -->
             <div class="col-lg-5" data-aos="fade-left">
                 <div class="customize-preview-card sticky-top" style="top: 100px;">
-                    <h5 class="text-center mb-3">Your Custom Candle</h5>
+                    <h5 class="text-center mb-4 fw-bold">Live Preview</h5>
 
                     <!-- Visual Preview -->
                     <div class="candle-preview" id="candlePreview">
-                        <div class="preview-candle">
+                        <div class="preview-candle" id="previewCandleMain">
                             <div class="preview-flame" id="previewFlame"><i class="bi bi-fire text-warning"></i></div>
                             <div class="preview-wick" id="previewWick"></div>
                             <div class="preview-wax" id="previewWax"></div>
@@ -68,8 +165,8 @@
                         </div>
                     </div>
 
-                    <button class="btn btn-luxoya-gold w-100 mt-3" onclick="addCustomToCart()" id="addCustomBtn">
-                        <i class="bi bi-bag-plus me-2"></i>Add Custom Candle to Cart
+                    <button class="btn btn-gold btn-lg w-100 mt-4 shadow" onclick="addCustomToCart()" id="addCustomBtn">
+                        <i class="bi bi-bag-plus me-2"></i>Add to Cart
                     </button>
                 </div>
             </div>
@@ -88,9 +185,6 @@ const STEP_CONFIG = {
     colour:     { label: 'Pick Your Colour',     group: 'colour' },
     fragrance:  { label: 'Select Fragrance',     group: 'fragrance' },
     wick_type:  { label: 'Wick Type',            group: 'wick_type' },
-    shape:      { label: 'Candle Shape',         group: 'shape' },
-    ingredient: { label: 'Choose Ingredients',   group: 'ingredient' },
-    wax_type:   { label: 'Wax Type',             group: 'wax_type' },
 };
 
 // Fallback hardcoded options (used if API returns nothing)
@@ -116,7 +210,6 @@ const FALLBACK = {
     wick_type: [
         { value:'single', name:'Single Wick', icon:'bi-fire', price_addon:0 },
         { value:'double', name:'Double Wick', icon:'bi-fire',  price_addon:50 },
-        { value:'triple', name:'Triple Wick', icon:'bi-fire',  price_addon:100 },
     ],
 };
 
@@ -161,17 +254,14 @@ function renderSteps() {
     container.innerHTML = '';
     let step = 1;
 
-    // Render steps in defined order, then any extras
-    const orderedCats = ['jar_type','colour','fragrance','wick_type','shape','ingredient','wax_type'];
-    const allCats = [...new Set([...orderedCats, ...Object.keys(optionsData)])];
-
-    allCats.forEach(cat => {
+    // Render steps in defined order
+    const orderedCats = ['jar_type','colour','fragrance','wick_type'];
+    
+    orderedCats.forEach(cat => {
         const opts = optionsData[cat];
         if (!opts || !opts.length) return;
 
-        const cfg = STEP_CONFIG[cat] || { label: cat.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase()), group: cat };
-
-        // Set default selection to first option
+        const cfg = STEP_CONFIG[cat];
         selections[cat] = opts[0].value;
 
         let cardsHtml = opts.map((o, i) => {
@@ -185,7 +275,7 @@ function renderSteps() {
                     <div class="option-card ${i===0?'active':''}" data-group="${cat}" data-value="${o.value}"
                          onclick="selectOption(this, '${cat}')">
                         ${iconHtml}
-                        <span>${o.name}</span>
+                        <span class="d-block small fw-bold">${o.name}</span>
                         ${priceHtml}
                     </div>
                 </div>`;
@@ -199,7 +289,6 @@ function renderSteps() {
         step++;
     });
 
-    // Update label step number
     document.getElementById('labelStepNum').textContent = step;
 }
 
@@ -212,12 +301,23 @@ function selectOption(el, group) {
 }
 
 function updatePreview() {
+    // Wax Colour
     const wax = document.getElementById('previewWax');
     const selectedColour = selections['colour'];
     if (wax) wax.style.background = colourLookup[selectedColour] || '#FFFFF0';
 
+    // Jar Type
+    const jar = document.getElementById('previewJar');
+    const jarType = selections['jar_type'];
+    jar.className = 'preview-jar'; // reset
+    if (jarType.includes('glass')) jar.classList.add('jar-classic');
+    else if (jarType.includes('ceramic')) jar.classList.add('jar-ceramic');
+    else if (jarType.includes('tin')) jar.classList.add('jar-tin');
+    else if (jarType.includes('marble')) jar.classList.add('jar-marble');
+
+    // Label Text
     const label = document.getElementById('previewLabel');
-    if (label) label.textContent = document.getElementById('labelText')?.value || '';
+    if (label) label.textContent = document.getElementById('labelText')?.value || 'LUXOYA CANDLES';
 }
 
 function updatePrice() {

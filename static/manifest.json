@@ -1,0 +1,21 @@
+{
+  "name": "Luxoya Luxury Candles",
+  "short_name": "Luxoya",
+  "description": "Pure Soy Luxury Candles Handcrafted in Hyderabad.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f8d57e",
+  "icons": [
+    {
+      "src": "/static/images/logo-dark-theme.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/images/logo-dark-theme.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

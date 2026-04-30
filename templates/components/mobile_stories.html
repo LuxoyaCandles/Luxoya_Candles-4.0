@@ -1,0 +1,60 @@
+<!-- 📱 Mobile Story Circles (Instagram Style) -->
+<div class="mobile-stories-container d-lg-none py-3 overflow-hidden border-bottom" style="background: #ffffff; padding-top: 85px !important;">
+    <div class="container">
+        <div class="d-flex gap-3 overflow-auto pb-2 custom-scrollbar no-wrap">
+            <!-- Quiz Story (Always first) -->
+            <div class="story-item text-center" style="min-width: 75px;" onclick="document.getElementById('quizModal').querySelector('.btn-luxoya-gold').click()">
+                <div class="story-circle-wrap p-[2px] rounded-circle mb-1" style="background: linear-gradient(45deg, #f8d57e, #d4af37); width: 68px; height: 68px; display: flex; align-items: center; justify-content: center; padding: 2px;">
+                    <div class="story-circle rounded-circle overflow-hidden bg-dark d-flex align-items-center justify-content-center" style="width: 100%; height: 100%; border: 2px solid white;">
+                        <i class="bi bi-stars text-gold fs-4"></i>
+                    </div>
+                </div>
+                <span class="smaller fw-bold text-dark d-block" style="font-size: 0.65rem; letter-spacing: 0.5px;">AI QUIZ</span>
+            </div>
+
+            {% for i in range(1, 7) %}
+            {% set reel_url = home_images['reel_' ~ i ~ '_url'] %}
+            {% set reel_thumb = home_images['reel_' ~ i ~ '_thumb'] %}
+            {% set reel_title = home_images['reel_' ~ i ~ '_title'] %}
+            {% if reel_url %}
+            <div class="story-item text-center" style="min-width: 75px;" onclick="scrollToReelSection()">
+                <div class="story-circle-wrap p-[2px] rounded-circle mb-1" style="background: linear-gradient(45deg, #eee, #ddd); width: 68px; height: 68px; display: flex; align-items: center; justify-content: center; padding: 2px;">
+                    <div class="story-circle rounded-circle overflow-hidden bg-white" style="width: 100%; height: 100%; border: 2px solid white;">
+                        <img src="{{ reel_thumb or url_for('static', filename='img/placeholder.jpg') }}" class="w-100 h-100 object-fit-cover" alt="{{ reel_title }}">
+                    </div>
+                </div>
+                <span class="smaller fw-bold text-muted d-block text-truncate" style="font-size: 0.65rem; letter-spacing: 0.5px;">{{ reel_title|upper }}</span>
+            </div>
+            {% endif %}
+            {% endfor %}
+            
+            <!-- Custom Studio Story -->
+            <div class="story-item text-center" style="min-width: 75px;" onclick="window.location.href='{{ url_for('products.customize') }}'">
+                <div class="story-circle-wrap p-[2px] rounded-circle mb-1" style="background: linear-gradient(45deg, #00c6ff, #0072ff); width: 68px; height: 68px; display: flex; align-items: center; justify-content: center; padding: 2px;">
+                    <div class="story-circle rounded-circle overflow-hidden bg-white d-flex align-items-center justify-content-center" style="width: 100%; height: 100%; border: 2px solid white;">
+                        <i class="bi bi-palette text-primary fs-4"></i>
+                    </div>
+                </div>
+                <span class="smaller fw-bold text-dark d-block" style="font-size: 0.65rem; letter-spacing: 0.5px;">CREATE</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.no-wrap { flex-wrap: nowrap !important; }
+.custom-scrollbar::-webkit-scrollbar { display: none; }
+.story-item { cursor: pointer; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.story-item:active { transform: scale(0.9); }
+.mobile-stories-container {
+    position: relative;
+    z-index: 100;
+}
+</style>
+
+<script>
+function scrollToReelSection() {
+    const el = document.getElementById('shop-by-video');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+</script>

@@ -20,6 +20,14 @@
     <link rel="canonical" href="{{ request.url }}">
     
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- Mobile App Support (PWA) -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Luxoya">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/logo-dark-theme.png') }}">
+    <meta name="theme-color" content="#f8d57e">
 
 
     <!-- Force Premium Dark Theme -->
@@ -49,6 +57,8 @@
 
     <!-- AOS Animation Library -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ range(10000,99999) | random }}">
@@ -447,46 +457,62 @@
     </footer>
 
     <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- AI CHAT WIDGET -->
+    <!-- FLOATING ACTION STACK (Premium Support & Concierge) -->
     <!-- ═══════════════════════════════════════════════════════ -->
-        <a href="https://wa.me/919705840457" target="_blank"
-        class="chat-toggle-btn d-flex justify-content-center align-items-center text-decoration-none"
-        style="position: fixed; bottom: 100px; right: 24px; z-index: 1040; background: #25D366; width: 52px; height: 52px; font-size: 1.4rem; border-radius: 50%; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);"
-        title="WhatsApp Direct Support">
-        <i class="bi bi-whatsapp"></i>
-    </a>
-
-
-    <div class="chat-widget" id="chatWidget" style="background: transparent !important; border: none !important;">
-        <button class="chat-toggle-btn" id="chatToggle" title="Ask Luxoya AI">
-            <i class="bi bi-robot"></i>
+    <div class="floating-action-stack animate__animated animate__fadeInRight" style="position: fixed; bottom: 100px; right: 24px; z-index: 1050; display: flex; flex-direction: column; gap: 12px; align-items: flex-end;">
+        <!-- Aurum Concierge Toggle -->
+        <button type="button" class="btn-aurum-trigger shadow-lg" id="chatToggle" title="Aurum Concierge">
+            <div class="pulse-ring"></div>
+            <i class="bi bi-stars text-white fs-4"></i>
         </button>
 
-        <div class="chat-window" id="chatWindow" style="display:none;">
-            <div class="chat-header">
-                <div class="d-flex align-items-center">
-                    <span class="chat-avatar"><i class="bi bi-chat-dots text-gold"></i></span>
-                    <div class="ms-2">
-                        <strong>Luxoya Assistant</strong>
-                        <small class="d-block text-muted">Online • AI Powered</small>
                     </div>
                 </div>
                 <button class="btn-close btn-close-white btn-sm" id="chatClose"></button>
             </div>
-            <div class="chat-body" id="chatBody">
+            <div class="chat-body p-3" id="chatBody" style="height: 350px; overflow-y: auto; background: #fff;">
                 <div class="chat-msg bot">
-                    <p>Welcome to Luxoya Candles! How can I help you today?</p>
+                    <p style="background: #f1f1f1; padding: 12px 15px; border-radius: 15px; border-bottom-left-radius: 2px; font-size: 0.9rem; color: #333;">Greetings. I am Aurum, your personal scent concierge. How may I assist your fragrance journey today?</p>
+                </div>
+                <div class="quick-replies d-flex gap-2 flex-wrap mt-3">
+                    <button class="btn btn-sm btn-outline-gold rounded-pill px-3" style="font-size: 11px;" onclick="sendQuickReply('Help me find a gift')">Find a Gift</button>
+                    <button class="btn btn-sm btn-outline-gold rounded-pill px-3" style="font-size: 11px;" onclick="sendQuickReply('Bestselling fragrances')">Bestsellers</button>
+                    <button class="btn btn-sm btn-outline-gold rounded-pill px-3" style="font-size: 11px;" onclick="sendQuickReply('Track my order')">Order Status</button>
                 </div>
             </div>
-            <div class="chat-footer">
-                <form id="chatForm" class="d-flex gap-2">
-                    <input type="text" class="form-control" id="chatInput" placeholder="Type your message..."
-                        autocomplete="off">
-                    <button type="submit" class="btn btn-luxoya-gold"><i class="bi bi-send"></i></button>
+            <div class="chat-footer p-2 bg-white border-top">
+                <form id="chatForm" class="d-flex gap-2 align-items-center">
+                    <input type="text" class="form-control border-0 bg-light rounded-pill px-3" id="chatInput" placeholder="Describe your mood..." autocomplete="off" style="font-size: 0.9rem;">
+                    <button type="submit" class="btn btn-gold rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; flex-shrink: 0;"><i class="bi bi-send-fill"></i></button>
                 </form>
             </div>
         </div>
     </div>
+
+<style>
+.avatar-aurum { width: 35px; height: 35px; background: #000; border: 1px solid #c9a96e; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.chat-pulse {
+    position: absolute; top: 0; right: 0; width: 12px; height: 12px;
+    background: #c9a96e; border-radius: 50%; border: 2px solid #fff;
+    animation: pulse-gold 2s infinite;
+}
+@keyframes pulse-gold {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(201, 169, 110, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(201, 169, 110, 0); }
+}
+.chat-msg.user p { background: #0b0a0a !important; color: #fff !important; border-bottom-right-radius: 2px !important; margin-left: auto; }
+</style>
+
+<script>
+function sendQuickReply(msg) {
+    const input = document.getElementById('chatInput');
+    if (input) {
+        input.value = msg;
+        document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+    }
+}
+</script>
 
     <!-- ═══════════════════════════════════════════════════════ -->
     <!-- WHATSAPP & TELEGRAM SUPPORT -->

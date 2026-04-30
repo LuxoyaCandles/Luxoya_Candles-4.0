@@ -211,8 +211,29 @@ async function addToCart(productId, quantity = 1, showModal = false) {
 
 async function buyNow(productId, quantity = 1) {
     // Shortcut for direct "Buy Now" experience
+    triggerHaptic('medium');
     await addToCart(productId, quantity, true);
 }
+
+/* ── Haptic Feedback Utility ────────────────────────────── */
+function triggerHaptic(style = 'light') {
+    if (!navigator.vibrate) return;
+    try {
+        switch(style) {
+            case 'light': navigator.vibrate(10); break;
+            case 'medium': navigator.vibrate(20); break;
+            case 'heavy': navigator.vibrate(40); break;
+            case 'success': navigator.vibrate([10, 30, 10]); break;
+            case 'error': navigator.vibrate([50, 80, 50]); break;
+        }
+    } catch(e) {}
+}
+
+// Global listener for haptic feedback on buttons
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn, .action-btn, .mobile-nav-item, .story-item');
+    if (btn) triggerHaptic('light');
+});
 
 /* ── Chat Widget ───────────────────────────────────────────── */
 function initChat() {

@@ -70,7 +70,52 @@
                         </div>
                     </form>
                 </div>
+
+                <div class="checkout-card mt-4" data-aos="fade-up">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0"><i class="bi bi-gift me-2 text-gold"></i>Gifting Options</h5>
+                        <span class="badge bg-gold text-dark">PREMIUM</span>
+                    </div>
+                    <div class="form-check form-switch custom-switch mb-4">
+                        <input class="form-check-input" type="checkbox" id="isGift" onchange="toggleGiftOptions()">
+                        <label class="form-check-label fw-bold text-dark" for="isGift">Send as a Gift</label>
+                        <p class="small text-muted mb-0">We will hide prices and add a luxury touch.</p>
+                    </div>
+                    
+                    <div id="giftOptions" style="display: none;" class="animate__animated animate__fadeIn">
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold">Handwritten Note <span class="badge bg-success bg-opacity-10 text-success ms-2">FREE</span></label>
+                            <textarea class="form-control" id="giftMessage" rows="3" maxlength="250" 
+                                      placeholder="Write a personal message (max 250 characters)..."></textarea>
+                            <div class="form-text text-end" id="msgCounter">0 / 250</div>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="gift-box-option p-3 border rounded-4 text-center cursor-pointer active" id="wrap-standard" onclick="selectWrap('standard', 0)">
+                                    <div class="mb-2"><i class="bi bi-box-seam text-muted fs-3"></i></div>
+                                    <h6 class="mb-1 small fw-bold">Classic Case</h6>
+                                    <small class="text-muted">Included</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="gift-box-option p-3 border rounded-4 text-center cursor-pointer" id="wrap-premium" onclick="selectWrap('premium', 199)">
+                                    <div class="mb-2"><i class="bi bi-box2-heart text-gold fs-3"></i></div>
+                                    <h6 class="mb-1 small fw-bold">Luxury Velvet</h6>
+                                    <small class="text-gold">+₹199</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+<style>
+    .gift-box-option { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; background: #fff; }
+    .gift-box-option.active { border-color: #c9a96e !important; background: rgba(201, 169, 110, 0.05); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+    .gift-box-option:hover { border-color: rgba(201, 169, 110, 0.5); }
+    .custom-switch .form-check-input:checked { background-color: #c9a96e; border-color: #c9a96e; }
+</style>
             
             <!-- Order Summary -->
             <div class="col-lg-5" data-aos="fade-left">
@@ -224,13 +269,51 @@ function calculateTotals() {
         checkoutSubtotal += (price + addon) * item.quantity;
     });
     
-    checkoutShipping = checkoutSubtotal >= 999 ? 0 : 99;
-    checkoutTotal = checkoutSubtotal - checkoutDiscount + checkoutShipping;
+    // Gift wrap logic
+    const isGift = document.getElementById('isGift').checked;
+    const finalGiftPrice = isGift ? giftWrapPrice : 0;
+    
+    checkoutShipping = (checkoutSubtotal + finalGiftPrice) >= 999 ? 0 : 99;
+    checkoutTotal = checkoutSubtotal - checkoutDiscount + checkoutShipping + finalGiftPrice;
     
     document.getElementById('checkSubtotal').textContent = `₹${checkoutSubtotal.toFixed(0)}`;
     document.getElementById('checkShipping').textContent = checkoutShipping === 0 ? 'FREE' : `₹${checkoutShipping}`;
     document.getElementById('checkTotal').textContent = `₹${checkoutTotal.toFixed(0)}`;
+    
+    // Show gift wrap in summary if active
+    const summaryList = document.getElementById('checkoutItems');
+    if (isGift && finalGiftPrice > 0) {
+        if (!document.getElementById('giftSummaryRow')) {
+            const row = document.createElement('div');
+            row.id = 'giftSummaryRow';
+            row.className = 'summary-row text-gold fw-bold';
+            row.innerHTML = `<span><i class="bi bi-gift me-1"></i>Luxury Wrapping</span><span>+₹${finalGiftPrice}</span>`;
+            document.querySelector('.total').before(row);
+        } else {
+            document.getElementById('giftSummaryRow').querySelector('span:last-child').textContent = `+₹${finalGiftPrice}`;
+        }
+    } else {
+        document.getElementById('giftSummaryRow')?.remove();
+    }
 }
+
+// ─── Gifting Logic ───
+let giftWrapPrice = 0;
+function toggleGiftOptions() {
+    const isGift = document.getElementById('isGift').checked;
+    document.getElementById('giftOptions').style.display = isGift ? 'block' : 'none';
+    if (!isGift) selectWrap('standard', 0);
+    else calculateTotals();
+}
+function selectWrap(type, price) {
+    giftWrapPrice = price;
+    document.querySelectorAll('.gift-box-option').forEach(el => el.classList.remove('active'));
+    document.getElementById('wrap-' + type).classList.add('active');
+    calculateTotals();
+}
+document.getElementById('giftMessage')?.addEventListener('input', e => {
+    document.getElementById('msgCounter').innerText = `${e.target.value.length} / 250`;
+});
 
 async function initiatePayment(method = 'razorpay') {
     const form = document.getElementById('checkoutForm');
@@ -256,7 +339,11 @@ async function initiatePayment(method = 'razorpay') {
                 shipping_pincode: document.getElementById('shippingPincode').value,
                 shipping_phone: document.getElementById('shippingPhone').value,
                 notes: document.getElementById('orderNotes').value,
-                coupon_code: couponCode
+                coupon_code: couponCode,
+                // Gifting Data
+                is_gift: document.getElementById('isGift').checked,
+                gift_message: document.getElementById('giftMessage').value,
+                gift_wrap: giftWrapPrice > 0 ? 'premium' : 'standard'
             })
         });
         

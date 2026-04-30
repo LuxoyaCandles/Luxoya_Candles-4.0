@@ -32,25 +32,76 @@
             </div>
             
             <div class="col-lg-8">
-                <!-- Loyalty Progress Summary (WOW factor) -->
-                <div class="card bg-dark border-0 rounded-4 overflow-hidden mb-4 shadow-lg animate__animated animate__fadeInDown">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="text-white mb-0"><i class="bi bi-stars text-gold me-2"></i>Luxoya <span class="text-gold">Member</span></h5>
-                            <span class="badge rounded-pill bg-gold text-dark px-3 py-2 fw-bold">Silver Member</span>
-                        </div>
-                        <div class="mb-2 d-flex justify-content-between">
-                            <small class="text-white text-opacity-75">Loyalty Progress to Gold Circle</small>
-                            <small class="text-gold fw-bold">₹1,500 / ₹5,000</small>
-                        </div>
-                        <div class="progress" style="height: 10px; background: rgba(255,255,255,0.05); border-radius: 10px;">
-                            <div class="progress-bar bg-gold progress-bar-striped progress-bar-animated" style="width: 30%"></div>
-                        </div>
-                        <div class="mt-3 text-center">
-                            <p class="smaller text-white text-opacity-50 mb-0">You're only a few orders away from 15% Free Gift coupons!</p>
+                <!-- Digital Membership Card (Luxury Upgrade) -->
+                <div class="membership-card-wrap mb-4 animate__animated animate__fadeInDown" data-aos="zoom-in">
+                    <div class="membership-card" id="loyaltyCard">
+                        <div class="card-glow"></div>
+                        <div class="card-content d-flex flex-column justify-content-between h-100 p-4">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h4 class="mb-0 fw-bold ls-2 text-white">LUXOYA</h4>
+                                    <div class="smaller ls-1 opacity-50 text-uppercase" style="font-size: 10px;">Private Circle</div>
+                                </div>
+                                <div class="tier-logo">
+                                    <i class="bi bi-stars text-gold fs-2"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="card-middle">
+                                <div class="smaller text-uppercase ls-2 opacity-50 mb-1" style="font-size: 9px;">Member Name</div>
+                                <h5 class="mb-0 text-white fw-600" id="cardMemberName">...</h5>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <div class="smaller text-uppercase ls-1 opacity-50 mb-1" style="font-size: 9px;">Current Tier</div>
+                                    <div class="badge rounded-pill bg-gold text-dark px-3 py-1 fw-bold" id="cardTierBadge">Silver Member</div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="smaller text-uppercase ls-1 opacity-50 mb-1" style="font-size: 9px;">Luxoya Points</div>
+                                    <div class="h4 mb-0 text-white fw-bold"><span id="cardLXP">0</span> <span class="fs-6 text-gold">LXP</span></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Loyalty Progress Bar -->
+                <div class="card bg-white border rounded-4 mb-4 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0 fw-bold" id="tierLabel">Progress to Gold Circle</h6>
+                            <small class="text-gold fw-bold" id="lxpProgressDisplay">₹0 / ₹2,500</small>
+                        </div>
+                        <div class="progress" style="height: 8px; background: #f0f0f0;">
+                            <div class="progress-bar bg-gold progress-bar-striped progress-bar-animated loyalty-progress-bar" style="width: 0%"></div>
+                        </div>
+                        <p class="smaller text-muted mt-2 mb-0" id="tierRewardMsg">You're on your way to exclusive VIP benefits!</p>
+                    </div>
+                </div>
+
+<style>
+.membership-card-wrap { perspective: 1000px; }
+.membership-card {
+    height: 220px; width: 100%; border-radius: 20px; position: relative;
+    background: linear-gradient(135deg, #0b0a0a 0%, #2c2c2c 100%);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3); overflow: hidden;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.1);
+}
+.membership-card:hover { transform: translateY(-5px) rotateX(5deg) rotateY(-5deg); }
+.card-glow {
+    position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle at center, rgba(201, 169, 110, 0.15) 0%, transparent 70%);
+    pointer-events: none; animation: card-glow-rotate 10s linear infinite;
+}
+@keyframes card-glow-rotate { 
+    0% { transform: rotate(0deg); } 
+    100% { transform: rotate(360deg); } 
+}
+.membership-card.tier-silver { background: linear-gradient(135deg, #1a1a1a 0%, #4a4a4a 100%); }
+.membership-card.tier-gold { background: linear-gradient(135deg, #0b0a0a 0%, #b8860b 100%); }
+.membership-card.tier-platinum { background: linear-gradient(135deg, #000 0%, #1a1a1a 100%); border-color: rgba(201, 169, 110, 0.4); }
+</style>
 
                 <!-- Personal Details -->
                 <div class="profile-card" id="tab-details" data-aos="fade-left">
@@ -114,18 +165,18 @@
                         <div class="col-md-6">
                             <div class="p-4 rounded-4 bg-dark text-white border border-gold border-opacity-25 h-100">
                                 <small class="text-gold text-uppercase ls-1 fw-bold">Current Loyalty Points</small>
-                                <h2 class="mt-2 mb-0 display-6 fw-bold">150 <span class="fs-4 text-gold opacity-50">LXP</span></h2>
+                                <h2 class="mt-2 mb-0 display-6 fw-bold"><span id="displayLXP">0</span> <span class="fs-4 text-gold opacity-50">LXP</span></h2>
                                 <p class="small text-muted mt-2 mb-0">₹1 Spent = 1 Luxoya Point (LXP). Redeem for exclusive scents.</p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="p-4 rounded-4 bg-cream border h-100 text-dark">
                                 <small class="text-muted text-uppercase ls-1 fw-bold">Next Tier Unlock</small>
-                                <h4 class="mt-2 mb-2">Gold Circle</h4>
+                                <h4 class="mt-2 mb-2" id="nextTierLabel">Gold Circle</h4>
                                 <div class="progress" style="height: 6px;">
-                                    <div class="progress-bar bg-gold" style="width: 30%"></div>
+                                    <div class="progress-bar bg-gold loyalty-progress-bar" style="width: 0%"></div>
                                 </div>
-                                <p class="smaller text-muted mt-2 mb-0">Add ₹3,500 more value to unlock 15% VIP discounts.</p>
+                                <p class="smaller text-muted mt-2 mb-0" id="nextTierUnlockMsg">Add ₹2,500 more value to unlock Gold status.</p>
                             </div>
                         </div>
                     </div>
@@ -134,7 +185,7 @@
                         <h6>Spread the Light</h6>
                         <p class="text-muted small">Refer a friend and you both get ₹250 gift card when they make their first purchase.</p>
                         <div class="input-group input-group-sm">
-                            <input type="text" class="form-control" id="refLink" readonly value="https://luxoyacandles.com/invite/LX-9821">
+                            <input type="text" class="form-control" id="refLink" readonly value="">
                             <button class="btn btn-gold" onclick="copyRef()">Copy Link</button>
                         </div>
                     </div>
@@ -180,12 +231,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const data = await res.json();
         const u = data.user || data;
         
-        hasPassword = !!u.has_password; // We should check this from the to_dict() if added, or deduce
-        // Assume u.has_password exists from User.to_dict update I should make
-        
+        hasPassword = !!u.has_password;
         document.getElementById('profileInitial').textContent = u.full_name ? u.full_name[0].toUpperCase() : 'U';
         document.getElementById('profileName').textContent = u.full_name || 'User';
-        document.getElementById('profileEmail').textContent = u.email;
+        document.getElementById('cardMemberName').textContent = u.full_name || 'Valued Member';
         document.getElementById('profName').value = u.full_name || '';
         document.getElementById('profEmail').value = u.email;
         document.getElementById('profPhone').value = u.phone || '';
@@ -193,6 +242,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('profCity').value = u.city || '';
         document.getElementById('profState').value = u.state || '';
         document.getElementById('profPincode').value = u.pincode || '';
+
+        // --- LOYALTY & REFERRAL SYSTEM ---
+        const lxp = u.loyalty_points || 0;
+        document.getElementById('displayLXP').textContent = lxp.toLocaleString();
+        document.getElementById('cardLXP').textContent = lxp.toLocaleString();
+        
+        let tier = 'Silver Member';
+        let tierClass = 'tier-silver';
+        let nextTier = 'Gold Circle';
+        let target = 2500;
+        let rewardMsg = 'Unlock 10% Discount on Gold Circle.';
+        
+        if (lxp >= 2500 && lxp < 10000) {
+            tier = 'Gold Circle';
+            tierClass = 'tier-gold';
+            nextTier = 'Platinum Elite';
+            target = 10000;
+            rewardMsg = 'Unlock 15% VIP benefits on Platinum Elite.';
+        } else if (lxp >= 10000) {
+            tier = 'Platinum Elite';
+            tierClass = 'tier-platinum';
+            nextTier = 'Supreme Tier';
+            target = 50000;
+            rewardMsg = 'Enjoy Supreme status and early access!';
+        }
+        
+        const progress = Math.min((lxp / target) * 100, 100);
+        const card = document.getElementById('loyaltyCard');
+        if (card) {
+            card.classList.remove('tier-silver', 'tier-gold', 'tier-platinum');
+            card.classList.add(tierClass);
+        }
+        
+        const badge = document.getElementById('cardTierBadge');
+        if (badge) badge.textContent = tier;
+        
+        document.getElementById('tierLabel').textContent = `Loyalty Progress to ${nextTier}`;
+        document.getElementById('lxpProgressDisplay').textContent = `₹${lxp.toLocaleString()} / ₹${target.toLocaleString()}`;
+        document.querySelectorAll('.loyalty-progress-bar').forEach(bar => {
+            bar.style.width = progress + '%';
+        });
+        document.getElementById('nextTierLabel').textContent = nextTier;
+        document.getElementById('nextTierUnlockMsg').textContent = lxp < target 
+            ? `Add ₹${(target - lxp).toLocaleString()} more value to unlock ${nextTier} status.`
+            : `You've reached ${tier}! New tiers coming soon.`;
+        document.getElementById('tierRewardMsg').textContent = rewardMsg;
+            
+        // Referral Link
+        const refCode = u.referral_code || 'JOIN';
+        document.getElementById('refLink').value = `${window.location.origin}/register?ref=${refCode}`;
 
         // UI for Google Users without password
         if (u.has_password === false) {
@@ -203,7 +302,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('pwDivider').style.display = 'none';
             document.getElementById('pwSubmitBtn').textContent = 'Create Password';
         }
-    } catch(e) { window.location.href = '/login'; }
+    } catch(e) { 
+        console.error('Profile Load Error:', e);
+        window.location.href = '/login'; 
+    }
     
     // Tab switch
     document.querySelectorAll('.profile-nav a[data-tab]').forEach(a => {

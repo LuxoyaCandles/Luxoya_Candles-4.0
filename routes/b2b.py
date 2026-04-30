@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, render_template
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for
 from models import B2BRequest, db
 from datetime import datetime
 
@@ -11,6 +11,10 @@ b2b_bp = Blueprint('b2b', __name__)
 @b2b_bp.route('/corporate')
 def corporate_page():
     return render_template('b2b.html')
+
+@b2b_bp.route('/b2b')
+def b2b_redirect():
+    return redirect(url_for('b2b.corporate_page'))
 
 
 # ─────────────────────────────────────────────

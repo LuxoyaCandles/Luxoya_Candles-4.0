@@ -32,6 +32,11 @@ class User(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     is_email_verified = db.Column(db.Boolean, default=False)
     
+    # Restored April 25 Columns
+    referral_code = db.Column(db.String(50), unique=True, nullable=True)
+    loyalty_points = db.Column(db.Integer, default=0)
+    referred_by_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=True)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -69,6 +74,9 @@ class User(db.Model):
             'role': self.role,
             'is_admin': self.is_admin,
             'avatar_url': self.avatar_url,
+            'referral_code': self.referral_code,
+            'loyalty_points': self.loyalty_points,
+            'referred_by_id': self.referred_by_id,
             'has_password': self.password_hash is not None,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
@@ -131,6 +139,12 @@ class Product(db.Model):
     rating_avg = db.Column(db.Float, default=0.0)
     rating_count = db.Column(db.Integer, default=0)
     view_count = db.Column(db.Integer, default=0)
+    
+    # Restored April 25 Columns
+    recipe_id = db.Column(db.String(100), nullable=True)
+    views = db.Column(db.Integer, default=0) # April 25 version of view_count
+    occasion_tags = db.Column(db.String(255), nullable=True)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -193,6 +207,10 @@ class Product(db.Model):
             'is_active': self.is_active,
             'rating_avg': self.rating_avg,
             'rating_count': self.rating_count,
+            'view_count': self.view_count,
+            'views': self.views,
+            'recipe_id': self.recipe_id,
+            'occasion_tags': self.occasion_tags,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 

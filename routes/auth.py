@@ -151,11 +151,23 @@ def api_register():
     if User.query.filter_by(phone=phone).first():
         return jsonify({'error': 'An account with this mobile number already exists. Please sign in.'}), 409
 
+    # Handle Referral System
+    referral_code_input = data.get('referral_code', '').strip().upper()
+    referred_by = None
+    if referral_code_input:
+        referred_by = User.query.filter_by(referral_code=referral_code_input).first()
+
+    # Generate new referral code for this user
+    import uuid
+    new_ref_code = f"LX-{uuid.uuid4().hex[:6].upper()}"
+
     user = User(
         email=email,
         full_name=full_name,
         phone=phone or None,
-        is_email_verified=True
+        is_email_verified=True,
+        referral_code=new_ref_code,
+        referred_by_id=referred_by.id if referred_by else None
     )
     user.set_password(password)
 

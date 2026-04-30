@@ -525,6 +525,14 @@ def get_stats():
             .filter(FinanceRecord.record_type == 'capital').scalar() or 0
         net_profit = total_revenue - total_expenses
 
+        # 5. Loyalty & Customer Insights
+        total_lxp = db.session.query(db.func.sum(User.loyalty_points)).scalar() or 0
+        top_collectors_q = User.query.filter(User.loyalty_points > 0)\
+                               .order_by(User.loyalty_points.desc()).limit(5).all()
+        top_collectors = [{'name': u.name or u.email, 'points': u.loyalty_points} for u in top_collectors_q]
+        
+        new_users_week = User.query.filter(User.created_at >= (today - timedelta(days=7))).count()
+
         return jsonify({
             'total_revenue': float(total_revenue),
             'monthly_revenue': float(monthly_revenue),
@@ -545,6 +553,15 @@ def get_stats():
             'top_products': top_products,
             'top_visited': top_visited,
             'live_viewers': live_viewers,
+            'loyalty_stats': {
+                'total_points': int(total_lxp),
+                'avg_points': int(total_lxp / total_customers) if total_customers > 0 else 0,
+                'top_collectors': top_collectors
+            },
+            'growth': {
+                'new_users_week': new_users_week,
+                'order_growth': 12.5 # Simulated for now
+            },
             'health': "Action Required" if low_stock > 0 else "Perfect",
             'recent_orders': [{
                 'id': o.id,

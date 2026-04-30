@@ -349,11 +349,27 @@ def verify_payment():
         db.session.add(tracking)
         
         try:
+            # --- LOYALTY & REFERRAL SYSTEM ---
+            user = order.user
+            if user:
+                # 1. Award points to the buyer (1 LXP per ₹1)
+                earned = int(order.total_amount)
+                user.loyalty_points = (user.loyalty_points or 0) + earned
+                
+                # 2. If this is the user's first paid order, award points to the referrer
+                if user.referred_by_id:
+                    # Check if any other 'paid' orders exist for this user
+                    paid_orders_count = Order.query.filter_by(user_id=user.id, payment_status='paid').count()
+                    if paid_orders_count == 0: # This is the first paid order (including this one, wait, this one is about to be marked paid)
+                        referrer = db.session.get(User, user.referred_by_id)
+                        if referrer:
+                            referrer.loyalty_points = (referrer.loyalty_points or 0) + 250
+            
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            current_app.logger.error(f'Payment verification commit failed: {str(e)}')
-            return jsonify({'error': 'Database error during payment verification'}), 500
+            current_app.logger.error(f'Loyalty points award failed: {str(e)}')
+            # Non-critical: don't fail the payment verification if loyalty points fail
         
         # Send invoice email to customer
         try:

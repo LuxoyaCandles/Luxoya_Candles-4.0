@@ -3,6 +3,8 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
+{% include 'components/mobile_stories.html' %}
+{% include 'components/scent_quiz.html' %}
 <!-- ════════════════════════════════════════════════<section class="hero-slider-section">
     <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="false">
         <!-- Indicators (Dynamic) -->
@@ -388,6 +390,50 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
+<!-- AI SCENT DISCOVERY -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="section-padding py-5 bg-cream border-top">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6" data-aos="fade-right">
+                <div class="pe-lg-5">
+                    <span class="badge bg-gold text-dark mb-3 px-3 py-2 rounded-pill fw-bold">NEW: AI DISCOVERY</span>
+                    <h2 class="display-5 fw-bold mb-4">Unsure which <span class="text-gold">Fragrance</span> fits you?</h2>
+                    <p class="text-muted fs-5 mb-4">Finding your signature scent is an art. Our AI-powered discovery quiz analyzes your personality and mood to find your perfect match.</p>
+                    <div class="d-flex flex-column gap-3 mb-5">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-gold bg-opacity-10 p-2 text-gold"><i class="bi bi-magic"></i></div>
+                            <span class="fw-medium">Guided sensory journey</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-gold bg-opacity-10 p-2 text-gold"><i class="bi bi-stars"></i></div>
+                            <span class="fw-medium">Personalized recommendations</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-gold btn-lg px-5 py-3 rounded-pill shadow" onclick="openScentQuiz()">
+                        Discover Your Scent <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="fade-left">
+                <div class="position-relative">
+                    <img src="https://images.unsplash.com/photo-1572726729207-a78d6feb18d7?w=800" class="img-fluid rounded-4 shadow-lg" alt="Scent Discovery">
+                    <div class="position-absolute bottom-0 start-0 p-4 w-100">
+                        <div class="p-3 rounded-4 d-flex align-items-center gap-3 animate__animated animate__pulse animate__infinite" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2);">
+                            <div class="rounded-circle bg-gold p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;"><i class="bi bi-question-circle text-white"></i></div>
+                            <div class="text-white">
+                                <p class="mb-0 small fw-bold">Over 500+ people</p>
+                                <p class="mb-0 smaller opacity-75">found their match today</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
 <!-- CUSTOMIZATION STUDIO -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <section class="section-padding py-5 bg-white border-top">
@@ -514,10 +560,10 @@
 
         <div class="video-reels-container" data-aos="fade-up" data-aos-delay="100">
             {% for reel in reels_data %}
-            <div class="video-reel-item">
+            <div class="video-reel-item" {% if reel.product_slug %}onclick="window.location.href='{{ url_for('products.product_detail', slug=reel.product_slug) }}'"{% endif %}>
                 <video src="{{ reel.url }}" class="reel-video w-100 h-100 object-fit-cover" 
                        loop muted playsinline poster="{{ reel.thumb }}"></video>
-                <button class="reel-audio-toggle" onclick="toggleReelAudio(this)">
+                <button class="reel-audio-toggle" onclick="event.stopPropagation(); toggleReelAudio(this)">
                     <i class="bi bi-volume-mute-fill"></i>
                 </button>
                 <div class="overlay-play-static"><i class="bi bi-play-fill text-white"></i></div>
@@ -554,6 +600,156 @@
         </div>
     </div>
 </section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- LIMITED EDITION DROP (Urgency Section) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="drop-section py-5 position-relative overflow-hidden" style="background: #0a0a0a; border-top: 1px solid rgba(248, 213, 126, 0.1);">
+    <div class="drop-bg-glow"></div>
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6" data-aos="fade-right">
+                <div class="drop-visual p-2 rounded-5" style="background: linear-gradient(135deg, rgba(248, 213, 126, 0.1) 0%, transparent 100%); border: 1px solid rgba(248, 213, 126, 0.2);">
+                    <img src="https://images.unsplash.com/photo-1605651202774-7d573fd3f12d?w=800&q=80" class="img-fluid rounded-4 shadow-lg" alt="Limited Edition">
+                </div>
+            </div>
+            <div class="col-lg-6" data-aos="fade-left">
+                <div class="drop-content">
+                    <span class="badge bg-gold text-dark px-3 py-2 rounded-pill mb-3 fw-bold ls-1">LUXURY DROP</span>
+                    <h2 class="display-5 fw-bold text-white mb-3">Midnight <span class="text-gold">Saffron</span></h2>
+                    <p class="text-white-50 fs-5 mb-4">A rare, opulent blend of Kashmiri Saffron and Smoked Oud. Only 100 hand-numbered jars available globally.</p>
+                    
+                    <div class="countdown-wrap d-flex justify-content-center justify-content-lg-start gap-3 mb-5">
+                        <div class="timer-box">
+                            <span class="timer-val" id="drop-days">02</span>
+                            <span class="timer-label">DAYS</span>
+                        </div>
+                        <div class="timer-box">
+                            <span class="timer-val" id="drop-hours">14</span>
+                            <span class="timer-label">HRS</span>
+                        </div>
+                        <div class="timer-box">
+                            <span class="timer-val" id="drop-mins">32</span>
+                            <span class="timer-label">MINS</span>
+                        </div>
+                        <div class="timer-box">
+                            <span class="timer-val" id="drop-secs">45</span>
+                            <span class="timer-label">SECS</span>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <a href="{{ url_for('products.collections') }}" class="btn btn-luxoya-gold btn-lg px-5 py-3">SECURE YOURS</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.drop-section { min-height: 500px; }
+.drop-bg-glow {
+    position: absolute; top: -50%; left: -20%; width: 100%; height: 200%;
+    background: radial-gradient(circle, rgba(248, 213, 126, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+}
+.timer-box {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 15px; border-radius: 15px; min-width: 80px; text-align: center;
+}
+.timer-val { display: block; font-size: 1.8rem; font-weight: 800; color: #f8d57e; line-height: 1; margin-bottom: 5px; }
+.timer-label { font-size: 0.6rem; letter-spacing: 2px; color: rgba(255,255,255,0.4); font-weight: 700; }
+</style>
+
+<script>
+function startCountdown() {
+    let days = 2, hours = 14, mins = 32, secs = 45;
+    setInterval(() => {
+        if(secs > 0) secs--;
+        else {
+            secs = 59;
+            if(mins > 0) mins--;
+            else {
+                mins = 59;
+                if(hours > 0) hours--;
+                else {
+                    hours = 23;
+                    if(days > 0) days--;
+                }
+            }
+        }
+        const dEl = document.getElementById('drop-days');
+        const hEl = document.getElementById('drop-hours');
+        const mEl = document.getElementById('drop-mins');
+        const sEl = document.getElementById('drop-secs');
+        if(dEl) dEl.innerText = String(days).padStart(2, '0');
+        if(hEl) hEl.innerText = String(hours).padStart(2, '0');
+        if(mEl) mEl.innerText = String(mins).padStart(2, '0');
+        if(sEl) sEl.innerText = String(secs).padStart(2, '0');
+    }, 1000);
+}
+document.addEventListener('DOMContentLoaded', startCountdown);
+</script>
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="section-padding py-5 bg-white overflow-hidden border-top">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <span class="section-tag section-tag-sm mb-1 px-1">COMMUNITY</span>
+            <h2 class="section-title fs-3 mb-2">Our <span class="text-gold">Wall of Glow</span></h2>
+            <p class="text-muted small">Real moments shared by the Luxoya family across India.</p>
+        </div>
+
+        <div class="row g-3" id="ugc-gallery">
+            <div class="col-md-4 col-6" data-aos="zoom-in">
+                <div class="ugc-item rounded-4 overflow-hidden position-relative" style="height: 500px;">
+                    <img src="https://images.unsplash.com/photo-1602873145311-482bc529f74a?w=400&h=600&fit=crop" class="w-100 h-100 object-fit-cover" alt="UGC 1">
+                    <div class="ugc-overlay"><i class="bi bi-instagram me-1"></i> @aura_interiors</div>
+                </div>
+            </div>
+            <div class="col-md-2 col-6" data-aos="zoom-in" data-aos-delay="100">
+                <div class="ugc-item rounded-4 overflow-hidden position-relative mb-3" style="height: 242px;">
+                    <img src="https://images.unsplash.com/photo-1572726729207-a78d6feb18d7?w=400&h=300&fit=crop" class="w-100 h-100 object-fit-cover" alt="UGC 2">
+                </div>
+                <div class="ugc-item rounded-4 overflow-hidden position-relative" style="height: 242px;">
+                    <img src="https://images.unsplash.com/photo-1603006905003-be475563bc59?w=400&h=300&fit=crop" class="w-100 h-100 object-fit-cover" alt="UGC 3">
+                </div>
+            </div>
+            <div class="col-md-3 col-6" data-aos="zoom-in" data-aos-delay="200">
+                <div class="ugc-item rounded-4 overflow-hidden position-relative" style="height: 500px;">
+                    <img src="https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=400&h=800&fit=crop" class="w-100 h-100 object-fit-cover" alt="UGC 4">
+                    <div class="ugc-overlay"><i class="bi bi-instagram me-1"></i> @luxury_living_in</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6" data-aos="zoom-in" data-aos-delay="300">
+                <div class="ugc-item rounded-4 overflow-hidden position-relative mb-3" style="height: 200px;">
+                    <img src="https://images.unsplash.com/photo-1543332164-6e82f355badc?w=400&h=200&fit=crop" class="w-100 h-100 object-fit-cover" alt="UGC 5">
+                </div>
+                <div class="ugc-item rounded-4 overflow-hidden position-relative bg-dark d-flex align-items-center justify-content-center" style="height: 285px; border: 1px dashed rgba(212,175,55,0.3);">
+                    <div class="text-center p-3">
+                        <i class="bi bi-camera text-gold fs-1 mb-2"></i>
+                        <p class="text-white small fw-bold mb-0">Join the Glow</p>
+                        <p class="text-white-50 smaller">Tag #LuxoyaGlow</p>
+                        <a href="{{ url_for('contact') }}" class="btn btn-outline-gold btn-sm mt-3 px-3 rounded-pill">Submit Photo</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.ugc-item { cursor: pointer; transition: transform 0.3s ease; border: 1px solid rgba(0,0,0,0.05); }
+.ugc-item:hover { transform: scale(1.02); }
+.ugc-overlay {
+    position: absolute; bottom: 0; left: 0; width: 100%;
+    padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    color: #fff; font-size: 0.8rem; font-weight: 600;
+    opacity: 0; transition: opacity 0.3s ease;
+}
+.ugc-item:hover .ugc-overlay { opacity: 1; }
+</style>
 
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- NEWSLETTER CTA -->
@@ -624,8 +820,165 @@
 .category-item-wrap:hover .category-label { color: var(--lx-gold) !important; transform: translateY(-3px); }
 
 .phi-img-wrapper { transition: transform 0.5s ease; cursor: pointer; }
-.phi-img-wrapper:hover { transform: translateY(-10px); }
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- FRAGRANCE COMPASS (Interactive) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="fragrance-compass py-5 overflow-hidden" style="background: #0b0a0a; color: white;">
+    <div class="container py-5 text-center">
+        <span class="badge badge-gold mb-3">Interactive Discovery</span>
+        <h2 class="display-5 fw-bold mb-4">The <span class="text-gold">Fragrance Compass</span></h2>
+        <p class="text-muted mb-5 mx-auto" style="max-width: 600px;">How do you wish to feel today? Navigate the wheel to find your perfect emotional scent match.</p>
+        
+        <div class="compass-outer mx-auto mb-5" data-aos="zoom-in">
+            <div class="compass-track">
+                <div class="mood-option active" data-mood="relax" onclick="selectMood(this, 0)">
+                    <i class="bi bi-moon-stars"></i>
+                    <span>RELAX</span>
+                </div>
+                <div class="mood-option" data-mood="energize" onclick="selectMood(this, 90)">
+                    <i class="bi bi-lightning-charge"></i>
+                    <span>ENERGIZE</span>
+                </div>
+                <div class="mood-option" data-mood="focus" onclick="selectMood(this, 180)">
+                    <i class="bi bi-eye"></i>
+                    <span>FOCUS</span>
+                </div>
+                <div class="mood-option" data-mood="romance" onclick="selectMood(this, 270)">
+                    <i class="bi bi-heart-pulse"></i>
+                    <span>ROMANCE</span>
+                </div>
+            </div>
+            <div class="compass-dial" id="compassDial">
+                <div class="dial-center">
+                    <i class="bi bi-compass"></i>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mood-reveal animate__animated animate__fadeInUp" id="moodReveal">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 p-4 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="mood-img-wrap rounded-4 overflow-hidden shadow-lg">
+                                <img id="moodImg" src="https://images.unsplash.com/photo-1602928321679-560bb453f190?q=80&w=600" class="img-fluid" alt="Mood">
+                            </div>
+                        </div>
+                        <div class="col-md-8 text-start ps-md-4">
+                            <h3 class="text-gold mb-2" id="moodTitle">Lavender Serenity</h3>
+                            <p class="text-muted mb-3" id="moodDesc">Escape the noise. Infused with pure French Lavender and soft Chamomile to ground your spirit and calm your mind.</p>
+                            <div class="d-flex gap-2">
+                                <a href="/collections" class="btn btn-gold btn-sm px-4">EXPLORE SCENTS</a>
+                                <button class="btn btn-outline-light btn-sm px-3" onclick="triggerHaptic('light')"><i class="bi bi-heart"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.compass-outer { width: 320px; height: 320px; position: relative; display: flex; align-items: center; justify-content: center; margin: 60px auto; }
+.compass-track { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 1px dashed rgba(201, 169, 110, 0.3); }
+.mood-option {
+    position: absolute; width: 80px; height: 80px; background: #1a1a1a; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.7rem; font-weight: bold; letter-spacing: 1px; z-index: 2;
+}
+.mood-option i { font-size: 1.5rem; margin-bottom: 5px; color: #555; transition: color 0.4s; }
+.mood-option:hover { transform: scale(1.1); border-color: var(--lx-gold); }
+.mood-option.active { background: var(--lx-gold); border-color: #fff; box-shadow: 0 10px 30px rgba(201, 169, 110, 0.4); }
+.mood-option.active i { color: #000; }
+.mood-option.active span { color: #000; }
+
+.mood-option[data-mood="relax"] { top: -40px; left: 50%; transform: translateX(-50%); }
+.mood-option[data-mood="energize"] { top: 50%; right: -40px; transform: translateY(-50%); }
+.mood-option[data-mood="focus"] { bottom: -40px; left: 50%; transform: translateX(-50%); }
+.mood-option[data-mood="romance"] { top: 50%; left: -40px; transform: translateY(-50%); }
+
+.compass-dial {
+    width: 140px; height: 140px; background: linear-gradient(135deg, #222, #000);
+    border-radius: 50%; border: 4px solid #1a1a1a; box-shadow: 0 15px 45px rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.dial-center { font-size: 2.5rem; color: var(--lx-gold); text-shadow: 0 0 20px rgba(201, 169, 110, 0.5); }
+
+.mood-img-wrap { aspect-ratio: 1; border: 2px solid rgba(201, 169, 110, 0.2); }
+.mood-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
 </style>
+
+<script>
+const moods = {
+    relax: { title: "Lavender Serenity", desc: "Escape the noise. Infused with pure French Lavender and soft Chamomile to ground your spirit and calm your mind.", img: "https://images.unsplash.com/photo-1602928321679-560bb453f190?q=80&w=600" },
+    energize: { title: "Zesty Citrus Burst", desc: "Awaken your senses. A vibrant fusion of Lemongrass, Bergamot, and Mint designed to kickstart your morning.", img: "https://images.unsplash.com/photo-1596435700575-9299b04ddbcd?q=80&w=600" },
+    focus: { title: "Smoked Oud & Sage", desc: "Find your flow. Deep woody notes of Oud paired with clarifying Sage to create the perfect mental sanctuary.", img: "https://images.unsplash.com/photo-1605651202774-7d573fd3f12d?q=80&w=600" },
+    romance: { title: "Velvet Rose & Musk", desc: "Ignite the evening. A seductive, opulent layer of Damascus Rose and warm Amber for an intimate atmosphere.", img: "https://images.unsplash.com/photo-1595433707802-68067a8498b0?q=80&w=600" }
+};
+
+function selectMood(el, deg) {
+    document.querySelectorAll('.mood-option').forEach(opt => opt.classList.remove('active'));
+    el.classList.add('active');
+    
+    const dial = document.getElementById('compassDial');
+    dial.style.transform = `rotate(${deg}deg)`;
+    
+    const mood = el.dataset.mood;
+    const data = moods[mood];
+    
+    const reveal = document.getElementById('moodReveal');
+    reveal.style.opacity = '0';
+    
+    setTimeout(() => {
+        document.getElementById('moodTitle').textContent = data.title;
+        document.getElementById('moodDesc').textContent = data.desc;
+        document.getElementById('moodImg').src = data.img;
+        reveal.style.opacity = '1';
+        if (typeof triggerHaptic === 'function') triggerHaptic('medium');
+    }, 400);
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- NEWSLETTER (Inner Circle) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="newsletter-section py-5" style="background: var(--lx-cream); border-top: 1px solid rgba(0,0,0,0.05);">
+    <div class="container text-center py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-6" data-aos="zoom-in">
+                <i class="bi bi-envelope-paper text-gold mb-3 d-block" style="font-size: 2.5rem;"></i>
+                <h2 class="fw-bold mb-3">Join the <span class="text-gold">Inner Circle</span></h2>
+                <p class="text-muted mb-4">Be the first to experience our seasonal drops and receive exclusive members-only rewards.</p>
+                
+                <form id="newsletterForm" class="mx-auto" style="max-width: 500px;">
+                    <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden bg-white p-1 border">
+                        <input type="email" class="form-control border-0 px-4" placeholder="Your email address" required>
+                        <button class="btn btn-luxoya-gold px-4 rounded-pill" type="submit">JOIN NOW</button>
+                    </div>
+                </form>
+                <p class="smaller text-muted mt-3">By joining, you agree to our <a href="/privacy" class="text-dark">Privacy Policy</a>.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.getElementById('newsletterForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = this.querySelector('button');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    
+    setTimeout(() => {
+        showToast('Welcome to the Inner Circle! Check your inbox soon.', 'success');
+        this.reset();
+        btn.disabled = false;
+        btn.innerHTML = 'JOIN NOW';
+    }, 1000);
+});
+</script>
 {% endblock %}
 
 {% block extra_js %}

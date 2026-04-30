@@ -1,0 +1,222 @@
+
+<!-- Scent Discovery Quiz Component -->
+<div id="scentQuizContainer" class="scent-quiz-overlay d-none">
+    <div class="scent-quiz-modal animate__animated animate__zoomIn">
+        <button class="quiz-close" onclick="closeScentQuiz()"><i class="bi bi-x"></i></button>
+        
+        <div id="quizContent">
+            <!-- Intro Slide -->
+            <div class="quiz-slide" id="quizIntro">
+                <div class="text-center">
+                    <span class="badge bg-gold text-dark mb-3">AI Discovery</span>
+                    <h2 class="display-6 fw-bold mb-3">Find Your <span class="text-gold">Signature Scent</span></h2>
+                    <p class="text-muted mb-4">Let our fragrance experts guide you to the perfect candle based on your mood and personality.</p>
+                    <button class="btn btn-gold btn-lg px-5 py-3 rounded-pill shadow" onclick="startQuiz()">Start Discovery <i class="bi bi-arrow-right ms-2"></i></button>
+                </div>
+            </div>
+
+            <!-- Quiz Steps -->
+            <div class="quiz-slide d-none" id="quizStep1">
+                <div class="quiz-progress"><div class="progress-bar" style="width: 25%"></div></div>
+                <h4 class="text-center mb-4">Describe your dream escape...</h4>
+                <div class="row g-3">
+                    <div class="col-6"><button class="quiz-opt" onclick="nextStep(2, 'floral')"><img src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=200" alt="Floral"><span>Secret Garden</span></button></div>
+                    <div class="col-6"><button class="quiz-opt" onclick="nextStep(2, 'woody')"><img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200" alt="Woody"><span>Forest Cabin</span></button></div>
+                    <div class="col-6"><button class="quiz-opt" onclick="nextStep(2, 'fresh')"><img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200" alt="Fresh"><span>Morning Beach</span></button></div>
+                    <div class="col-6"><button class="quiz-opt" onclick="nextStep(2, 'oriental')"><img src="https://images.unsplash.com/photo-1532336414038-cf19250c5757?w=200" alt="Oriental"><span>Spice Market</span></button></div>
+                </div>
+            </div>
+
+            <div class="quiz-slide d-none" id="quizStep2">
+                <div class="quiz-progress"><div class="progress-bar" style="width: 50%"></div></div>
+                <h4 class="text-center mb-4">Which vibe matches your home?</h4>
+                <div class="row g-3">
+                    <div class="col-6"><button class="quiz-opt" onclick="nextStep(3, 'floral')"><i class="bi bi-house-heart fs-1 text-gold"></i><span>Elegant & Minimal</span></button></div>
+                    <div class="col-6"><button class="quiz-opt" onclick="nextStep(3, 'woody')"><i class="bi bi-house-check fs-1 text-gold"></i><span>Cozy & Warm</span></button></div>
+                    <div class="col-6"><button class="quiz-opt" onclick="nextStep(3, 'fresh')"><i class="bi bi-wind fs-1 text-gold"></i><span>Modern & Crisp</span></button></div>
+                    <div class="col-6"><button class="quiz-opt" onclick="nextStep(3, 'oriental')"><i class="bi bi-stars fs-1 text-gold"></i><span>Bold & Exotic</span></button></div>
+                </div>
+            </div>
+
+            <div class="quiz-slide d-none" id="quizStep3">
+                <div class="quiz-progress"><div class="progress-bar" style="width: 75%"></div></div>
+                <h4 class="text-center mb-4">How do you want to feel?</h4>
+                <div class="row g-3">
+                    <div class="col-6"><button class="quiz-opt" onclick="nextStep(4, 'floral')"><i class="bi bi-cloud-sun fs-1 text-gold"></i><span>Relaxed</span></button></div>
+                    <div class="col-6"><button class="quiz-opt" onclick="nextStep(4, 'woody')"><i class="bi bi-lightbulb fs-1 text-gold"></i><span>Inspired</span></button></div>
+                    <div class="col-6"><button class="quiz-opt" onclick="nextStep(4, 'fresh')"><i class="bi bi-lightning-charge fs-1 text-gold"></i><span>Energized</span></button></div>
+                    <div class="col-6"><button class="quiz-opt" onclick="nextStep(4, 'oriental')"><i class="bi bi-heart-pulse fs-1 text-gold"></i><span>Sensual</span></button></div>
+                </div>
+            </div>
+
+            <!-- Result Slide -->
+            <div class="quiz-slide d-none text-center" id="quizResult">
+                <div class="confetti-container" id="quizConfetti"></div>
+                <span class="badge bg-gold text-dark mb-2">Your Result</span>
+                <h2 class="mb-4">We've Found Your Match!</h2>
+                
+                <div class="recommended-product p-4 rounded-4 bg-light border border-gold border-opacity-25 mb-4 shadow-sm">
+                    <img id="resultImg" src="" alt="Recommended" class="rounded-4 mb-3 shadow" style="width: 150px; height: 150px; object-fit: cover;">
+                    <h3 id="resultName" class="text-gold h4 mb-2">Signature Vanilla</h3>
+                    <p id="resultDesc" class="text-muted small mb-3">Based on your love for elegant spaces and relaxing vibes, this scent is perfect for you.</p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <a id="resultLink" href="#" class="btn btn-gold px-4 rounded-pill">Shop Now</a>
+                        <button class="btn btn-outline-dark px-4 rounded-pill" onclick="restartQuiz()">Retake</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.scent-quiz-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.scent-quiz-modal {
+    background: #fff;
+    width: 90%;
+    max-width: 600px;
+    padding: 50px 30px;
+    border-radius: 30px;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+.quiz-close {
+    position: absolute;
+    top: 20px; right: 20px;
+    background: none; border: none;
+    font-size: 1.5rem; color: #888;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.quiz-close:hover { color: var(--gold); }
+
+.quiz-slide { min-height: 350px; }
+.quiz-progress {
+    height: 6px; background: #f0f0f0;
+    border-radius: 10px; margin-bottom: 30px;
+    overflow: hidden;
+}
+.quiz-progress .progress-bar {
+    background: var(--gold);
+    height: 100%;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quiz-opt {
+    width: 100%;
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 20px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.quiz-opt img {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.quiz-opt span { font-weight: 500; font-size: 0.9rem; color: #333; }
+.quiz-opt:hover {
+    border-color: var(--gold);
+    background: #fffdf5;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(212, 175, 55, 0.1);
+}
+.quiz-opt:active { transform: scale(0.95); }
+
+.bg-emerald-soft { background: #ecfdf5; color: #065f46; }
+</style>
+
+<script>
+let quizScores = { floral: 0, woody: 0, fresh: 0, oriental: 0 };
+const RECOMMENDATIONS = {
+    floral: {
+        name: 'Rose & Sandalwood Bliss',
+        desc: 'Perfect for your elegant taste. A romantic blend of blooming roses and creamy sandalwood.',
+        img: 'https://images.unsplash.com/photo-1602873145311-482bc529f74a?w=400',
+        slug: 'rose-sandalwood-bliss'
+    },
+    woody: {
+        name: 'Classic Sandalwood',
+        desc: 'Matches your love for cozy spaces. Deep, earthy notes that bring the warmth of a forest home.',
+        img: 'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=400',
+        slug: 'classic-sandalwood'
+    },
+    fresh: {
+        name: 'Fresh Linen Morning',
+        desc: 'Since you prefer crisp, modern vibes. A breath of fresh air that revitalizes any room.',
+        img: 'https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=400',
+        slug: 'fresh-linen-morning'
+    },
+    oriental: {
+        name: 'Vanilla & Oud Signature',
+        desc: 'For your bold and exotic personality. A mysterious blend of sweet vanilla and rare oud wood.',
+        img: 'https://images.unsplash.com/photo-1602607360922-47951de49a31?w=400',
+        slug: 'vanilla-oud-signature'
+    }
+};
+
+function openScentQuiz() {
+    document.getElementById('scentQuizContainer').classList.remove('d-none');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeScentQuiz() {
+    document.getElementById('scentQuizContainer').classList.add('d-none');
+    document.body.style.overflow = 'auto';
+}
+
+function startQuiz() {
+    document.getElementById('quizIntro').classList.add('d-none');
+    document.getElementById('quizStep1').classList.remove('d-none');
+    quizScores = { floral: 0, woody: 0, fresh: 0, oriental: 0 };
+}
+
+function nextStep(step, scoreKey) {
+    if (scoreKey) quizScores[scoreKey]++;
+    
+    // Hide all slides
+    document.querySelectorAll('.quiz-slide').forEach(s => s.classList.add('d-none'));
+    
+    if (step <= 3) {
+        document.getElementById(`quizStep${step}`).classList.remove('d-none');
+    } else {
+        showResult();
+    }
+}
+
+function showResult() {
+    // Find highest score
+    let winner = 'floral';
+    let max = -1;
+    for (const [key, val] of Object.entries(quizScores)) {
+        if (val > max) { max = val; winner = key; }
+    }
+    
+    const rec = RECOMMENDATIONS[winner];
+    document.getElementById('resultName').textContent = rec.name;
+    document.getElementById('resultDesc').textContent = rec.desc;
+    document.getElementById('resultImg').src = rec.img;
+    document.getElementById('resultLink').href = `/products/${rec.slug}`;
+    
+    document.getElementById('quizResult').classList.remove('d-none');
+}
+
+function restartQuiz() {
+    document.querySelectorAll('.quiz-slide').forEach(s => s.classList.add('d-none'));
+    document.getElementById('quizIntro').classList.remove('d-none');
+}
+</script>
