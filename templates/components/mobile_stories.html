@@ -1,60 +1,93 @@
-<!-- 📱 Mobile Story Circles (Instagram Style) -->
-<div class="mobile-stories-container d-lg-none py-3 overflow-hidden border-bottom" style="background: #ffffff; padding-top: 85px !important;">
-    <div class="container">
-        <div class="d-flex gap-3 overflow-auto pb-2 custom-scrollbar no-wrap">
-            <!-- Quiz Story (Always first) -->
-            <div class="story-item text-center" style="min-width: 75px;" onclick="document.getElementById('quizModal').querySelector('.btn-luxoya-gold').click()">
-                <div class="story-circle-wrap p-[2px] rounded-circle mb-1" style="background: linear-gradient(45deg, #f8d57e, #d4af37); width: 68px; height: 68px; display: flex; align-items: center; justify-content: center; padding: 2px;">
-                    <div class="story-circle rounded-circle overflow-hidden bg-dark d-flex align-items-center justify-content-center" style="width: 100%; height: 100%; border: 2px solid white;">
-                        <i class="bi bi-stars text-gold fs-4"></i>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- LUXOYA STORIES (Mobile Discovery Bar) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="mobile-stories d-lg-none" style="background: #000; padding-top: 85px !important; border-bottom: 1px solid rgba(197, 160, 68, 0.1);">
+    <div class="container py-4">
+        <div class="d-flex overflow-auto gap-4 no-scrollbar pb-2 px-1">
+            
+            <!-- Story 1: Fragrance Quiz -->
+            <div class="story-item text-center flex-shrink-0" data-aos="zoom-in">
+                <div class="story-frame active-glow" data-bs-toggle="modal" data-bs-target="#scentQuizModal">
+                    <div class="story-img-wrap" style="background-image: url('https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=150');">
+                        <div class="story-overlay-gold"></div>
+                        <i class="bi bi-magic text-white fs-4 z-1"></i>
                     </div>
                 </div>
-                <span class="smaller fw-bold text-dark d-block" style="font-size: 0.65rem; letter-spacing: 0.5px;">AI QUIZ</span>
+                <span class="story-label">AI QUIZ</span>
             </div>
 
-            {% for i in range(1, 7) %}
-            {% set reel_url = home_images['reel_' ~ i ~ '_url'] %}
-            {% set reel_thumb = home_images['reel_' ~ i ~ '_thumb'] %}
-            {% set reel_title = home_images['reel_' ~ i ~ '_title'] %}
-            {% if reel_url %}
-            <div class="story-item text-center" style="min-width: 75px;" onclick="scrollToReelSection()">
-                <div class="story-circle-wrap p-[2px] rounded-circle mb-1" style="background: linear-gradient(45deg, #eee, #ddd); width: 68px; height: 68px; display: flex; align-items: center; justify-content: center; padding: 2px;">
-                    <div class="story-circle rounded-circle overflow-hidden bg-white" style="width: 100%; height: 100%; border: 2px solid white;">
-                        <img src="{{ reel_thumb or url_for('static', filename='img/placeholder.jpg') }}" class="w-100 h-100 object-fit-cover" alt="{{ reel_title }}">
+            <!-- Story 2: Shop All -->
+            <div class="story-item text-center flex-shrink-0" data-aos="zoom-in" data-aos-delay="100">
+                <a href="{{ url_for('products.collections') }}" class="story-frame">
+                    <div class="story-img-wrap" style="background-image: url('https://images.unsplash.com/photo-1602872030219-0ec6d7a9158c?w=150');">
+                        <div class="story-overlay-dark"></div>
+                        <i class="bi bi-bag-heart text-white fs-4 z-1"></i>
                     </div>
-                </div>
-                <span class="smaller fw-bold text-muted d-block text-truncate" style="font-size: 0.65rem; letter-spacing: 0.5px;">{{ reel_title|upper }}</span>
+                </a>
+                <span class="story-label">SHOP ALL</span>
             </div>
-            {% endif %}
-            {% endfor %}
-            
-            <!-- Custom Studio Story -->
-            <div class="story-item text-center" style="min-width: 75px;" onclick="window.location.href='{{ url_for('products.customize') }}'">
-                <div class="story-circle-wrap p-[2px] rounded-circle mb-1" style="background: linear-gradient(45deg, #00c6ff, #0072ff); width: 68px; height: 68px; display: flex; align-items: center; justify-content: center; padding: 2px;">
-                    <div class="story-circle rounded-circle overflow-hidden bg-white d-flex align-items-center justify-content-center" style="width: 100%; height: 100%; border: 2px solid white;">
-                        <i class="bi bi-palette text-primary fs-4"></i>
+
+            <!-- Story 3: Bespoke Studio -->
+            <div class="story-item text-center flex-shrink-0" data-aos="zoom-in" data-aos-delay="200">
+                <a href="{{ url_for('products.customize') }}" class="story-frame">
+                    <div class="story-img-wrap" style="background-image: url('https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=150');">
+                        <div class="story-overlay-gold"></div>
+                        <i class="bi bi-palette text-white fs-4 z-1"></i>
                     </div>
-                </div>
-                <span class="smaller fw-bold text-dark d-block" style="font-size: 0.65rem; letter-spacing: 0.5px;">CREATE</span>
+                </a>
+                <span class="story-label">CUSTOM</span>
             </div>
+
+            <!-- Story 4: Corporate -->
+            <div class="story-item text-center flex-shrink-0" data-aos="zoom-in" data-aos-delay="300">
+                <a href="{{ url_for('b2b.corporate_page') }}" class="story-frame">
+                    <div class="story-img-wrap" style="background-image: url('https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?w=150');">
+                        <div class="story-overlay-dark"></div>
+                        <i class="bi bi-building-check text-white fs-4 z-1"></i>
+                    </div>
+                </a>
+                <span class="story-label">CORPORATE</span>
+            </div>
+
+            <!-- Story 5: Reels -->
+            <div class="story-item text-center flex-shrink-0" data-aos="zoom-in" data-aos-delay="400">
+                <a href="/reels" class="story-frame">
+                    <div class="story-img-wrap" style="background-image: url('https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=150');">
+                        <div class="story-overlay-dark"></div>
+                        <i class="bi bi-play-circle text-white fs-4 z-1"></i>
+                    </div>
+                </a>
+                <span class="story-label">REELS</span>
+            </div>
+
         </div>
     </div>
-</div>
+</section>
 
 <style>
-.no-wrap { flex-wrap: nowrap !important; }
-.custom-scrollbar::-webkit-scrollbar { display: none; }
-.story-item { cursor: pointer; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.story-item:active { transform: scale(0.9); }
-.mobile-stories-container {
-    position: relative;
-    z-index: 100;
+.story-item { min-width: 85px; cursor: pointer; }
+.story-frame {
+    width: 75px; height: 75px; border-radius: 50%; padding: 3px; 
+    border: 2px solid rgba(255,255,255,0.15); display: inline-block;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
-</style>
+.story-frame.active-glow { border-color: var(--lx-gold); box-shadow: 0 0 15px rgba(197, 160, 68, 0.4); }
+.story-frame:hover { transform: scale(1.1); border-color: var(--lx-gold); }
 
-<script>
-function scrollToReelSection() {
-    const el = document.getElementById('shop-by-video');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+.story-img-wrap {
+    width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+    background-size: cover; background-position: center; position: relative;
+    display: flex; align-items: center; justify-content: center;
 }
-</script>
+.story-overlay-dark { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
+.story-overlay-gold { position: absolute; inset: 0; background: rgba(197, 160, 68, 0.35); }
+
+.story-label {
+    display: block; font-family: 'Outfit', sans-serif; font-size: 0.7rem; 
+    font-weight: 700; color: rgba(255,255,255,0.7); margin-top: 10px; letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.z-1 { z-index: 1; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>

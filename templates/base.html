@@ -69,8 +69,8 @@
     {% block extra_css %}{% endblock %}
     <style>
         .social-link-v2 {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -80,7 +80,7 @@
             text-decoration: none;
             transition: all 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.08);
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
         .social-link-v2:hover {
             background: var(--lx-gold);
@@ -88,15 +88,109 @@
             transform: translateY(-3px);
             border-color: var(--lx-gold);
         }
-        .footer-newsletter .btn-luxoya-gold {
-            border-top-left-radius: 0;
-            border-bottom-left-radius: 0;
+        .header-bottom {
+        background: #0d0d0d;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 0;
+    }
+    .nav-link-lx {
+        color: rgba(255, 255, 255, 0.7);
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        padding: 1.2rem 1rem !important;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    .nav-link-lx:hover, .nav-link-lx.active {
+        color: var(--lx-gold);
+    }
+    .nav-link-lx.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 20%;
+        right: 20%;
+        height: 2px;
+        background: var(--lx-gold);
+    }
+        .footer-heading {
+            color: #fff;
+            text-transform: uppercase;
+            font-size: 0.85rem;
             font-weight: 700;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+            position: relative;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+        .footer-heading::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 30px;
+            height: 2px;
+            background: var(--lx-gold);
+        }
+        .footer-luxoya {
+            background: #0d0d0d;
+            padding-top: 80px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .footer-links li { margin-bottom: 12px; }
+        .footer-links a { color: #888; text-decoration: none; font-size: 0.9rem; transition: color 0.3s; }
+        .footer-links a:hover { color: var(--lx-gold); }
+        .footer-newsletter .input-group {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
         }
         .footer-newsletter .form-control {
-            border-top-right-radius: 0;
-            border-bottom-right-radius: 0;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .footer-newsletter .btn-luxoya-gold {
+            border: none !important;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border-radius: 0 !important;
+        }
+        /* Premium Mobile Bottom Nav */
+        .mobile-bottom-nav {
+            background: rgba(13, 13, 13, 0.9);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(197, 160, 68, 0.2);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+        }
+        .mobile-nav-item {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        .mobile-nav-item i { font-size: 1.2rem; margin-bottom: 4px; }
+        .mobile-nav-item.active { color: var(--lx-gold); }
+        .mobile-nav-item.active i { filter: drop-shadow(0 0 5px rgba(197, 160, 68, 0.5)); }
+
+        /* Floating Stack Mobile Adjustment */
+        @media (max-width: 991px) {
+            .floating-action-stack {
+                bottom: 90px !important; /* Move above bottom nav */
+                right: 15px !important;
+            }
         }
     </style>
 </head>
@@ -117,21 +211,19 @@
                     <img src="{{ url_for('static', filename='images/logo-dark-theme.png') }}" alt="Luxoya Candles" class="brand-logo" height="65" style="margin-top:-5px; margin-bottom:-5px;">
                 </a>
 
-                <!-- Search (Center - Desktop) -->
-                <div class="search-bar-wrapper d-none d-lg-block flex-grow-1 mx-5">
+                <!-- Search (Center - Desktop/Mobile) -->
+                <div class="search-bar-wrapper flex-grow-1 mx-2 mx-lg-5">
                     <form class="search-form-pill" action="{{ url_for('products.collections') }}" method="GET">
                         <i class="bi bi-search search-icon-main"></i>
-                        <input type="text" name="q" placeholder="Search for luxury candles..."
+                        <input type="text" name="q" placeholder="Search..."
                             class="search-input-pill">
-                        <button type="button" class="btn-voice px-3" title="Voice Search"><i
-                                class="bi bi-mic"></i></button>
                     </form>
                 </div>
 
                 <!-- Icons (Right) -->
                 <div class="header-actions d-flex align-items-center">
-                    <!-- Search Toggle (Mobile Only) -->
-                    <button class="action-btn d-lg-none me-2" data-bs-toggle="modal" data-bs-target="#searchModal">
+                    <!-- Search Toggle (Mobile Only) - Hidden as full bar is now shown -->
+                    <button class="action-btn d-none me-2" data-bs-toggle="modal" data-bs-target="#searchModal">
                         <i class="bi bi-search"></i>
                     </button>
 
@@ -140,7 +232,7 @@
                     <div class="dropdown me-2">
                         <button class="action-btn" data-bs-toggle="dropdown">
                             <i class="bi bi-person"></i>
-                            <span class="d-none d-lg-inline small ms-1" style="font-size: 0.7rem;" id="navUserGreeting"></span>
+                            <span class="small ms-1" style="font-size: 0.7rem;" id="navUserGreeting"></span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-luxoya">
                             <!-- Logged-in items (hidden by default, shown by JS) -->
@@ -167,10 +259,10 @@
             </div>
         </div>
 
-        <!-- Bottom Tier: Navigation Links (Desktop Only) -->
-        <div class="header-bottom d-none d-lg-block">
-            <div class="container">
-                <ul class="nav-links-pill d-flex justify-content-center mb-0 list-unstyled">
+        <!-- Bottom Tier: Navigation Links (Visible on all views with horizontal scroll on mobile) -->
+        <div class="header-bottom">
+            <div class="container overflow-auto custom-scrollbar">
+                <ul class="nav-links-pill d-flex justify-content-start justify-content-lg-center mb-0 list-unstyled text-nowrap">
                     <li><a href="{{ url_for('index') }}" class="nav-link-item active">Home</a></li>
                     <li class="nav-item-dropdown">
                         <a href="{{ url_for('products.collections') }}" class="nav-link-item">Collections <i
@@ -345,14 +437,6 @@
                             <i class="bi bi-headset me-2 text-gold"></i>Support: {{ site_settings.get('support_email', 'support@luxoyacandles.com') }}<br>
                             <i class="bi bi-telephone me-2 text-gold"></i>{{ site_settings.get('org_phone', '+91 9705840457') }}
                         </p>
-                        <div class="footer-social mt-3">
-                            <a href="https://www.instagram.com/luxoyacandles" target="_blank" class="social-link"><i
-                                    class="bi bi-instagram"></i></a>
-                            <a href="https://www.facebook.com/luxoyacandles" target="_blank" class="social-link"><i
-                                    class="bi bi-facebook"></i></a>
-                            <a href="#" class="social-link"><i class="bi bi-pinterest"></i></a>
-                            <a href="#" class="social-link"><i class="bi bi-youtube"></i></a>
-                        </div>
                     </div>
                 </div>
 
@@ -380,7 +464,7 @@
                 </div>
 
                 <!-- Support -->
-                <div class="col-6 col-md-4 col-lg-2 mt-4 mt-sm-0">
+                <div class="col-6 col-md-4 col-lg-2">
                     <h6 class="footer-heading">Support</h6>
                     <ul class="footer-links">
                         <li><a href="{{ url_for('shipping_policy') }}">Shipping Policy</a></li>
@@ -391,22 +475,23 @@
                 </div>
 
                 <!-- Newsletter -->
-                <div class="col-12 col-md-12 col-lg-3 mt-4 mt-lg-0">
+                <div class="col-12 col-md-12 col-lg-3">
                     <h6 class="footer-heading">Follow The Flame</h6>
+                    <p class="small text-muted mb-4" style="margin-top: -5px;">Join our newsletter for exclusive drops and scent stories.</p>
                     <form class="footer-newsletter mb-4" id="footerNewsletterForm">
                         <div class="input-group">
-                            <input type="email" class="form-control form-control-sm border-secondary bg-transparent text-white"
-                                id="newsletterEmail" placeholder="your@email.com" required>
-                            <button type="submit" class="btn btn-luxoya-gold btn-sm">JOIN</button>
+                            <input type="email" class="form-control border-secondary bg-transparent text-white"
+                                id="newsletterEmail" placeholder="your@email.com" required style="height: 48px; border-radius: 4px 0 0 4px;">
+                            <button type="submit" class="btn btn-luxoya-gold px-4" style="height: 48px; border-radius: 0 4px 4px 0;">JOIN</button>
                         </div>
                     </form>
                     <div class="d-flex gap-3 mb-4">
-                        <a href="https://www.instagram.com/luxoyacandles" target="_blank" class="social-link-v2"><i
+                        <a href="https://www.instagram.com/luxoyacandles" target="_blank" class="social-link-v2" title="Instagram"><i
                                 class="bi bi-instagram"></i></a>
-                        <a href="https://www.facebook.com/luxoyacandles" target="_blank" class="social-link-v2"><i
+                        <a href="https://www.facebook.com/luxoyacandles" target="_blank" class="social-link-v2" title="Facebook"><i
                                 class="bi bi-facebook"></i></a>
-                        <a href="#" class="social-link-v2"><i class="bi bi-pinterest"></i></a>
-                        <a href="#" class="social-link-v2"><i class="bi bi-youtube"></i></a>
+                        <a href="#" class="social-link-v2" title="Pinterest"><i class="bi bi-pinterest"></i></a>
+                        <a href="#" class="social-link-v2" title="YouTube"><i class="bi bi-youtube"></i></a>
                     </div>
                 </div>
             </div>
@@ -459,25 +544,44 @@
     <!-- ═══════════════════════════════════════════════════════ -->
     <!-- FLOATING ACTION STACK (Premium Support & Concierge) -->
     <!-- ═══════════════════════════════════════════════════════ -->
-    <div class="floating-action-stack animate__animated animate__fadeInRight" style="position: fixed; bottom: 100px; right: 24px; z-index: 1050; display: flex; flex-direction: column; gap: 12px; align-items: flex-end;">
+    <div class="floating-action-stack animate__animated animate__fadeInRight" style="position: fixed; bottom: 30px; right: 24px; z-index: 1050; display: flex; flex-direction: column; gap: 15px; align-items: flex-end;">
+        
+        <!-- WhatsApp Support -->
+        <a href="https://wa.me/919705840457" target="_blank" class="btn-whatsapp shadow-lg d-flex align-items-center justify-content-center" 
+           style="width: 50px; height: 50px; background: #25D366; border-radius: 50%; transition: all 0.3s ease;" title="WhatsApp Support">
+            <i class="bi bi-whatsapp text-white fs-4"></i>
+        </a>
+
         <!-- Aurum Concierge Toggle -->
-        <button type="button" class="btn-aurum-trigger shadow-lg" id="chatToggle" title="Aurum Concierge">
+        <button type="button" class="btn-aurum-trigger shadow-lg d-flex align-items-center justify-content-center" id="chatToggle" 
+                style="width: 50px; height: 50px; background: var(--lx-black); border: 2px solid var(--lx-gold); border-radius: 50%; transition: all 0.3s ease;" title="Aurum Concierge">
             <div class="pulse-ring"></div>
-            <i class="bi bi-stars text-white fs-4"></i>
+            <i class="bi bi-stars text-gold fs-4"></i>
         </button>
 
+        <!-- Chat Window -->
+        <div class="chat-window shadow-2xl rounded-4 overflow-hidden d-none animate__animated animate__fadeInUp" id="chatWindow" 
+             style="position: absolute; bottom: 130px; right: 0; width: 320px; border: 1px solid rgba(197, 160, 68, 0.2); z-index: 1060;">
+            <div class="chat-header p-3 d-flex align-items-center justify-content-between" style="background: #000; border-bottom: 1px solid rgba(197, 160, 68, 0.2);">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="avatar-aurum">
+                        <i class="bi bi-stars text-gold"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-white mb-0 small fw-bold">AURUM AI</h6>
+                        <span class="text-gold" style="font-size: 10px;">• Online Concierge</span>
                     </div>
                 </div>
-                <button class="btn-close btn-close-white btn-sm" id="chatClose"></button>
+                <button type="button" class="btn-close btn-close-white btn-sm" id="chatClose"></button>
             </div>
             <div class="chat-body p-3" id="chatBody" style="height: 350px; overflow-y: auto; background: #fff;">
                 <div class="chat-msg bot">
-                    <p style="background: #f1f1f1; padding: 12px 15px; border-radius: 15px; border-bottom-left-radius: 2px; font-size: 0.9rem; color: #333;">Greetings. I am Aurum, your personal scent concierge. How may I assist your fragrance journey today?</p>
+                    <p style="background: #f1f1f1; padding: 12px 15px; border-radius: 15px; border-bottom-left-radius: 2px; font-size: 0.9rem; color: #333; margin-bottom: 10px;">Greetings. I am Aurum, your personal scent concierge. How may I assist your fragrance journey today?</p>
                 </div>
                 <div class="quick-replies d-flex gap-2 flex-wrap mt-3">
-                    <button class="btn btn-sm btn-outline-gold rounded-pill px-3" style="font-size: 11px;" onclick="sendQuickReply('Help me find a gift')">Find a Gift</button>
-                    <button class="btn btn-sm btn-outline-gold rounded-pill px-3" style="font-size: 11px;" onclick="sendQuickReply('Bestselling fragrances')">Bestsellers</button>
-                    <button class="btn btn-sm btn-outline-gold rounded-pill px-3" style="font-size: 11px;" onclick="sendQuickReply('Track my order')">Order Status</button>
+                    <button type="button" class="btn btn-sm btn-outline-gold rounded-pill px-3" style="font-size: 11px;" onclick="sendQuickReply('Help me find a gift')">Find a Gift</button>
+                    <button type="button" class="btn btn-sm btn-outline-gold rounded-pill px-3" style="font-size: 11px;" onclick="sendQuickReply('Bestselling fragrances')">Bestsellers</button>
+                    <button type="button" class="btn btn-sm btn-outline-gold rounded-pill px-3" style="font-size: 11px;" onclick="sendQuickReply('Track my order')">Order Status</button>
                 </div>
             </div>
             <div class="chat-footer p-2 bg-white border-top">
@@ -487,36 +591,6 @@
                 </form>
             </div>
         </div>
-    </div>
-
-<style>
-.avatar-aurum { width: 35px; height: 35px; background: #000; border: 1px solid #c9a96e; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.chat-pulse {
-    position: absolute; top: 0; right: 0; width: 12px; height: 12px;
-    background: #c9a96e; border-radius: 50%; border: 2px solid #fff;
-    animation: pulse-gold 2s infinite;
-}
-@keyframes pulse-gold {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(201, 169, 110, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(201, 169, 110, 0); }
-}
-.chat-msg.user p { background: #0b0a0a !important; color: #fff !important; border-bottom-right-radius: 2px !important; margin-left: auto; }
-</style>
-
-<script>
-function sendQuickReply(msg) {
-    const input = document.getElementById('chatInput');
-    if (input) {
-        input.value = msg;
-        document.getElementById('chatForm').dispatchEvent(new Event('submit'));
-    }
-}
-</script>
-
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- WHATSAPP & TELEGRAM SUPPORT -->
-    <!-- ═══════════════════════════════════════════════════════ -->
     </div>
 
     <!-- ═══════════════════════════════════════════════════════ -->
@@ -612,6 +686,34 @@ function sendQuickReply(msg) {
             });
         }
 
+        // Chat Toggle Logic
+        const chatToggle = document.getElementById('chatToggle');
+        const chatWindow = document.getElementById('chatWindow');
+        const chatClose = document.getElementById('chatClose');
+
+        if (chatToggle && chatWindow) {
+            chatToggle.addEventListener('click', () => {
+                chatWindow.classList.toggle('d-none');
+                chatWindow.classList.toggle('animate__fadeInUp');
+            });
+        }
+
+        if (chatClose && chatWindow) {
+            chatClose.addEventListener('click', () => {
+                chatWindow.classList.add('d-none');
+            });
+        }
+
+        // Chat Quick Reply Helper
+        function sendQuickReply(msg) {
+            const input = document.getElementById('chatInput');
+            const form = document.getElementById('chatForm');
+            if (input && form) {
+                input.value = msg;
+                form.dispatchEvent(new Event('submit'));
+            }
+        }
+
         // Client-side user detection (calls /api/auth/me)
         (function() {
             fetch('/api/auth/me', { credentials: 'same-origin' })
@@ -643,7 +745,18 @@ function sendQuickReply(msg) {
         })();
     </script>
 
-    
+    <style>
+        .avatar-aurum { width: 35px; height: 35px; background: #000; border: 1px solid #c9a96e; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .pulse-ring {
+            position: absolute; width: 100%; height: 100%;
+            border: 2px solid var(--lx-gold); border-radius: 50%;
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.33); }
+            80%, 100% { opacity: 0; }
+        }
+    </style>
 
     {% block extra_js %}{% endblock %}
 </body>

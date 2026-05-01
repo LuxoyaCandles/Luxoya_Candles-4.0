@@ -3,9 +3,9 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-{% include 'components/mobile_stories.html' %}
 {% include 'components/scent_quiz.html' %}
-<!-- ════════════════════════════════════════════════<section class="hero-slider-section">
+
+<section class="hero-slider-section">
     <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="false">
         <!-- Indicators (Dynamic) -->
         <div class="carousel-indicators">
@@ -77,6 +77,66 @@
         opacity: 1;
     }
 </style>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- DYNAMIC SCENT OF THE HOUR (Premium Personalization) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="scent-hour-section py-4 border-bottom" style="background: #0d0d0d;">
+    <div class="container">
+        <div class="row align-items-center g-3">
+            <div class="col-md-3 text-center text-md-start">
+                <span class="badge bg-gold text-dark rounded-pill px-3 mb-1 fw-bold">SCENT OF THE HOUR</span>
+                <h6 class="text-white-50 mb-0 small" id="current-time-label">Perfect for your evening</h6>
+            </div>
+            <div class="col-md-6 glass-card-premium rounded-pill py-2 px-4">
+                <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-3">
+                    <div class="scent-icon-wrap rounded-circle bg-gold-muted p-2 animate-breathing" id="scent-hour-icon">
+                        <i class="bi bi-moon-stars text-gold fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="text-gradient-gold mb-0 fw-bold" id="scent-hour-name">Midnight Saffron</h5>
+                        <p class="text-muted mb-0 small" id="scent-hour-desc">Warm, opulent notes for a cozy atmosphere.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 text-center text-md-end">
+                <a href="#" class="btn btn-outline-gold btn-sm px-4 rounded-pill btn-glow" id="scent-hour-link">SHOP NOW</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    function updateScentHour() {
+        const hour = new Date().getHours();
+        const label = document.getElementById('current-time-label');
+        const icon = document.getElementById('scent-hour-icon').querySelector('i');
+        const name = document.getElementById('scent-hour-name');
+        const desc = document.getElementById('scent-hour-desc');
+        const link = document.getElementById('scent-hour-link');
+
+        if (hour >= 5 && hour < 12) {
+            label.textContent = "Perfect for your morning";
+            icon.className = "bi bi-sun text-gold fs-4";
+            name.textContent = "Zesty Lemongrass";
+            desc.textContent = "Invigorating citrus to start your day with energy.";
+            link.href = "/collections/fresh-editions";
+        } else if (hour >= 12 && hour < 17) {
+            label.textContent = "Perfect for your afternoon";
+            icon.className = "bi bi-brightness-high text-gold fs-4";
+            name.textContent = "Fresh Linen Morning";
+            desc.textContent = "Clean, crisp vibes for a productive afternoon.";
+            link.href = "/collections/luxury-jar-candles";
+        } else {
+            label.textContent = "Perfect for your evening";
+            icon.className = "bi bi-moon-stars text-gold fs-4";
+            name.textContent = "Midnight Saffron";
+            desc.textContent = "Warm, opulent notes for a cozy atmosphere.";
+            link.href = "/product/midnight-saffron";
+        }
+    }
+    document.addEventListener('DOMContentLoaded', updateScentHour);
+</script>
 
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- CATEGORY STRIP (Dynamic Thumbnails) -->
@@ -434,25 +494,112 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
-<!-- CUSTOMIZATION STUDIO -->
+<!-- MINI CUSTOMIZE STUDIO (Interactive Home) -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<section class="section-padding py-5 bg-white border-top">
+<section class="section-padding py-5 bg-black overflow-hidden border-top">
     <div class="container">
-        <div class="rounded-4 overflow-hidden position-relative d-flex align-items-center"
-            style="background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 100%), url('{{ home_images.custom_studio_img or 'https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=1200' }}'); background-size: cover; background-position: center; min-height: 450px;"
-            data-aos="zoom-in">
-            <div class="p-4 p-md-5 text-white col-lg-6">
-                <span
-                    class="badge mb-3 d-inline-block px-3 py-2 border border-secondary rounded-pill text-gold bg-transparent">DESIGN
-                    YOUR OWN</span>
-                <h3 class="fw-bold mb-3 fs-1 text-white">{{ home_images.custom_studio_title or 'Custom Candle Studio' }}</h3>
-                <p class="mb-4 text-light">{{ home_images.custom_studio_desc or 'Design your signature scent. Choose a vessel, pick a fragrance, and add a personalized luxury label.' }}</p>
-                <a href="{{ url_for('products.customize') }}" class="btn btn-luxoya-gold btn-lg">Start Customizing</a>
-                <ul class="list-unstyled mt-4 d-flex gap-4">
-                    <li class="small text-white"><i class="bi bi-check2 text-gold me-1"></i> Choose Wax</li>
-                    <li class="small text-white"><i class="bi bi-check2 text-gold me-1"></i> Pick Fragrance</li>
-                    <li class="small text-white"><i class="bi bi-check2 text-gold me-1"></i> Custom Label</li>
-                </ul>
+        <div class="row g-5 align-items-center">
+            <div class="col-lg-6" data-aos="fade-right">
+                <span class="section-tag mb-2">TRY IT NOW</span>
+                <h2 class="display-5 fw-bold text-white mb-4">The <span class="text-gradient-gold">Custom Studio</span></h2>
+                <p class="text-white-50 mb-5">Design your own signature candle in seconds. Select your vessel and watch it come to life.</p>
+                
+                <div class="d-flex flex-column gap-4 mb-5">
+                    <div class="mini-studio-group">
+                        <label class="text-white-50 small mb-2 d-block text-uppercase ls-1">1. Pick Vessel</label>
+                        <div class="d-flex gap-2">
+                            <button class="mini-studio-opt active btn-glow" onclick="updateMiniCandle('jar-classic', '#FFFFF0', this)">Classic</button>
+                            <button class="mini-studio-opt btn-glow" onclick="updateMiniCandle('jar-ceramic', '#F8F9FA', this)">Matte</button>
+                            <button class="mini-studio-opt btn-glow" onclick="updateMiniCandle('jar-tin', '#FFD700', this)">Gold</button>
+                            <button class="mini-studio-opt btn-glow" onclick="updateMiniCandle('jar-marble', '#E0E0E0', this)">Marble</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="{{ url_for('products.customize') }}" class="btn btn-gold btn-lg px-5 py-3 shadow btn-glow">ENTER FULL STUDIO <i class="bi bi-arrow-right ms-2"></i></a>
+            </div>
+            <div class="col-lg-6 order-first order-lg-last" data-aos="fade-left">
+                <div class="mini-preview-wrap rounded-5 p-5 d-flex align-items-center justify-content-center animate-breathing" 
+                     style="background: radial-gradient(circle, #222 0%, #000 100%); border: 1px solid rgba(248, 213, 126, 0.1); min-height: 400px;">
+                    <div class="preview-candle" id="miniCandle" style="transform: scale(1.2);">
+                        <div class="preview-flame"><i class="bi bi-fire text-warning"></i></div>
+                        <div class="preview-wick" style="background:#444; width:4px; height:10px; position:absolute; top:-8px; left:50%; transform:translateX(-50%);"></div>
+                        <div class="preview-wax" id="miniWax" style="background:#FFFFF0; height:85%; bottom:5px; left:5px; right:5px; position:absolute; border-radius:10px;"></div>
+                        <div class="preview-jar jar-classic" id="miniJar" style="position:absolute; inset:0; border-radius:15px; border:2px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); backdrop-filter:blur(2px);"></div>
+                        <div class="preview-label" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; color:#000; font-size:0.6rem; padding:8px 5px; font-weight:bold; letter-spacing:1px; min-width:80px; text-align:center;">LUXOYA</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .mini-studio-opt {
+        background: transparent; border: 1px solid rgba(255,255,255,0.1); color: white;
+        padding: 10px 20px; border-radius: 50px; font-size: 0.8rem; transition: all 0.3s;
+    }
+    .mini-studio-opt:hover { border-color: var(--lx-gold); }
+    .mini-studio-opt.active { background: var(--lx-gold); color: black; border-color: var(--lx-gold); font-weight: bold; }
+    
+    .jar-classic { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2) !important; }
+    .jar-ceramic { background: #f0f0f0 !important; border: none !important; }
+    .jar-tin { background: linear-gradient(135deg, #d4af37, #f9f295, #d4af37) !important; border: none !important; }
+    .jar-marble { background: url('https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=200') !important; background-size: cover !important; border: none !important; }
+</style>
+
+<script>
+    function updateMiniCandle(jarClass, waxColor, btn) {
+        document.querySelectorAll('.mini-studio-opt').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const jar = document.getElementById('miniJar');
+        const wax = document.getElementById('miniWax');
+        
+        jar.className = 'preview-jar ' + jarClass;
+        wax.style.background = waxColor;
+        
+        // Add subtle animation
+        document.getElementById('miniCandle').animate([
+            { transform: 'scale(1.2)' },
+            { transform: 'scale(1.25)' },
+            { transform: 'scale(1.2)' }
+        ], { duration: 300 });
+    }
+</script>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ART OF THE GLOW (Candle Care Guide) -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="section-padding bg-cream border-top">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <span class="section-tag mb-2">EXPERTISE</span>
+            <h2 class="section-title">The Art of the <span class="text-gradient-gold">Glow</span></h2>
+            <p class="section-text mx-auto">Master the ritual of luxury lighting with our signature candle care guide.</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="fade-up">
+                <div class="p-4 rounded-4 glass-card-premium h-100">
+                    <div class="rounded-circle bg-gold-muted text-gold d-flex align-items-center justify-content-center mb-4" style="width: 50px; height: 50px;"><i class="bi bi-scissors fs-4"></i></div>
+                    <h5 class="fw-bold text-white">Trim the Wick</h5>
+                    <p class="text-muted small">Always keep your wick trimmed to 1/4 inch before lighting to prevent soot and ensure a steady flame.</p>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="p-4 rounded-4 glass-card-premium h-100">
+                    <div class="rounded-circle bg-gold-muted text-gold d-flex align-items-center justify-content-center mb-4" style="width: 50px; height: 50px;"><i class="bi bi-water fs-4"></i></div>
+                    <h5 class="fw-bold text-white">The First Burn</h5>
+                    <p class="text-muted small">Allow the wax to melt completely across the top on your first burn to avoid "tunneling" later on.</p>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="p-4 rounded-4 glass-card-premium h-100">
+                    <div class="rounded-circle bg-gold-muted text-gold d-flex align-items-center justify-content-center mb-4" style="width: 50px; height: 50px;"><i class="bi bi-wind fs-4"></i></div>
+                    <h5 class="fw-bold text-white">Safety First</h5>
+                    <p class="text-muted small">Never leave a burning candle unattended and keep away from drafts, children, and pets.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -577,29 +724,6 @@
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- CORPORATE SECTION (Simplified) -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<section class="section-padding bg-dark-luxoya" id="b2b-cta">
-    <div class="container">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6" data-aos="fade-right">
-                <span class="section-tag section-tag-light">B2B SERVICES</span>
-                <h2 class="section-title text-white">Elevate Your Corporate <span class="text-gold">Gifting</span></h2>
-                <p class="section-text text-light">Bespoke candle solutions, custom labeled and curated for corporate
-                    events and luxury gifting.</p>
-                <div class="d-flex gap-3 mt-4">
-                    <a href="{{ url_for('b2b.corporate_page') }}" class="btn btn-luxoya-gold btn-lg">Request
-                        Quotation</a>
-                    <a href="{{ url_for('contact') }}" class="btn btn-luxoya-outline btn-lg">Contact Us</a>
-                </div>
-            </div>
-            <div class="col-lg-6" data-aos="fade-left">
-                <div class="rounded-4 overflow-hidden border border-accent shadow-lg" style="height: 380px;">
-                    <img src="{{ home_images.b2b_img }}" alt="B2B Candles"
-                        style="width:100%; height:100%; object-fit:cover;">
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- LIMITED EDITION DROP (Urgency Section) -->
@@ -754,22 +878,6 @@ document.addEventListener('DOMContentLoaded', startCountdown);
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- NEWSLETTER CTA -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<section class="cta-section" data-aos="fade-up">
-    <div class="container">
-        <div class="cta-wrapper">
-            <h2 class="section-title text-white text-center">Join the Luxoya <span class="text-gold">Experience</span>
-            </h2>
-            <p class="text-center text-light mb-4">Subscribe to unlock early access to our exclusive new collections.
-            </p>
-            <form class="cta-form mx-auto" style="max-width: 500px;" onsubmit="return false;">
-                <div class="input-group">
-                    <input type="email" class="form-control" placeholder="Enter your email address">
-                    <button class="btn btn-luxoya-gold" type="submit">Subscribe</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- B2B / CORPORATE SECTION -->
@@ -821,6 +929,42 @@ document.addEventListener('DOMContentLoaded', startCountdown);
 
 .phi-img-wrapper { transition: transform 0.5s ease; cursor: pointer; }
 <!-- ═══════════════════════════════════════════════════════ -->
+                <!-- Slide 1: Main Brand -->
+                <div class="carousel-item active">
+                    <div class="hero-image-wrap">
+                        <img src="{{ home_images.hero1_img or 'https://images.unsplash.com/photo-1596704017254-964096058d88?w=1600&q=80' }}" 
+                             class="d-block w-100 hero-img" alt="Luxoya Luxury Candles">
+                        <div class="hero-overlay"></div>
+                    </div>
+                    <div class="carousel-caption d-flex flex-column justify-content-center h-100 text-center">
+                        <div class="container">
+                            <span class="badge bg-gold text-dark rounded-pill px-3 py-2 mb-3 animate__animated animate__fadeInDown">NEW COLLECTION</span>
+                            <h1 class="display-1 fw-bold text-white mb-4 animate__animated animate__fadeInUp">Luxoya Candles</h1>
+                            <p class="lead text-white-50 mb-5 animate__animated animate__fadeInUp animate__delay-1s">Handcrafted luxury. Pure soy perfection.</p>
+                            <div class="d-flex gap-3 justify-content-center animate__animated animate__fadeInUp animate__delay-2s">
+                                <a href="{{ url_for('products.collections') }}" class="btn btn-gold btn-lg px-5 shadow">SHOP NOW</a>
+                                <a href="{{ url_for('products.customize') }}" class="btn btn-outline-light btn-lg px-5">CUSTOMIZE</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 2: Scent Stories -->
+                <div class="carousel-item">
+                    <div class="hero-image-wrap">
+                        <img src="{{ home_images.hero2_img or 'https://images.unsplash.com/photo-1602928321679-560bb453f190?w=1600&q=80' }}" 
+                             class="d-block w-100 hero-img" alt="The Art of Fragrance">
+                        <div class="hero-overlay"></div>
+                    </div>
+                    <div class="carousel-caption d-flex flex-column justify-content-center h-100 text-center">
+                        <div class="container">
+                            <span class="badge bg-gold text-dark rounded-pill px-3 py-2 mb-3">ARTISAN CRAFT</span>
+                            <h1 class="display-1 fw-bold text-white mb-4">Scented Stories</h1>
+                            <p class="lead text-white-50 mb-5">Fragrances designed to evoke memories and moods.</p>
+                            <a href="{{ url_for('products.collections', slug='luxury-jar-candles') }}" class="btn btn-gold btn-lg px-5">EXPLORE SCENTS</a>
+                        </div>
+                    </div>
+                </div>
 <!-- FRAGRANCE COMPASS (Interactive) -->
 <!-- ═══════════════════════════════════════════════════════ -->
 <section class="fragrance-compass py-5 overflow-hidden" style="background: #0b0a0a; color: white;">
@@ -944,25 +1088,6 @@ function selectMood(el, deg) {
 <!-- ═══════════════════════════════════════════════════════ -->
 <!-- NEWSLETTER (Inner Circle) -->
 <!-- ═══════════════════════════════════════════════════════ -->
-<section class="newsletter-section py-5" style="background: var(--lx-cream); border-top: 1px solid rgba(0,0,0,0.05);">
-    <div class="container text-center py-4">
-        <div class="row justify-content-center">
-            <div class="col-lg-6" data-aos="zoom-in">
-                <i class="bi bi-envelope-paper text-gold mb-3 d-block" style="font-size: 2.5rem;"></i>
-                <h2 class="fw-bold mb-3">Join the <span class="text-gold">Inner Circle</span></h2>
-                <p class="text-muted mb-4">Be the first to experience our seasonal drops and receive exclusive members-only rewards.</p>
-                
-                <form id="newsletterForm" class="mx-auto" style="max-width: 500px;">
-                    <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden bg-white p-1 border">
-                        <input type="email" class="form-control border-0 px-4" placeholder="Your email address" required>
-                        <button class="btn btn-luxoya-gold px-4 rounded-pill" type="submit">JOIN NOW</button>
-                    </div>
-                </form>
-                <p class="smaller text-muted mt-3">By joining, you agree to our <a href="/privacy" class="text-dark">Privacy Policy</a>.</p>
-            </div>
-        </div>
-    </div>
-</section>
 
 <script>
 document.getElementById('newsletterForm')?.addEventListener('submit', function(e) {

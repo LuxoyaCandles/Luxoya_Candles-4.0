@@ -1,3 +1,5 @@
+{% extends "base.html" %}
+
 {% block content %}
 <style>
     /* Cinematic Candle Preview */
@@ -82,21 +84,44 @@
 
     .option-card {
         cursor: pointer;
-        border: 2px solid #f8f9fa;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 15px;
         padding: 15px;
         text-align: center;
         transition: all 0.3s ease;
-        background: #fff;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--lx-text);
+        backdrop-filter: blur(10px);
+    }
+    .option-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--lx-gold);
     }
     .option-card.active {
-        border-color: var(--gold);
-        background: #fffdf5;
+        border-color: var(--lx-gold);
+        background: rgba(197, 160, 68, 0.1);
         transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(212, 175, 55, 0.1);
+        box-shadow: 0 10px 30px rgba(197, 160, 68, 0.2);
     }
-    .option-icon { font-size: 1.5rem; margin-bottom: 5px; color: var(--gold); }
-    .colour-swatch { width: 30px; height: 30px; border-radius: 50%; margin: 0 auto 5px; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .option-icon { font-size: 1.5rem; margin-bottom: 5px; color: var(--lx-gold); }
+    .colour-swatch { width: 30px; height: 30px; border-radius: 50%; margin: 0 auto 5px; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+
+    /* Mobile Sticky Preview Fix */
+    @media (max-width: 991px) {
+        .candle-preview { height: 250px; }
+        .preview-candle { transform: scale(0.7); }
+        .sticky-top-mobile { 
+            position: sticky; 
+            top: 75px; 
+            z-index: 1020; 
+            background: var(--lx-body-bg); 
+            padding-bottom: 15px;
+            margin: 0 -15px 20px;
+            border-bottom: 1px solid var(--lx-surface-border);
+        }
+        .customize-preview-card { border-radius: 0; box-shadow: none; border: none; }
+        .customize-summary { display: none; } /* Hide summary in sticky preview on mobile to save space */
+    }
 </style>
 
 <section class="section-padding pt-navbar">
@@ -136,9 +161,9 @@
             </div>
 
             <!-- Live Preview + Summary -->
-            <div class="col-lg-5" data-aos="fade-left">
-                <div class="customize-preview-card sticky-top" style="top: 100px;">
-                    <h5 class="text-center mb-4 fw-bold">Live Preview</h5>
+            <div class="col-lg-5 order-first order-lg-last" data-aos="fade-left">
+                <div class="customize-preview-card sticky-top-mobile sticky-lg-top" style="top: 100px;">
+                    <h5 class="text-center mb-3 mb-lg-4 fw-bold d-none d-lg-block">Live Preview</h5>
 
                     <!-- Visual Preview -->
                     <div class="candle-preview" id="candlePreview">
@@ -168,6 +193,19 @@
                     <button class="btn btn-gold btn-lg w-100 mt-4 shadow" onclick="addCustomToCart()" id="addCustomBtn">
                         <i class="bi bi-bag-plus me-2"></i>Add to Cart
                     </button>
+                    
+                    <!-- Mobile Cart Trigger (Fixed Bottom) -->
+                    <div class="d-lg-none fixed-bottom p-3 bg-dark border-top" style="z-index: 1030;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-white">
+                                <span class="small opacity-75">Total:</span>
+                                <h5 class="mb-0 fw-bold" id="mobileTotal">₹499</h5>
+                            </div>
+                            <button class="btn btn-gold px-4" onclick="addCustomToCart()">
+                                Add <i class="bi bi-arrow-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -334,7 +372,11 @@ function updatePrice() {
     });
 
     document.getElementById('addonRows').innerHTML = addonHtml;
-    document.getElementById('customTotal').textContent = `₹${basePrice + totalAddon}`;
+    const finalPrice = basePrice + totalAddon;
+    document.getElementById('customTotal').textContent = `₹${finalPrice}`;
+    if (document.getElementById('mobileTotal')) {
+        document.getElementById('mobileTotal').textContent = `₹${finalPrice}`;
+    }
 }
 
 async function addCustomToCart() {

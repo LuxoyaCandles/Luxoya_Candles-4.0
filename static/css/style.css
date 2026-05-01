@@ -5510,9 +5510,76 @@ main {
         color: #1a1a1a !important;
     }
 
-    [data-theme='dark'] .mobile-bottom-nav .nav-item i,
     [data-theme='dark'] .mobile-bottom-nav .nav-item span {
         color: #ffffff !important;
+    }
+
+    /* 🌟 LUXOYA PREMIUM DESIGN SYSTEM EXTENSIONS */
+    .text-gradient-gold {
+        background: linear-gradient(135deg, #f8d57e 0%, #c5a044 50%, #f8d57e 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-size: 200% auto;
+        animation: shine 4s linear infinite;
+    }
+
+    .glass-card-premium {
+        background: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-card-premium:hover {
+        background: rgba(255, 255, 255, 0.06) !important;
+        border-color: rgba(248, 213, 126, 0.3) !important;
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-glow:hover {
+        box-shadow: 0 0 20px rgba(197, 160, 68, 0.4);
+    }
+
+    @keyframes shine {
+        to { background-position: 200% center; }
+    }
+
+    @keyframes breathing {
+        0%, 100% { transform: scale(1); opacity: 0.9; }
+        50% { transform: scale(1.03); opacity: 1; }
+    }
+
+    .animate-breathing {
+        animation: breathing 3s ease-in-out infinite;
+    }
+
+    /* Mobile Header Refinements */
+    .header-bottom .container {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        scrollbar-width: none; /* Hide scrollbar Firefox */
+    }
+    .header-bottom .container::-webkit-scrollbar {
+        display: none; /* Hide scrollbar Chrome/Safari */
+    }
+    .nav-links-pill {
+        padding-bottom: 5px;
+    }
+    .search-bar-wrapper {
+        max-width: none;
+    }
+    .search-input-pill {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+}
+
+/* Adjust stories padding for the now visible header tiers */
+@media (max-width: 991px) {
+    .mobile-stories-container {
+        padding-top: 110px !important;
     }
 }
 

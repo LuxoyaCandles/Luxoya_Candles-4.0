@@ -2,118 +2,104 @@
 {% block title %}{{ current_category.name if current_category else 'All Collections' }}{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<section class="page-header">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
-                <li class="breadcrumb-item active">{{ current_category.name if current_category else 'Collections' }}</li>
+<!-- Premium Collections Header -->
+<section class="page-header-premium" style="background: #000; padding: 100px 0 40px; border-bottom: 1px solid rgba(197, 160, 68, 0.1);">
+    <div class="container text-center">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb justify-content-center" style="font-size: 0.75rem; letter-spacing: 1px;">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-muted text-decoration-none">HOME</a></li>
+                <li class="breadcrumb-item active text-gold">{{ current_category.name|upper if current_category else 'COLLECTIONS' }}</li>
             </ol>
         </nav>
-        <h1 class="page-title" data-aos="fade-up">{{ current_category.name if current_category else 'All Collections' }}</h1>
-        <p class="page-subtitle" data-aos="fade-up" data-aos-delay="100">
-            {{ current_category.description if current_category else 'Explore our handcrafted luxury soy candle collections' }}
+        <h1 class="display-4 fw-bold text-white mb-2" data-aos="fade-up">{{ current_category.name if current_category else 'All Collections' }}</h1>
+        <p class="lead text-white-50 mx-auto" style="max-width: 600px; font-size: 0.95rem;" data-aos="fade-up" data-aos-delay="100">
+            {{ current_category.description if current_category else 'Handcrafted luxury soy candles designed for refined living.' }}
         </p>
     </div>
 </section>
 
-<!-- Products Section -->
-<section class="section-padding">
+<!-- Sticky Category & Filter Bar -->
+<div class="sticky-top-filters py-3" style="background: rgba(13, 13, 13, 0.95); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(197, 160, 68, 0.2); z-index: 1020; position: sticky; top: 78px;">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between gap-3">
+            <!-- Category Scroller -->
+            <div class="category-pill-wrapper d-flex gap-2 overflow-auto no-scrollbar flex-grow-1">
+                <a href="{{ url_for('products.collections') }}" 
+                   class="category-pill {{ 'active' if not current_category else '' }}">ALL</a>
+                {% for cat in categories %}
+                <a href="{{ url_for('products.collections', slug=cat.slug) }}" 
+                   class="category-pill {{ 'active' if current_category and current_category.id == cat.id else '' }}">
+                    {{ cat.name|upper }}
+                </a>
+                {% endfor %}
+            </div>
+            
+            <!-- Quick Sort/Filter Trigger -->
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm bg-dark text-white border-secondary rounded-pill px-3" id="sortSelect" onchange="applyFilters()" style="width: auto; min-width: 140px; font-size: 0.75rem;">
+                    <option value="newest">NEWEST FIRST</option>
+                    <option value="price_low">PRICE: LOW-HIGH</option>
+                    <option value="price_high">PRICE: HIGH-LOW</option>
+                    <option value="rating">TOP RATED</option>
+                </select>
+                <button class="btn btn-sm btn-outline-gold rounded-pill px-3 d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#collectionsFilterOffcanvas">
+                    <i class="bi bi-sliders me-1"></i> FILTERS
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<section class="section-padding py-5" style="background: #0d0d0d; min-height: 100vh;">
     <div class="container">
         <div class="row">
-            <!-- Filters Sidebar -->
-            <div class="col-lg-3 mb-4 d-none d-lg-block">
-                <div class="filter-sidebar" data-aos="fade-right">
-                    <h6 class="filter-title">Categories</h6>
-                    <div class="filter-group">
-                        <a href="{{ url_for('products.collections') }}" 
-                           class="filter-link {{ 'active' if not current_category else '' }}">All Collections</a>
-                        {% for cat in categories %}
-                        <a href="{{ url_for('products.collections', slug=cat.slug) }}" 
-                           class="filter-link {{ 'active' if current_category and current_category.id == cat.id else '' }}">
-                            {{ cat.name }}
-                        </a>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="filter-group">
-                        <h6 class="filter-group-title d-flex justify-content-between align-items-center mb-3">
-                            <span>Max Price</span>
-                            <span id="priceMaxDisplay" class="text-gold fw-bold" style="font-size: 0.9rem;">₹5000</span>
-                        </h6>
-                        <div class="price-range-wrapper px-2">
-                            <input title="Filter by Price" type="range" class="form-range custom-range" min="500"
-                                max="10000" step="500" id="priceRangeInput" value="5000"
-                                oninput="document.getElementById('priceMaxDisplay').innerText = '₹' + this.value"
-                                onchange="applyFilters()">
+            <!-- Desktop Sidebar -->
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="filter-sidebar-premium glass-card-premium p-4 sticky-top" style="top: 140px;">
+                    <h6 class="text-gold mb-4 fw-bold small" style="letter-spacing: 2px;">PRICE RANGE</h6>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="small text-muted">Max:</span>
+                            <span id="priceMaxDisplay" class="text-gold fw-bold small">₹5000</span>
                         </div>
-                    </div>
-                    
-                    <h6 class="filter-title mt-4">Sort By</h6>
-                    <div class="filter-group mb-4">
-                        <select class="form-select form-select-sm" id="sortSelect" onchange="applyFilters()">
-                            <option value="newest">Newest First</option>
-                            <option value="price_low">Price: Low to High</option>
-                            <option value="price_high">Price: High to Low</option>
-                            <option value="rating">Highest Rated</option>
-                            <option value="name">Name A-Z</option>
-                        </select>
+                        <input type="range" class="form-range custom-range-gold" min="500" max="10000" step="500" id="priceRangeInput" value="5000" oninput="document.getElementById('priceMaxDisplay').innerText = '₹' + this.value" onchange="applyFilters()">
                     </div>
 
-                    <div class="filter-sidebar-ad mt-4 p-3 rounded-3 text-center" style="background: linear-gradient(135deg, #1a1a1a 0%, #333 100%); border: 1px solid #c9a96e33;">
-                        <i class="bi bi-file-earmark-pdf text-gold mb-2 d-block" style="font-size: 2rem;"></i>
-                        <h6 class="text-white small mb-2">Offline Catalog</h6>
-                        <p class="text-muted mb-3" style="font-size: 0.75rem;">Download our full product collection as a PDF.</p>
-                        <a href="{{ url_for('products.catalog_download') }}" target="_blank" class="btn btn-sm btn-luxoya-gold w-100">
-                            Download PDF
-                        </a>
+                    <div class="promo-box mt-5 p-3 rounded-3 text-center border border-gold-muted" style="background: rgba(197, 160, 68, 0.05);">
+                        <i class="bi bi-file-earmark-pdf text-gold mb-2 d-block" style="font-size: 1.5rem;"></i>
+                        <h6 class="text-white small mb-1">Catalog 2026</h6>
+                        <p class="text-muted mb-3" style="font-size: 0.7rem;">Download the full collection as PDF.</p>
+                        <a href="{{ url_for('products.catalog_download') }}" target="_blank" class="btn btn-xs btn-gold w-100 py-2" style="font-size: 0.7rem;">DOWNLOAD</a>
                     </div>
                 </div>
             </div>
-            
-            <!-- Products Grid -->
+
+            <!-- Grid Content -->
             <div class="col-lg-9">
-                <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-cream rounded-3 border sticky-control-bar">
-                    <p class="mb-0 text-muted" id="resultCount">Loading products...</p>
-                    <div class="d-lg-none">
-                        <button class="btn btn-sm btn-outline-secondary px-3" data-bs-toggle="offcanvas" data-bs-target="#collectionsFilterOffcanvas">
-                            Filters <i class="bi bi-sliders ms-1"></i>
-                        </button>
-                    </div>
-                    <div class="d-flex gap-2 d-none d-md-flex">
-                        <button class="btn btn-sm btn-outline-dark active" onclick="setGridView('grid')" id="gridBtn">
-                            <i class="bi bi-grid"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-dark" onclick="setGridView('list')" id="listBtn">
-                            <i class="bi bi-list"></i>
-                        </button>
-                    </div>
-                </div>
-                
                 <div class="row g-4" id="productsGrid">
-                    <!-- Products loaded via JS -->
+                    <!-- Loaded via JS -->
                 </div>
-                
-                <!-- Loading -->
+
+                <!-- Loading State -->
                 <div class="text-center py-5" id="productsLoading">
-                    <div class="spinner-border text-gold" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
+                    <div class="spinner-grow text-gold" role="status"></div>
+                    <p class="text-muted mt-3 small">REFINING YOUR COLLECTION...</p>
                 </div>
-                
-                <!-- Empty state -->
+
+                <!-- Empty State -->
                 <div class="text-center py-5 d-none" id="productsEmpty">
-                    <i class="bi bi-box-seam" style="font-size: 3rem; color: #c9a96e;"></i>
-                    <h5 class="mt-3">No products found</h5>
-                    <p class="text-muted">Try adjusting your filters or browse all collections.</p>
-                    <a href="{{ url_for('products.collections') }}" class="btn btn-luxoya-gold">View All</a>
+                    <div class="mb-4">
+                        <i class="bi bi-search text-gold" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                    <h4 class="text-white">No Results Found</h4>
+                    <p class="text-muted">Adjust your filters to discover more fragrances.</p>
+                    <button class="btn btn-gold rounded-pill px-5 mt-3" onclick="window.location.reload()">RESET FILTERS</button>
                 </div>
-                
+
                 <!-- Pagination -->
                 <nav class="mt-5 d-none" id="productsPagination">
-                    <ul class="pagination pagination-luxoya justify-content-center" id="paginationList">
-                    </ul>
+                    <ul class="pagination pagination-luxoya justify-content-center" id="paginationList"></ul>
                 </nav>
             </div>
         </div>
@@ -121,66 +107,72 @@
 </section>
 
 <!-- Mobile Filter Offcanvas -->
-<div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="collectionsFilterOffcanvas">
-    <div class="offcanvas-header border-bottom border-secondary">
-        <h5 class="offcanvas-title text-gold">Filters</h5>
+<div class="offcanvas offcanvas-bottom bg-dark rounded-top-4" style="height: 60vh;" tabindex="-1" id="collectionsFilterOffcanvas">
+    <div class="offcanvas-header border-bottom border-secondary p-4">
+        <h5 class="offcanvas-title text-gold fw-bold">FILTERS</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
     </div>
-    <div class="offcanvas-body">
-        <div class="filter-group mb-4">
-            <h6 class="filter-group-title text-white">Categories</h6>
-            <div class="d-flex flex-wrap gap-2 mt-2">
-                <a href="{{ url_for('products.collections') }}" 
-                   class="btn btn-sm btn-outline-gold {{ 'active' if not current_category else '' }}">All</a>
-                {% for cat in categories %}
-                <a href="{{ url_for('products.collections', slug=cat.slug) }}" 
-                   class="btn btn-sm btn-outline-gold {{ 'active' if current_category and current_category.id == cat.id else '' }}">
-                    {{ cat.name }}
-                </a>
-                {% endfor %}
+    <div class="offcanvas-body p-4">
+        <div class="mb-4">
+            <h6 class="text-white small mb-3">MAX PRICE</h6>
+            <div class="d-flex justify-content-between mb-2">
+                <span id="priceMaxDisplayMobile" class="text-gold fw-bold">₹5000</span>
             </div>
+            <input type="range" class="form-range custom-range-gold" min="500" max="10000" step="500" id="mobilePriceRangeInput" value="5000"
+                oninput="document.getElementById('priceMaxDisplayMobile').innerText = '₹' + this.value; document.getElementById('priceRangeInput').value = this.value; applyFilters();">
         </div>
-        
-        <div class="filter-group mb-4">
-            <h6 class="filter-group-title d-flex justify-content-between align-items-center mb-3 text-white">
-                <span>Max Price</span>
-                <span id="priceMaxDisplayMobile" class="text-gold fw-bold" style="font-size: 0.9rem;">₹5000</span>
-            </h6>
-            <div class="price-range-wrapper px-2">
-                <input title="Filter by Price" type="range" class="form-range custom-range" min="500"
-                    max="10000" step="500" id="mobilePriceRangeInput" value="5000"
-                    oninput="document.getElementById('priceMaxDisplayMobile').innerText = '₹' + this.value; document.getElementById('priceRangeInput').value = this.value; applyFilters();">
-            </div>
-        </div>
-        
-        <div class="filter-group mb-4">
-            <h6 class="filter-group-title text-white mb-2">Sort By</h6>
-            <select class="form-select form-select-sm" id="mobileSortSelect" onchange="document.getElementById('sortSelect').value = this.value; applyFilters();">
-                <option value="newest">Newest First</option>
-                <option value="price_low">Price: Low to High</option>
-                <option value="price_high">Price: High to Low</option>
-                <option value="rating">Highest Rated</option>
-                <option value="name">Name A-Z</option>
-            </select>
-        </div>
-        
-        <button class="btn btn-luxoya-gold w-100 mt-4" data-bs-dismiss="offcanvas">Apply Filters</button>
+        <button class="btn btn-gold w-100 rounded-pill py-3 fw-bold" data-bs-dismiss="offcanvas">APPLY FILTERS</button>
     </div>
 </div>
+
+<style>
+.category-pill {
+    padding: 8px 24px; border-radius: 50px; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6);
+    text-decoration: none; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+    white-space: nowrap; transition: all 0.3s ease;
+}
+.category-pill:hover, .category-pill.active {
+    background: var(--lx-gold); color: var(--lx-black); border-color: var(--lx-gold);
+    box-shadow: 0 4px 15px rgba(197, 160, 68, 0.3);
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.custom-range-gold::-webkit-slider-thumb { background: var(--lx-gold); border: 2px solid #000; box-shadow: 0 0 10px rgba(197, 160, 68, 0.5); }
+.custom-range-gold::-moz-range-thumb { background: var(--lx-gold); border: 2px solid #000; }
+
+.btn-xs { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+
+/* Enhanced Product Card */
+.product-card-premium {
+    background: #141414; border: 1px solid rgba(255,255,255,0.05); 
+    border-radius: 12px; overflow: hidden; transition: all 0.4s ease;
+    height: 100%; display: flex; flex-direction: column;
+}
+.product-card-premium:hover {
+    transform: translateY(-8px); border-color: rgba(197, 160, 68, 0.3);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+}
+.product-img-frame { position: relative; padding-top: 100%; overflow: hidden; background: #000; }
+.product-img-premium {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+    object-fit: cover; transition: transform 0.6s ease;
+}
+.product-card-premium:hover .product-img-premium { transform: scale(1.1); }
+
+.placeholder-branded {
+    position: absolute; inset: 0; background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.placeholder-logo { opacity: 0.1; width: 80px; filter: grayscale(1); margin-bottom: 10px; }
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 const currentCategory = '{{ current_category.slug if current_category else "" }}';
 let currentPage = 1;
-let currentView = 'grid';
-
-function setGridView(view) {
-    currentView = view;
-    document.getElementById('gridBtn').classList.toggle('active', view === 'grid');
-    document.getElementById('listBtn').classList.toggle('active', view === 'list');
-    loadProducts();
-}
 
 function applyFilters() {
     currentPage = 1;
@@ -190,95 +182,96 @@ function applyFilters() {
 async function loadProducts(page = 1) {
     currentPage = page;
     const sort = document.getElementById('sortSelect').value;
-    const minPrice = '';
     const priceRangeInput = document.getElementById('priceRangeInput');
     const maxPrice = priceRangeInput ? priceRangeInput.value : '';
     
     let url = `/api/products?page=${page}&sort=${sort}`;
     if (currentCategory) url += `&category=${currentCategory}`;
-    if (minPrice) url += `&min_price=${minPrice}`;
     if (maxPrice) url += `&max_price=${maxPrice}`;
     
-    document.getElementById('productsLoading').classList.remove('d-none');
-    document.getElementById('productsGrid').innerHTML = '';
-    document.getElementById('productsEmpty').classList.add('d-none');
-    document.getElementById('productsPagination').classList.add('d-none');
+    const loading = document.getElementById('productsLoading');
+    const grid = document.getElementById('productsGrid');
+    const empty = document.getElementById('productsEmpty');
+    const pagination = document.getElementById('productsPagination');
+
+    loading.classList.remove('d-none');
+    grid.innerHTML = '';
+    empty.classList.add('d-none');
+    pagination.classList.add('d-none');
     
     try {
         const res = await fetch(url);
         const data = await res.json();
         
-        document.getElementById('productsLoading').classList.add('d-none');
-        document.getElementById('resultCount').textContent = `${data.total} product${data.total !== 1 ? 's' : ''} found`;
+        loading.classList.add('d-none');
         
         if (data.products.length === 0) {
-            document.getElementById('productsEmpty').classList.remove('d-none');
+            empty.classList.remove('d-none');
             return;
         }
         
-        const grid = document.getElementById('productsGrid');
-        const colClass = currentView === 'grid' ? 'col-6 col-md-6 col-lg-4' : 'col-12';
-        
         grid.innerHTML = data.products.map(p => `
-            <div class="${colClass}">
-                <div class="product-card ${currentView === 'list' ? 'product-card-list' : ''}">
-                    <a href="/product/${p.slug}">
-                        <div class="product-img-wrapper">
-                            ${p.image_url ? 
-                                `<img src="${p.image_url}" alt="${p.name}" class="product-img">` : 
-                                '<div class="product-img-placeholder"><i class="bi bi-lamp fs-1 text-gold"></i></div>'}
-                            ${p.discount_percentage > 0 ? `<span class="product-badge">-${p.discount_percentage}%</span>` : ''}
-                        </div>
+            <div class="col-6 col-md-6 col-lg-4">
+                <div class="product-card-premium shadow-lg">
+                    <a href="/product/${p.slug}" class="product-img-frame">
+                        ${p.image_url ? 
+                            `<img src="${p.image_url}" alt="${p.name}" class="product-img-premium">` : 
+                            `<div class="placeholder-branded">
+                                <img src="/static/images/logo-dark-theme.png" class="placeholder-logo">
+                                <span class="text-gold small opacity-50" style="font-size: 10px; letter-spacing: 2px;">LUXOYA ORIGINAL</span>
+                            </div>`}
+                        ${p.discount_percentage > 0 ? `<span class="badge bg-danger position-absolute top-0 end-0 m-2" style="font-size: 10px;">-${p.discount_percentage}%</span>` : ''}
                     </a>
-                    <div class="product-info">
-                        <p class="product-category">${p.category ? p.category.name : ''}</p>
-                        <h6 class="product-name"><a href="/product/${p.slug}">${p.name}</a></h6>
-                        <div class="d-flex flex-wrap gap-1 mb-2">
-                            ${p.fragrance ? `<span class="badge bg-cream text-muted border-0 fw-normal" style="font-size: 0.65rem;"><i class="bi bi-flower1 me-1"></i>${p.fragrance}</span>` : ''}
-                            ${p.weight ? `<span class="badge bg-cream text-muted border-0 fw-normal" style="font-size: 0.65rem;"><i class="bi bi-tag me-1"></i>${p.weight} grms</span>` : ''}
-                            ${p.burn_time ? `<span class="badge bg-cream text-muted border-0 fw-normal" style="font-size: 0.65rem;"><i class="bi bi-clock me-1"></i>${p.burn_time} hrs</span>` : ''}
+                    <div class="p-3 d-flex flex-column flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <span class="text-gold small fw-bold" style="font-size: 10px; letter-spacing: 1px;">${p.category ? p.category.name.toUpperCase() : ''}</span>
+                            <div class="text-gold" style="font-size: 10px;">
+                                <i class="bi bi-star-fill"></i> ${p.rating_avg}
+                            </div>
                         </div>
-                        <div class="product-price">
-                            ${p.sale_price && p.sale_price < p.price ? 
-                                `<span class="price-current">₹${Math.round(p.sale_price)}</span>
-                                 <span class="price-original">₹${Math.round(p.price)}</span>` :
-                                `<span class="price-current">₹${Math.round(p.price)}</span>`}
+                        <h6 class="text-white fw-bold mb-2 text-truncate" style="font-size: 0.9rem;">
+                            <a href="/product/${p.slug}" class="text-white text-decoration-none hover-gold">${p.name}</a>
+                        </h6>
+                        <div class="product-meta d-flex gap-2 mb-3">
+                            ${p.weight ? `<span class="text-muted small" style="font-size: 10px;"><i class="bi bi-tag me-1"></i>${p.weight}G</span>` : ''}
+                            ${p.burn_time ? `<span class="text-muted small" style="font-size: 10px;"><i class="bi bi-clock me-1"></i>${p.burn_time}H</span>` : ''}
                         </div>
-                        <div class="product-rating">
-                            ${'<i class="bi bi-star-fill"></i>'.repeat(Math.round(p.rating_avg))}${'<i class="bi bi-star"></i>'.repeat(5 - Math.round(p.rating_avg))}
-                            <span class="rating-count">(${p.rating_count})</span>
-                        </div>
-                        <div class="d-flex gap-2 mt-2">
-                            <button class="btn btn-add-cart flex-grow-1" onclick="addToCart('${p.id}', 1, true)" ${!p.in_stock ? 'disabled' : ''}>
-                                ${p.in_stock ? '<i class="bi bi-bag-plus me-1"></i> Add' : 'Out of Stock'}
-                            </button>
-                            <button class="btn btn-luxoya-gold btn-sm flex-grow-1" onclick="buyNow('${p.id}')" ${!p.in_stock ? 'disabled' : ''}>
-                                <i class="bi bi-lightning-charge me-1"></i> Buy Now
-                            </button>
+                        <div class="mt-auto">
+                            <div class="d-flex align-items-baseline gap-2 mb-3">
+                                <span class="text-white fw-bold">₹${Math.round(p.sale_price || p.price)}</span>
+                                ${p.sale_price && p.sale_price < p.price ? `<span class="text-muted text-decoration-line-through small" style="font-size: 11px;">₹${Math.round(p.price)}</span>` : ''}
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-light btn-sm flex-grow-1 py-2" style="font-size: 10px;" onclick="addToCart('${p.id}', 1, true)" ${!p.in_stock ? 'disabled' : ''}>
+                                    ADD
+                                </button>
+                                <button class="btn btn-gold btn-sm flex-grow-1 py-2 fw-bold" style="font-size: 10px;" onclick="buyNow('${p.id}')" ${!p.in_stock ? 'disabled' : ''}>
+                                    BUY NOW
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         `).join('');
         
-        // Pagination
+        // Pagination logic remains same but styled for dark
         if (data.pages > 1) {
-            document.getElementById('productsPagination').classList.remove('d-none');
+            pagination.classList.remove('d-none');
             let phtml = '';
-            if (data.has_prev) phtml += `<li class="page-item"><a class="page-link" href="#" onclick="loadProducts(${page-1});return false;">&laquo;</a></li>`;
+            if (data.has_prev) phtml += `<li class="page-item"><a class="page-link bg-dark text-gold border-secondary" href="#" onclick="loadProducts(${page-1});return false;">&laquo;</a></li>`;
             for (let i = 1; i <= data.pages; i++) {
-                phtml += `<li class="page-item ${i === page ? 'active' : ''}"><a class="page-link" href="#" onclick="loadProducts(${i});return false;">${i}</a></li>`;
+                phtml += `<li class="page-item ${i === page ? 'active' : ''}"><a class="page-link ${i === page ? 'bg-gold text-dark border-gold' : 'bg-dark text-white border-secondary'}" href="#" onclick="loadProducts(${i});return false;">${i}</a></li>`;
             }
-            if (data.has_next) phtml += `<li class="page-item"><a class="page-link" href="#" onclick="loadProducts(${page+1});return false;">&raquo;</a></li>`;
+            if (data.has_next) phtml += `<li class="page-item"><a class="page-link bg-dark text-gold border-secondary" href="#" onclick="loadProducts(${page+1});return false;">&raquo;</a></li>`;
             document.getElementById('paginationList').innerHTML = phtml;
         }
     } catch (err) {
-        document.getElementById('productsLoading').classList.add('d-none');
-        document.getElementById('productsEmpty').classList.remove('d-none');
+        loading.classList.add('d-none');
+        empty.classList.remove('d-none');
     }
 }
 
-// Load on page ready
 document.addEventListener('DOMContentLoaded', () => loadProducts());
 </script>
 {% endblock %}
