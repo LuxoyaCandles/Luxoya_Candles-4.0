@@ -2,207 +2,263 @@
 
 {% block content %}
 <style>
-    /* Cinematic Candle Preview */
-    .candle-preview {
-        height: 400px;
+    /* 🕯️ Cinematic Bespoke Studio Styling */
+    :root {
+        --lx-studio-bg: #0a0a0a;
+    }
+
+    .section-bespoke {
+        background: var(--lx-studio-bg);
+        color: #fff;
+        padding-top: 120px;
+        min-height: 100vh;
+    }
+
+    /* Photorealistic Candle Preview */
+    .candle-preview-container {
+        height: 500px;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: radial-gradient(circle, #fff 0%, #f8f9fa 100%);
-        border-radius: 20px;
-        overflow: hidden;
+        background: radial-gradient(circle at 50% 40%, #1a1a1a 0%, #050505 100%);
+        border-radius: 30px;
         position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(197, 160, 68, 0.1);
+        box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
     }
+
+    /* Spotlight Effect */
+    .candle-preview-container::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0; height: 150px;
+        background: radial-gradient(ellipse at 50% 100%, rgba(197, 160, 68, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
     .preview-candle {
         position: relative;
-        width: 160px;
-        height: 200px;
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 180px;
+        height: 240px;
+        transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));
     }
+
+    /* The Jar - Realistic Glass/Ceramic */
     .preview-jar {
         position: absolute;
         bottom: 0; left: 0; width: 100%; height: 100%;
-        border-radius: 10px 10px 20px 20px;
-        border: 2px solid rgba(0,0,0,0.05);
-        z-index: 5;
+        border-radius: 12px 12px 25px 25px;
+        z-index: 10;
         transition: all 0.5s ease;
-        background: rgba(255,255,255,0.1);
-        backdrop-filter: blur(2px);
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 
+            inset 0 2px 10px rgba(255,255,255,0.1),
+            inset -5px -5px 15px rgba(0,0,0,0.2);
     }
-    /* Jar Variants */
-    .jar-classic { background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.4); }
-    .jar-ceramic { background: #f0f0f0; border: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.1); }
-    .jar-tin { background: linear-gradient(135deg, #d4af37 0%, #f9f295 50%, #d4af37 100%); border: none; }
-    .jar-marble { background: url('https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=200'); background-size: cover; border: none; }
 
+    /* Jar Variants with improved textures */
+    .jar-classic { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); }
+    .jar-ceramic { background: #111; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 0 40px rgba(0,0,0,0.8); }
+    .jar-tin { background: linear-gradient(145deg, #c5a044, #8b6b23); border: none; box-shadow: inset 0 2px 5px rgba(255,255,255,0.3); }
+    .jar-marble { background: url('https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=300'); background-size: cover; border: none; filter: brightness(0.6); }
+
+    /* The Wax - With realistic top-down depth */
     .preview-wax {
         position: absolute;
-        bottom: 5px; left: 5px; right: 5px; height: 90%;
-        border-radius: 5px 5px 15px 15px;
-        z-index: 3;
-        transition: background 0.5s ease;
-        box-shadow: inset 0 -10px 20px rgba(0,0,0,0.1);
+        bottom: 8px; left: 8px; right: 8px; height: 92%;
+        border-radius: 8px 8px 18px 18px;
+        z-index: 5;
+        transition: all 0.5s ease;
+        background: #FFFFF0; /* Default Ivory */
+        box-shadow: 
+            inset 0 10px 20px rgba(0,0,0,0.1),
+            inset 0 -5px 15px rgba(255,255,255,0.1);
     }
-    .preview-wick {
-        position: absolute;
-        top: -10px; left: 50%;
-        width: 4px; height: 15px;
-        background: #333;
-        transform: translateX(-50%);
-        z-index: 2;
-    }
+
+    /* The Flame - Dynamic Animation */
     .preview-flame {
         position: absolute;
-        top: -35px; left: 50%;
+        top: -45px; left: 50%;
         transform: translateX(-50%);
-        z-index: 6;
-        font-size: 1.8rem;
-        animation: flicker 0.1s infinite alternate;
-        filter: drop-shadow(0 0 10px rgba(255, 193, 7, 0.8));
+        z-index: 20;
+        font-size: 2.2rem;
+        color: #ffb400;
+        animation: flame-flicker 0.15s infinite alternate;
+        filter: blur(0.5px) drop-shadow(0 0 15px rgba(255, 180, 0, 0.6));
     }
-    @keyframes flicker {
-        0% { transform: translateX(-50%) scale(1); opacity: 0.9; }
-        100% { transform: translateX(-50%) scale(1.05) rotate(1deg); opacity: 1; }
+    @keyframes flame-flicker {
+        0% { transform: translateX(-50%) scale(1) rotate(-1deg); opacity: 0.9; }
+        100% { transform: translateX(-50%) scale(1.1) rotate(1deg); opacity: 1; }
     }
-    .preview-label {
+
+    /* The Wick */
+    .preview-wick {
         position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        width: 70%;
-        background: #fff;
-        padding: 10px 5px;
-        text-align: center;
-        font-family: 'Playfair Display', serif;
-        font-size: 0.7rem;
-        font-weight: 600;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        z-index: 10;
-        border: 1px solid #eee;
+        top: -12px; left: 50%;
+        width: 4px; height: 18px;
+        background: #1a1a1a;
+        transform: translateX(-50%);
+        z-index: 4;
+        border-radius: 2px;
     }
 
-    .option-card {
+    /* Option Selection Cards */
+    .option-card-bespoke {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        padding: 20px;
         cursor: pointer;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 15px;
-        padding: 15px;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
         text-align: center;
-        transition: all 0.3s ease;
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--lx-text);
-        backdrop-filter: blur(10px);
+        height: 100%;
     }
-    .option-card:hover {
-        background: rgba(255, 255, 255, 0.08);
+    .option-card-bespoke:hover {
+        background: rgba(255,255,255,0.06);
         border-color: var(--lx-gold);
-    }
-    .option-card.active {
-        border-color: var(--lx-gold);
-        background: rgba(197, 160, 68, 0.1);
         transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(197, 160, 68, 0.2);
     }
-    .option-icon { font-size: 1.5rem; margin-bottom: 5px; color: var(--lx-gold); }
-    .colour-swatch { width: 30px; height: 30px; border-radius: 50%; margin: 0 auto 5px; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+    .option-card-bespoke.active {
+        background: rgba(197, 160, 68, 0.1);
+        border-color: var(--lx-gold);
+        box-shadow: 0 10px 40px rgba(197, 160, 68, 0.2);
+    }
+    .option-icon { font-size: 1.8rem; margin-bottom: 10px; color: var(--lx-gold); }
 
-    /* Mobile Sticky Preview Fix */
+    /* Colour Swatches */
+    .swatch-bespoke {
+        width: 45px; height: 45px;
+        border-radius: 50%;
+        margin: 0 auto 10px;
+        border: 3px solid rgba(255,255,255,0.1);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    /* Reference Image Upload Zone */
+    .upload-zone {
+        border: 2px dashed rgba(197, 160, 68, 0.3);
+        border-radius: 20px;
+        padding: 40px 20px;
+        text-align: center;
+        background: rgba(197, 160, 68, 0.03);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .upload-zone:hover {
+        background: rgba(197, 160, 68, 0.08);
+        border-color: var(--lx-gold);
+    }
+    .upload-preview {
+        width: 100%; height: 150px;
+        object-fit: cover;
+        border-radius: 12px;
+        display: none;
+        margin-top: 15px;
+    }
+
+    /* Mobile Adaptability */
     @media (max-width: 991px) {
-        .candle-preview { height: 250px; }
-        .preview-candle { transform: scale(0.7); }
-        .sticky-top-mobile { 
-            position: sticky; 
-            top: 75px; 
-            z-index: 1020; 
-            background: var(--lx-body-bg); 
-            padding-bottom: 15px;
-            margin: 0 -15px 20px;
-            border-bottom: 1px solid var(--lx-surface-border);
-        }
-        .customize-preview-card { border-radius: 0; box-shadow: none; border: none; }
-        .customize-summary { display: none; } /* Hide summary in sticky preview on mobile to save space */
+        .candle-preview-container { height: 350px; border-radius: 0; margin: 0 -15px; }
+        .preview-candle { transform: scale(0.85); }
+        .bespoke-controls { padding: 30px 0; }
     }
 </style>
 
-<section class="section-padding pt-navbar">
+<section class="section-bespoke">
     <div class="container">
+        <!-- Header -->
         <div class="text-center mb-5" data-aos="fade-up">
-            <h1 class="section-title">Design Your <span class="text-gold">Masterpiece</span></h1>
-            <p class="text-muted">Handcrafted luxury, tailored precisely to your senses.</p>
+            <h1 class="display-4 fw-bold mb-2">Bespoke <span class="text-gold">Studio</span></h1>
+            <p class="text-muted lead">Crafting your unique scent story, one layer at a time.</p>
         </div>
 
-        <!-- Loading spinner -->
-        <div class="text-center py-5" id="customizeLoading">
-            <div class="spinner-border text-gold" role="status"><span class="visually-hidden">Loading...</span></div>
-            <p class="text-muted mt-2">Loading customization options...</p>
-        </div>
-
-        <div class="row g-5 d-none" id="customizeContent">
-            <!-- Customization Options -->
+        <!-- Main Studio Grid -->
+        <div class="row g-5">
+            <!-- Left: Options & Steps -->
             <div class="col-lg-7" data-aos="fade-right">
-                <div class="customize-form" id="stepsContainer">
-                    <!-- Steps dynamically inserted here -->
-                </div>
-
-                <!-- Personal Touch (always present) -->
-                <div class="customize-step mb-4">
-                    <h5 class="step-label"><span class="step-number" id="labelStepNum">5</span> Personal Touch</h5>
-                    <div class="mb-3">
-                        <label class="form-label">Custom Label Text <small class="text-muted">(optional, max 50 chars)</small></label>
-                        <input type="text" class="form-control" id="labelText" maxlength="50"
-                               placeholder="e.g., Happy Birthday, Sarah!" oninput="updatePreview()">
+                <div id="studioSteps">
+                    <!-- Step 1: Vessel -->
+                    <div class="mb-5">
+                        <h4 class="mb-4 d-flex align-items-center"><span class="badge bg-gold me-3">1</span> Select Your Vessel</h4>
+                        <div class="row g-3" id="jarOptions"></div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Additional Notes <small class="text-muted">(optional)</small></label>
-                        <textarea class="form-control" id="additionalNotes" rows="2"
-                                  placeholder="Any special requests or instructions..."></textarea>
+
+                    <!-- Step 2: Wax Colour -->
+                    <div class="mb-5">
+                        <h4 class="mb-4 d-flex align-items-center"><span class="badge bg-gold me-3">2</span> Pour Your Spirit</h4>
+                        <p class="small text-muted mb-3">Choose the hue that reflects your mood.</p>
+                        <div class="row g-3" id="colourOptions"></div>
+                    </div>
+
+                    <!-- Step 3: Fragrance -->
+                    <div class="mb-5">
+                        <h4 class="mb-4 d-flex align-items-center"><span class="badge bg-gold me-3">3</span> Define Your Atmosphere</h4>
+                        <div class="row g-3" id="fragranceOptions"></div>
+                    </div>
+
+                    <!-- Step 4: Personalization & Reference -->
+                    <div class="mb-5">
+                        <h4 class="mb-4 d-flex align-items-center"><span class="badge bg-gold me-3">4</span> Final Details</h4>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-gold small fw-bold">CUSTOM LABEL TEXT</label>
+                                <input type="text" class="form-control bg-transparent text-white border-secondary" id="labelText" placeholder="e.g., Morning Mist" oninput="updateVisuals()">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-gold small fw-bold">WICK STYLE</label>
+                                <div class="d-flex gap-2" id="wickOptions"></div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label text-gold small fw-bold">UPLOAD INSPIRATION <i class="bi bi-info-circle ms-1" title="Have a specific design or reference in mind? Upload it here!"></i></label>
+                                <div class="upload-zone" onclick="document.getElementById('refImage').click()">
+                                    <i class="bi bi-cloud-arrow-up fs-1 text-gold mb-2 d-block"></i>
+                                    <span id="uploadStatusText">Click to upload reference candle photo</span>
+                                    <input type="file" id="refImage" class="d-none" accept="image/*" onchange="handleFileUpload(this)">
+                                    <img id="uploadPreviewImg" class="upload-preview">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label text-gold small fw-bold">BESPOKE NOTES</label>
+                                <textarea class="form-control bg-transparent text-white border-secondary" id="additionalNotes" rows="3" placeholder="Describe any specific artistic details you want..."></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Live Preview + Summary -->
-            <div class="col-lg-5 order-first order-lg-last" data-aos="fade-left">
-                <div class="customize-preview-card sticky-top-mobile sticky-lg-top" style="top: 100px;">
-                    <h5 class="text-center mb-3 mb-lg-4 fw-bold d-none d-lg-block">Live Preview</h5>
-
-                    <!-- Visual Preview -->
-                    <div class="candle-preview" id="candlePreview">
-                        <div class="preview-candle" id="previewCandleMain">
-                            <div class="preview-flame" id="previewFlame"><i class="bi bi-fire text-warning"></i></div>
-                            <div class="preview-wick" id="previewWick"></div>
-                            <div class="preview-wax" id="previewWax"></div>
-                            <div class="preview-jar" id="previewJar"></div>
-                            <div class="preview-label" id="previewLabel"></div>
+            <!-- Right: Live Preview -->
+            <div class="col-lg-5" data-aos="fade-left">
+                <div class="sticky-top" style="top: 110px;">
+                    <div class="candle-preview-container">
+                        <div class="preview-candle" id="mainCandle">
+                            <div class="preview-flame"><i class="bi bi-fire"></i></div>
+                            <div class="preview-wick"></div>
+                            <div class="preview-wax" id="vizWax"></div>
+                            <div class="preview-jar" id="vizJar"></div>
+                        </div>
+                        
+                        <!-- Floating Label Preview -->
+                        <div style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 120px; background: rgba(255,255,255,0.9); padding: 8px; text-align: center; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 30;">
+                            <span id="vizLabel" style="color: #000; font-family: 'Playfair Display', serif; font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase;">LUXOYA</span>
                         </div>
                     </div>
 
-                    <!-- Summary (dynamic addon rows) -->
-                    <div class="customize-summary mt-4" id="summaryContainer">
-                        <div class="summary-row">
-                            <span>Base Price</span>
-                            <span>₹499</span>
-                        </div>
-                        <div id="addonRows"></div>
-                        <hr>
-                        <div class="summary-row total">
-                            <strong>Total</strong>
-                            <strong id="customTotal">₹499</strong>
-                        </div>
-                    </div>
-
-                    <button class="btn btn-gold btn-lg w-100 mt-4 shadow" onclick="addCustomToCart()" id="addCustomBtn">
-                        <i class="bi bi-bag-plus me-2"></i>Add to Cart
-                    </button>
-                    
-                    <!-- Mobile Cart Trigger (Fixed Bottom) -->
-                    <div class="d-lg-none fixed-bottom p-3 bg-dark border-top" style="z-index: 1030;">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="text-white">
-                                <span class="small opacity-75">Total:</span>
-                                <h5 class="mb-0 fw-bold" id="mobileTotal">₹499</h5>
+                    <!-- Summary Card -->
+                    <div class="card mt-4 bg-dark border-secondary rounded-4">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0 text-white fw-bold">Studio Summary</h5>
+                                <span class="badge bg-gold" id="totalPrice">₹499</span>
                             </div>
-                            <button class="btn btn-gold px-4" onclick="addCustomToCart()">
-                                Add <i class="bi bi-arrow-right ms-1"></i>
+                            <div id="summaryDetails" class="small text-muted mb-4">
+                                <!-- Filled by JS -->
+                            </div>
+                            <button class="btn btn-gold btn-lg w-100 fw-bold" id="addBtn" onclick="addToCart()">
+                                <i class="bi bi-stars me-2"></i>REQUEST BESPOKE PIECE
                             </button>
                         </div>
                     </div>
@@ -211,221 +267,220 @@
         </div>
     </div>
 </section>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-const basePrice = 499;
-
-// Category display config
-const STEP_CONFIG = {
-    jar_type:   { label: 'Choose Your Jar',     group: 'jar_type' },
-    colour:     { label: 'Pick Your Colour',     group: 'colour' },
-    fragrance:  { label: 'Select Fragrance',     group: 'fragrance' },
-    wick_type:  { label: 'Wick Type',            group: 'wick_type' },
-};
-
-// Fallback hardcoded options (used if API returns nothing)
-const FALLBACK = {
+// --- STUDIO CONFIG ---
+const BASE_PRICE = 499;
+const STUDIO_DATA = {
     jar_type: [
-        { value:'classic_glass', name:'Classic Glass', icon:'bi-cup-hot', price_addon:0 },
-        { value:'matte_ceramic', name:'Matte Ceramic', icon:'bi-cup', price_addon:150 },
-        { value:'gold_tin',      name:'Gold Tin',      icon:'bi-box', price_addon:100 },
-        { value:'marble_vessel', name:'Marble Vessel', icon:'bi-gem', price_addon:250 },
+        { value: 'classic_glass', name: 'Classic Glass', icon: 'bi-cup-hot', price: 0 },
+        { value: 'matte_ceramic', name: 'Matte Ceramic', icon: 'bi-cup', price: 150 },
+        { value: 'gold_tin', name: 'Vintage Tin', icon: 'bi-box', price: 100 },
+        { value: 'marble_vessel', name: 'Marble Lux', icon: 'bi-gem', price: 250 }
     ],
     colour: [
-        { value:'ivory_white',   name:'Ivory White',   color_hex:'#FFFFF0' },
-        { value:'blush_pink',    name:'Blush Pink',    color_hex:'#FFB6C1' },
-        { value:'sage_green',    name:'Sage Green',    color_hex:'#9DC183' },
-        { value:'midnight_black',name:'Midnight Black', color_hex:'#191919' },
+        { value: 'ivory_white', name: 'Ivory White', hex: '#FFFFF0', price: 0 },
+        { value: 'midnight_gold', name: 'Royal Gold', hex: '#c5a044', price: 50 },
+        { value: 'imperial_emerald', name: 'Imperial Emerald', hex: '#043927', price: 50 },
+        { value: 'midnight_sapphire', name: 'Midnight Sapphire', hex: '#002366', price: 50 },
+        { value: 'champagne_blush', name: 'Champagne Blush', hex: '#fad6a5', price: 50 }
     ],
     fragrance: [
-        { value:'vanilla_oud',    name:'Vanilla & Oud',    icon:'bi-flower2' },
-        { value:'rose_sandalwood',name:'Rose & Sandalwood', icon:'bi-flower3' },
-        { value:'fresh_linen',    name:'Fresh Linen',       icon:'bi-droplet' },
-        { value:'amber_noir',     name:'Amber Noir',        icon:'bi-stars' },
+        { value: 'vanilla_oud', name: 'Vanilla & Oud', icon: 'bi-flower2' },
+        { value: 'rose_sandalwood', name: 'Rose & Sandalwood', icon: 'bi-flower3' },
+        { value: 'fresh_linen', name: 'Morning Mist', icon: 'bi-droplet' },
+        { value: 'amber_noir', name: 'Amber Noir', icon: 'bi-stars' }
     ],
     wick_type: [
-        { value:'single', name:'Single Wick', icon:'bi-fire', price_addon:0 },
-        { value:'double', name:'Double Wick', icon:'bi-fire',  price_addon:50 },
-    ],
+        { value: 'single', name: 'Classic Single', price: 0 },
+        { value: 'double', name: 'Premium Double', price: 75 }
+    ]
 };
 
-let optionsData = {};   // category → [options]
-let selections = {};    // category → selected value
-let priceLookup = {};   // value → price_addon
-let colourLookup = {};  // value → hex
+let currentSelection = {
+    jar_type: 'classic_glass',
+    colour: 'ivory_white',
+    fragrance: 'vanilla_oud',
+    wick_type: 'single',
+    reference_image_url: ''
+};
 
-document.addEventListener('DOMContentLoaded', loadCustomizationOptions);
+// --- INITIALIZATION ---
+window.onload = () => {
+    renderStudio();
+    updateVisuals();
+};
 
-async function loadCustomizationOptions() {
-    try {
-        const res = await fetch('/admin/api/public/customization-options');
-        const data = await res.json();
-        optionsData = data.options || {};
-    } catch {
-        optionsData = {};
-    }
+function renderStudio() {
+    // Render Jars
+    const jarDiv = document.getElementById('jarOptions');
+    jarDiv.innerHTML = STUDIO_DATA.jar_type.map(j => `
+        <div class="col-6 col-md-3">
+            <div class="option-card-bespoke ${currentSelection.jar_type === j.value ? 'active' : ''}" onclick="pick('jar_type', '${j.value}')">
+                <i class="bi ${j.icon} option-icon"></i>
+                <div class="small fw-bold">${j.name}</div>
+                ${j.price > 0 ? `<div class="text-gold small mt-1">+₹${j.price}</div>` : ''}
+            </div>
+        </div>
+    `).join('');
 
-    // Merge fallback for missing categories
-    Object.keys(FALLBACK).forEach(cat => {
-        if (!optionsData[cat] || !optionsData[cat].length) {
-            optionsData[cat] = FALLBACK[cat];
-        }
-    });
+    // Render Colours
+    const colDiv = document.getElementById('colourOptions');
+    colDiv.innerHTML = STUDIO_DATA.colour.map(c => `
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="option-card-bespoke ${currentSelection.colour === c.value ? 'active' : ''}" onclick="pick('colour', '${c.value}')">
+                <div class="swatch-bespoke" style="background: ${c.hex}"></div>
+                <div class="small fw-bold" style="font-size: 0.65rem;">${c.name}</div>
+            </div>
+        </div>
+    `).join('');
 
-    // Build lookups
-    Object.values(optionsData).flat().forEach(o => {
-        if (o.price_addon) priceLookup[o.value] = o.price_addon;
-        if (o.color_hex) colourLookup[o.value] = o.color_hex;
-    });
+    // Render Fragrance
+    const fragDiv = document.getElementById('fragranceOptions');
+    fragDiv.innerHTML = STUDIO_DATA.fragrance.map(f => `
+        <div class="col-6 col-md-3">
+            <div class="option-card-bespoke ${currentSelection.fragrance === f.value ? 'active' : ''}" onclick="pick('fragrance', '${f.value}')">
+                <i class="bi ${f.icon} option-icon" style="opacity: 0.6;"></i>
+                <div class="small fw-bold">${f.name}</div>
+            </div>
+        </div>
+    `).join('');
 
-    renderSteps();
-    document.getElementById('customizeLoading').classList.add('d-none');
-    document.getElementById('customizeContent').classList.remove('d-none');
-    updatePreview();
-    updatePrice();
+    // Render Wicks
+    const wickDiv = document.getElementById('wickOptions');
+    wickDiv.innerHTML = STUDIO_DATA.wick_type.map(w => `
+        <button class="btn btn-sm ${currentSelection.wick_type === w.value ? 'btn-gold' : 'btn-outline-secondary'} flex-grow-1" onclick="pick('wick_type', '${w.value}')">
+            ${w.name} ${w.price > 0 ? `(+₹${w.price})` : ''}
+        </button>
+    `).join('');
 }
 
-function renderSteps() {
-    const container = document.getElementById('stepsContainer');
-    container.innerHTML = '';
-    let step = 1;
-
-    // Render steps in defined order
-    const orderedCats = ['jar_type','colour','fragrance','wick_type'];
-    
-    orderedCats.forEach(cat => {
-        const opts = optionsData[cat];
-        if (!opts || !opts.length) return;
-
-        const cfg = STEP_CONFIG[cat];
-        selections[cat] = opts[0].value;
-
-        let cardsHtml = opts.map((o, i) => {
-            const isColour = (cat === 'colour');
-            const iconHtml = isColour && o.color_hex
-                ? `<div class="colour-swatch" style="background:${o.color_hex};"></div>`
-                : `<div class="option-icon"><i class="bi ${o.icon || 'bi-circle'}"></i></div>`;
-            const priceHtml = o.price_addon ? `<small class="text-muted">+₹${o.price_addon}</small>` : '';
-            return `
-                <div class="col-6 col-md-3">
-                    <div class="option-card ${i===0?'active':''}" data-group="${cat}" data-value="${o.value}"
-                         onclick="selectOption(this, '${cat}')">
-                        ${iconHtml}
-                        <span class="d-block small fw-bold">${o.name}</span>
-                        ${priceHtml}
-                    </div>
-                </div>`;
-        }).join('');
-
-        container.innerHTML += `
-            <div class="customize-step mb-4">
-                <h5 class="step-label"><span class="step-number">${step}</span> ${cfg.label}</h5>
-                <div class="row g-3">${cardsHtml}</div>
-            </div>`;
-        step++;
-    });
-
-    document.getElementById('labelStepNum').textContent = step;
+function pick(cat, val) {
+    currentSelection[cat] = val;
+    renderStudio();
+    updateVisuals();
 }
 
-function selectOption(el, group) {
-    document.querySelectorAll(`[data-group="${group}"]`).forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-    selections[group] = el.dataset.value;
-    updatePreview();
-    updatePrice();
-}
-
-function updatePreview() {
-    // Wax Colour
-    const wax = document.getElementById('previewWax');
-    const selectedColour = selections['colour'];
-    if (wax) wax.style.background = colourLookup[selectedColour] || '#FFFFF0';
+function updateVisuals() {
+    // Wax Color
+    const colorData = STUDIO_DATA.colour.find(c => c.value === currentSelection.colour);
+    document.getElementById('vizWax').style.background = colorData ? colorData.hex : '#FFFFF0';
 
     // Jar Type
-    const jar = document.getElementById('previewJar');
-    const jarType = selections['jar_type'];
-    jar.className = 'preview-jar'; // reset
-    if (jarType.includes('glass')) jar.classList.add('jar-classic');
-    else if (jarType.includes('ceramic')) jar.classList.add('jar-ceramic');
-    else if (jarType.includes('tin')) jar.classList.add('jar-tin');
-    else if (jarType.includes('marble')) jar.classList.add('jar-marble');
+    const jar = document.getElementById('vizJar');
+    jar.className = 'preview-jar';
+    if (currentSelection.jar_type.includes('glass')) jar.classList.add('jar-classic');
+    else if (currentSelection.jar_type.includes('ceramic')) jar.classList.add('jar-ceramic');
+    else if (currentSelection.jar_type.includes('tin')) jar.classList.add('jar-tin');
+    else if (currentSelection.jar_type.includes('marble')) jar.classList.add('jar-marble');
 
     // Label Text
-    const label = document.getElementById('previewLabel');
-    if (label) label.textContent = document.getElementById('labelText')?.value || 'LUXOYA CANDLES';
+    const labelInput = document.getElementById('labelText').value;
+    document.getElementById('vizLabel').textContent = labelInput || 'LUXOYA';
+
+    // Price Update
+    let totalAddon = 0;
+    totalAddon += (STUDIO_DATA.jar_type.find(j => j.value === currentSelection.jar_type)?.price || 0);
+    totalAddon += (STUDIO_DATA.colour.find(c => c.value === currentSelection.colour)?.price || 0);
+    totalAddon += (STUDIO_DATA.wick_type.find(w => w.value === currentSelection.wick_type)?.price || 0);
+
+    document.getElementById('totalPrice').textContent = `₹${BASE_PRICE + totalAddon}`;
+    
+    // Summary Text
+    const frag = STUDIO_DATA.fragrance.find(f => f.value === currentSelection.fragrance)?.name;
+    document.getElementById('summaryDetails').innerHTML = `
+        <div class="d-flex justify-content-between mb-1"><span>Base Scent</span><span>${frag}</span></div>
+        <div class="d-flex justify-content-between mb-1"><span>Vessel</span><span>${STUDIO_DATA.jar_type.find(j => j.value === currentSelection.jar_type)?.name}</span></div>
+        <div class="d-flex justify-content-between"><span>Personalization</span><span>${labelInput ? 'Custom' : 'None'}</span></div>
+    `;
 }
 
-function updatePrice() {
-    let totalAddon = 0;
-    let addonHtml = '';
+async function handleFileUpload(input) {
+    if (!input.files || !input.files[0]) return;
+    
+    const statusText = document.getElementById('uploadStatusText');
+    const previewImg = document.getElementById('uploadPreviewImg');
+    
+    statusText.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading Inspiration...';
+    
+    const formData = new FormData();
+    formData.append('file', input.files[0]);
 
-    Object.entries(selections).forEach(([cat, val]) => {
-        const addon = priceLookup[val] || 0;
-        if (addon > 0) {
-            totalAddon += addon;
-            const catLabel = (STEP_CONFIG[cat]?.label || cat).replace(/Choose |Select |Pick /i, '');
-            addonHtml += `<div class="summary-row"><span>${catLabel}</span><span class="text-success">+₹${addon}</span></div>`;
+    try {
+        const res = await fetch('/api/customize/upload-reference', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            currentSelection.reference_image_url = data.url;
+            statusText.textContent = 'Inspiration Uploaded Successfully!';
+            previewImg.src = data.url;
+            previewImg.style.display = 'block';
+            showToast('Reference image attached to your design!');
+        } else {
+            statusText.textContent = 'Upload Failed. Try another image.';
+            showToast(data.error || 'Upload failed');
         }
-    });
-
-    document.getElementById('addonRows').innerHTML = addonHtml;
-    const finalPrice = basePrice + totalAddon;
-    document.getElementById('customTotal').textContent = `₹${finalPrice}`;
-    if (document.getElementById('mobileTotal')) {
-        document.getElementById('mobileTotal').textContent = `₹${finalPrice}`;
+    } catch (e) {
+        statusText.textContent = 'Network Error. Try again.';
+        showToast('Error uploading reference');
     }
 }
 
-async function addCustomToCart() {
-    const btn = document.getElementById('addCustomBtn');
+async function addToCart() {
+    const btn = document.getElementById('addBtn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adding...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>PREPARING STUDIO...';
 
-    // Calculate total addon
+    // Calculate final addon
     let totalAddon = 0;
-    Object.values(selections).forEach(val => { totalAddon += (priceLookup[val] || 0); });
+    totalAddon += (STUDIO_DATA.jar_type.find(j => j.value === currentSelection.jar_type)?.price || 0);
+    totalAddon += (STUDIO_DATA.colour.find(c => c.value === currentSelection.colour)?.price || 0);
+    totalAddon += (STUDIO_DATA.wick_type.find(w => w.value === currentSelection.wick_type)?.price || 0);
+
+    const payload = {
+        product_id: null,
+        quantity: 1,
+        customization: {
+            ...currentSelection,
+            label_text: document.getElementById('labelText').value,
+            additional_notes: document.getElementById('additionalNotes').value,
+            price_addon: totalAddon
+        }
+    };
 
     try {
         const res = await fetch('/api/cart', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
-            body: JSON.stringify({
-                product_id: null,
-                quantity: 1,
-                customization: {
-                    jar_type: selections['jar_type'] || '',
-                    colour: selections['colour'] || '',
-                    fragrance: selections['fragrance'] || '',
-                    wick_type: selections['wick_type'] || '',
-                    label_text: document.getElementById('labelText')?.value || '',
-                    additional_notes: document.getElementById('additionalNotes')?.value || '',
-                    price_addon: totalAddon
-                }
-            })
+            body: JSON.stringify(payload)
         });
 
         if (res.status === 401) {
-            showToast('Please login to add items to cart');
-            setTimeout(() => { window.location.href = '/login'; }, 1200);
+            showToast('Please login to request bespoke pieces');
+            setTimeout(() => { window.location.href = '/login'; }, 1500);
             return;
         }
 
-        const data = await res.json();
         if (res.ok) {
-            showToast('Custom candle added to cart!');
+            showToast('Bespoke design added to your cart!');
             updateCartBadge();
+            // Optional: Redirect to cart
+            setTimeout(() => { window.location.href = '/cart'; }, 1000);
         } else {
-            showToast(data.error || 'Failed to add to cart');
+            const data = await res.json();
+            showToast(data.error || 'Studio error. Please try again.');
         }
-    } catch {
-        showToast('Network error. Please try again.');
+    } catch (e) {
+        showToast('Network error. Check your connection.');
     } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-bag-plus me-2"></i>Add Custom Candle to Cart';
+        btn.innerHTML = '<i class="bi bi-stars me-2"></i>REQUEST BESPOKE PIECE';
     }
 }
 </script>

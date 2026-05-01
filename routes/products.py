@@ -1,9 +1,34 @@
 from flask import Blueprint, request, jsonify, render_template
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import Product, Category, Review, User, OrderItem, Order, ProductImage, db
+from models import Product, Category, Review, User, OrderItem, Order, ProductImage, CustomizationOption, db
 from routes.auth import get_current_user
+from routes.admin import save_upload
 
 products_bp = Blueprint('products', __name__)
+
+# ─────────────────────────────────────────────
+# API: Upload Reference Image for Bespoke
+# ─────────────────────────────────────────────
+@products_bp.route('/api/customize/upload-reference', methods=['POST'])
+def upload_reference():
+    """Allows customers to upload inspiration images for bespoke orders."""
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    
+    file = request.files['file']
+    if not file or file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+        
+    try:
+        url = save_upload(file, subfolder='bespoke')
+        if not url:
+            return jsonify({'error': 'File type not allowed'}), 400
+            
+        db.session.commit()
+        return jsonify({'url': url}), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 
 # ─────────────────────────────────────────────

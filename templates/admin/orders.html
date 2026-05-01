@@ -445,8 +445,24 @@ async function viewOrder(id) {
                             <thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead>
                             <tbody>
                                 ${(o.items || []).map(i => `
-                                    <tr>
-                                        <td>${i.product_name || (i.product ? i.product.name : 'Product')}${i.customization ? '<br><small class="text-muted">'+i.customization.jar_type+' | '+i.customization.colour+'</small>' : ''}</td>
+                                        <td>
+                                            ${i.product_name || (i.product ? i.product.name : 'Product')}
+                                            ${i.customization ? `
+                                                <div class="mt-1 small text-muted">
+                                                    <span class="badge bg-dark">${i.customization.jar_type}</span>
+                                                    <span class="badge bg-dark">${i.customization.colour}</span>
+                                                    ${i.customization.reference_image_url ? `
+                                                        <div class="mt-2">
+                                                            <a href="${i.customization.reference_image_url}" target="_blank" class="text-gold text-decoration-none small">
+                                                                <i class="bi bi-image me-1"></i>View Inspiration Photo
+                                                            </a>
+                                                            <br>
+                                                            <img src="${i.customization.reference_image_url}" class="mt-1 rounded" style="width: 60px; height: 60px; object-fit: cover; border: 1px solid #444;">
+                                                        </div>
+                                                    ` : ''}
+                                                </div>
+                                            ` : ''}
+                                        </td>
                                         <td>${i.quantity}</td>
                                         <td>₹${parseFloat(i.price).toLocaleString('en-IN')}</td>
                                         <td>₹${(i.price * i.quantity).toLocaleString('en-IN')}</td>

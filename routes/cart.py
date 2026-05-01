@@ -104,6 +104,7 @@ def add_to_cart():
             fragrance=customization_data.get('fragrance', 'vanilla_oud'),
             wick_type=customization_data.get('wick_type', 'single'),
             label_text=customization_data.get('label_text', ''),
+            reference_image_url=customization_data.get('reference_image_url', ''),
             additional_notes=customization_data.get('additional_notes', ''),
             price_addon=customization_data.get('price_addon', 0.0)
         )

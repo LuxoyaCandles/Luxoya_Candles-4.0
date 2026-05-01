@@ -298,6 +298,7 @@ class Customization(db.Model):
     fragrance = db.Column(db.String(100), nullable=False)  # vanilla_oud, rose_sandalwood, fresh_linen, amber_noir
     wick_type = db.Column(db.String(20), nullable=False)  # single, double, triple
     label_text = db.Column(db.String(255), nullable=True)
+    reference_image_url = db.Column(db.String(500), nullable=True)
     additional_notes = db.Column(db.Text, nullable=True)
     price_addon = db.Column(db.Float, default=0.0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -313,6 +314,7 @@ class Customization(db.Model):
             'fragrance': self.fragrance,
             'wick_type': self.wick_type,
             'label_text': self.label_text,
+            'reference_image_url': self.reference_image_url,
             'additional_notes': self.additional_notes,
             'price_addon': self.price_addon
         }
