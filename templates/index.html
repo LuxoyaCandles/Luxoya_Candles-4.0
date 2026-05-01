@@ -519,14 +519,14 @@
                 <a href="{{ url_for('products.customize') }}" class="btn btn-gold btn-lg px-5 py-3 shadow btn-glow">ENTER FULL STUDIO <i class="bi bi-arrow-right ms-2"></i></a>
             </div>
             <div class="col-lg-6 order-first order-lg-last" data-aos="fade-left">
-                <div class="mini-preview-wrap rounded-5 p-5 d-flex align-items-center justify-content-center animate-breathing" 
-                     style="background: radial-gradient(circle, #222 0%, #000 100%); border: 1px solid rgba(248, 213, 126, 0.1); min-height: 400px;">
-                    <div class="preview-candle" id="miniCandle" style="transform: scale(1.2);">
-                        <div class="preview-flame"><i class="bi bi-fire text-warning"></i></div>
-                        <div class="preview-wick" style="background:#444; width:4px; height:10px; position:absolute; top:-8px; left:50%; transform:translateX(-50%);"></div>
-                        <div class="preview-wax" id="miniWax" style="background:#FFFFF0; height:85%; bottom:5px; left:5px; right:5px; position:absolute; border-radius:10px;"></div>
-                        <div class="preview-jar jar-classic" id="miniJar" style="position:absolute; inset:0; border-radius:15px; border:2px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); backdrop-filter:blur(2px);"></div>
-                        <div class="preview-label" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:#fff; color:#000; font-size:0.6rem; padding:8px 5px; font-weight:bold; letter-spacing:1px; min-width:80px; text-align:center;">LUXOYA</div>
+                <div class="mini-preview-wrap rounded-5 p-5 d-flex align-items-center justify-content-center" 
+                     style="background: radial-gradient(circle at 50% 40%, #1a1a1a 0%, #000 100%); border: 1px solid rgba(197, 160, 68, 0.1); min-height: 400px; position: relative;">
+                    <div class="preview-candle" id="miniCandle" style="width: 140px; height: 190px; position: relative; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.8));">
+                        <div class="preview-flame" style="position: absolute; top: -35px; left: 50%; transform: translateX(-50%); z-index: 25; font-size: 2.2rem; color: #ffb400; filter: blur(0.5px) drop-shadow(0 0 20px rgba(255, 180, 0, 0.8)); animation: flame-flicker 0.2s infinite alternate;"><i class="bi bi-fire"></i></div>
+                        <div class="preview-wick" style="position: absolute; top: -10px; left: 50%; width: 4px; height: 12px; background: #1a1a1a; transform: translateX(-50%); z-index: 4; border-radius: 2px;"></div>
+                        <div class="preview-wax" id="miniWax" style="position: absolute; bottom: 8px; left: 8px; right: 8px; top: 12px; border-radius: 8px 8px 12px 12px; z-index: 5; background: #FFFFF0; transition: all 0.5s ease; box-shadow: inset 0 10px 20px rgba(0,0,0,0.15), inset 0 -5px 15px rgba(255,255,255,0.05);"></div>
+                        <div class="preview-jar jar-classic" id="miniJar" style="position: absolute; inset: 0; border-radius: 12px 12px 18px 18px; z-index: 10; border: 2px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); backdrop-filter: blur(4px); box-shadow: inset 0 4px 10px rgba(255,255,255,0.1), inset -5px -5px 15px rgba(0,0,0,0.4); transition: all 0.5s ease;"></div>
+                        <div class="preview-label" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(255,255,255,0.95); color: #000; font-size: 0.55rem; padding: 6px 4px; font-weight: bold; letter-spacing: 2px; min-width: 70px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 20;">LUXOYA</div>
                     </div>
                 </div>
             </div>
@@ -542,10 +542,15 @@
     .mini-studio-opt:hover { border-color: var(--lx-gold); }
     .mini-studio-opt.active { background: var(--lx-gold); color: black; border-color: var(--lx-gold); font-weight: bold; }
     
-    .jar-classic { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2) !important; }
-    .jar-ceramic { background: #f0f0f0 !important; border: none !important; }
-    .jar-tin { background: linear-gradient(135deg, #d4af37, #f9f295, #d4af37) !important; border: none !important; }
-    .jar-marble { background: url('https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=200') !important; background-size: cover !important; border: none !important; }
+    /* Jar Texture Overrides for Mini */
+    .mini-preview-wrap .jar-ceramic { background: #111 !important; border-color: rgba(255,255,255,0.05) !important; }
+    .mini-preview-wrap .jar-tin { background: linear-gradient(145deg, #c5a044, #8b6b23) !important; border: none !important; }
+    .mini-preview-wrap .jar-marble { background: url('https://images.unsplash.com/photo-1533154683836-84ea7a0bc310?w=200') !important; background-size: cover !important; filter: brightness(0.7); border: none !important; }
+    
+    @keyframes flame-flicker {
+        0% { transform: translateX(-50%) scale(1) rotate(-1deg); opacity: 0.9; }
+        100% { transform: translateX(-50%) scale(1.05) rotate(1deg); opacity: 1; }
+    }
 </style>
 
 <script>
@@ -559,12 +564,12 @@
         jar.className = 'preview-jar ' + jarClass;
         wax.style.background = waxColor;
         
-        // Add subtle animation
+        // Add subtle interaction pop
         document.getElementById('miniCandle').animate([
-            { transform: 'scale(1.2)' },
-            { transform: 'scale(1.25)' },
-            { transform: 'scale(1.2)' }
-        ], { duration: 300 });
+            { transform: 'scale(1)' },
+            { transform: 'scale(1.05)' },
+            { transform: 'scale(1)' }
+        ], { duration: 400, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
     }
 </script>
 
